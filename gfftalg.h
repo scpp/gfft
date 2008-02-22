@@ -12,19 +12,23 @@
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
 
-#ifndef __dl_h
-#define __dl_h
+#ifndef __gfftalg_h
+#define __gfftalg_h
+
+/** \file
+    \brief General algorithms and short-radix specifications of FFT
+*/
+
+#include "metafunc.h"
+
 
 namespace DFT {
 
-///// template class DLTime
-// Danielson-Lanczos section of the decimation-in-time
-// FFT version
+/// Danielson-Lanczos section of the decimation-in-time FFT version
 
-template<unsigned N, typename T=double, bool isInverse=false>
+template<unsigned N, typename T, int S>
 class DLTime {
-   DLTime<N/2,T,isInverse> next;
-   enum { S = isInverse ? -1 : 1 };
+   DLTime<N/2,T,S> next;
 public:
    void apply(T* data) {
       next.apply(data);
@@ -54,9 +58,9 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLTime<4,T,isInverse> {
-   enum { S = isInverse ? -1 : 1 };
+/// Specialization for N=4, decimation-in-time
+template<typename T, int S>
+class DLTime<4,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -87,8 +91,9 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLTime<2,T,isInverse> {
+/// Specialization for N=2, decimation-in-time
+template<typename T, int S>
+class DLTime<2,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -100,20 +105,18 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLTime<1,T,isInverse> {
+/// Specialization for N=1, decimation-in-time
+template<typename T, int S>
+class DLTime<1,T,S> {
 public:
    void apply(T* data) { }
 };
 
-///// template class DLFreq
-// Danielson-Lanczos section of the decimation-in-frequency
-// FFT version
 
-template<unsigned N, typename T=double, bool isInverse=false>
+/// Danielson-Lanczos section of the decimation-in-frequency FFT version
+template<unsigned N, typename T, int S>
 class DLFreq {
-   DLFreq<N/2,T,isInverse> next;
-   enum { S = isInverse ? -1 : 1 };
+   DLFreq<N/2,T,S> next;
 public:
    void apply(T* data) {
 
@@ -144,9 +147,9 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLFreq<4,T,isInverse> {
-   enum { S = isInverse ? -1 : 1 };
+/// Specialization for N=4, decimation-in-frequency
+template<typename T, int S>
+class DLFreq<4,T,S> {
 public:
    void apply(T* data) {
       T tr = data[4];
@@ -177,8 +180,9 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLFreq<2,T,isInverse> {
+/// Specialization for N=2, decimation-in-frequency
+template<typename T, int S>
+class DLFreq<2,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -190,14 +194,15 @@ public:
    }
 };
 
-template<typename T, bool isInverse>
-class DLFreq<1,T,isInverse> {
+/// Specialization for N=1, decimation-in-frequency
+template<typename T, int S>
+class DLFreq<1,T,S> {
 public:
    void apply(T* data) { }
 };
 
-///////////////////////////
 
+/// Binary reordering of array elements
 template<unsigned N, typename T=double>
 class GFFTswap {
 public:
@@ -218,6 +223,46 @@ public:
    }
 };
 
+/// Reordering of data for real-valued transforms
+template<unsigned N, typename T, int S>
+class Separate {
+//   enum { S = isInverse ? -1 : 1 };
+   enum { M = (S==1) ? 2 : 1 };
+public:
+   void apply(T* data) {
+      unsigned int i,i1,i2,i3,i4;
+      T wtemp,tempr,tempi,wr,wi,wpr,wpi;
+      T h1r,h1i,h2r,h2i;
+      wtemp = Sin<2*N,1,T>::value();
+      wpr = -2.0*wtemp*wtemp;
+      wpi = -S*Sin<N,1,T>::value();
+      wr = 1.0+wpr;
+      wi = wpi;
+      for (i=1; i<N/2; ++i) {
+        i1 = i+i;
+        i2 = i1+1;
+        i3 = 2*N-i1;
+        i4 = i3+1;
+        h1r = 0.5*(data[i1]+data[i3]);
+        h1i = 0.5*(data[i2]-data[i4]);
+        h2r = S*0.5*(data[i2]+data[i4]);
+        h2i =-S*0.5*(data[i1]-data[i3]);
+        data[i1] = h1r + wr*h2r - wi*h2i;
+        data[i2] = h1i + wr*h2i + wi*h2r;
+        data[i3] = h1r - wr*h2r + wi*h2i;
+        data[i4] =-h1i + wr*h2i + wi*h2r;
+
+        wtemp = wr;
+        wr += wr*wpr - wi*wpi;
+        wi += wi*wpr + wtemp*wpi;
+      }
+      h1r = data[0];
+      data[0] = M*0.5*(h1r + data[1]);
+      data[1] = M*0.5*(h1r - data[1]);
+   }
+};
+
+
 }  //namespace DFT
 
-#endif /*__dl_h*/
+#endif /*__gfftalg_h*/

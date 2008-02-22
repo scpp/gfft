@@ -12,18 +12,16 @@
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
 
-// Compile-time computing of functions
-
-
 #ifndef __metafunc_h
 #define __metafunc_h
 
+/** \file
+    \brief Compile-time computing of sine and cosine functions
+*/
+
 #include <cmath>
 
-////// template class SinCosSeries
-// common series to compile-time calculation
-// of sine and cosine functions
-
+/// Common series to compile-time calculation of sine and cosine functions
 template<unsigned M, unsigned N, unsigned B, unsigned A>
 struct SinCosSeries {
    static double value() {
@@ -37,18 +35,19 @@ struct SinCosSeries<N,N,B,A> {
    static double value() { return 1.; }
 };
 
-////// template class Sin
-// compile-time calculation of sin(A*M_PI/B) function
 
 template<unsigned B, unsigned A, typename T=double>
 struct Sin;
 
+/// Compile-time calculation of sin(A*M_PI/B) function
 template<unsigned B, unsigned A>
 struct Sin<B,A,float> {
    static float value() {
       return (A*M_PI/B)*SinCosSeries<2,24,B,A>::value();
    }
 };
+
+/// Compile-time calculation of sin(A*M_PI/B) function
 template<unsigned B, unsigned A>
 struct Sin<B,A,double> {
    static double value() {
@@ -56,18 +55,19 @@ struct Sin<B,A,double> {
    }
 };
 
-////// template class Cos
-// compile-time calculation of cos(A*M_PI/B) function
 
 template<unsigned B, unsigned A, typename T=double>
 struct Cos;
 
+/// Compile-time calculation of cos(A*M_PI/B) function
 template<unsigned B, unsigned A>
 struct Cos<B,A,float> {
    static float value() {
       return SinCosSeries<1,23,B,A>::value();
    }
 };
+
+/// Compile-time calculation of sin(A*M_PI/B) function
 template<unsigned B, unsigned A>
 struct Cos<B,A,double> {
    static double value() {

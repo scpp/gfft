@@ -15,15 +15,19 @@
 #ifndef __finit_h
 #define __finit_h
 
-#include "loki/Typelist.h"
+/** \file
+    \brief Initialization of object factory
+*/
 
-////// template class FactoryInit
-// object factory initialization class
-// register all the classes from TList in
-// object factory Fact
+#include "loki/Typelist.h"
 
 template<class TList>
 struct FactoryInit;
+
+/// Object factory initialization class
+/** Register all the classes from the TypeList in
+    object factory Fact
+*/
 
 template<class H, class T>
 struct FactoryInit<Loki::Typelist<H,T> > {
