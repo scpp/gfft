@@ -42,7 +42,7 @@ T norm2(const T* data, const unsigned int n) {
 }
 
 
-typedef double VType;
+typedef float VType;
 
 int main(int argc, char *argv[])
 {
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
 //    gfft_init();
 //FactoryInit<DFT::GFFTList<DFT::GFFTf,Min,Max>::Result>::apply(DFT::gfft);
-    DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INTIME,DFT::DIRECT>* gfft;
+    DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INFREQ,DFT::FORWARD>* gfft;
 
    fftw_complex* in;
 //   fftw_plan plan;
@@ -92,17 +92,24 @@ int main(int argc, char *argv[])
 
 // apply FFT in-place
     fftobj->fft(data);
-//    four1(data1,n,1);
+    four1(data1,n,1);
 
-    fftw_plan plan = fftw_plan_dft_1d(n, in, in, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute(plan);
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data1[2*i]/(VType)n<<","<<data1[2*i+1]/(VType)n<<")"<<endl;
+
+//     fftw_plan plan = fftw_plan_dft_1d(n, in, in, FFTW_FORWARD, FFTW_ESTIMATE);
+//     fftw_execute(plan);
 
     d1=norm_inf(data,2*n);
-//    for (i=0; i<2*n; ++i) data[i]-=data1[i];
-    for (i=0; i<n; ++i) {
-      data[2*i]-=in[i][0];
-      data[2*i+1]-=in[i][1];
-    }
+    for (i=0; i<2*n; ++i) data[i]-=data1[i];
+//     for (i=0; i<n; ++i) {
+//       data[2*i]-=in[i][0];
+//       data[2*i+1]-=in[i][1];
+//     }
 
     d=norm_inf(data,2*n);
     cout<<"L2:"<<norm2(data,2*n)<<"  Max:"<<d<<"  Rel:"<<d/d1<<endl;

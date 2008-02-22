@@ -28,19 +28,20 @@ namespace DFT {
 
 template<unsigned N, typename T, int S>
 class InTime {
+   typedef double LocalVType;
    InTime<N/2,T,S> next;
 public:
    void apply(T* data) {
       next.apply(data);
       next.apply(data+N);
 
-      T wtemp,tempr,tempi,wr,wi,wpr,wpi;
+      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
 //    Change dynamic calculation to the static one
 //      wtemp = sin(S*M_PI/N);
-      wtemp = Sin<N,1,T>::value();
+      wtemp = Sin<N,1,LocalVType>::value();
       wpr = -2.0*wtemp*wtemp;
 //      wpi = -sin(2*M_PI/N);
-      wpi = -S*Sin<N,2,T>::value();
+      wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
       for (unsigned i=0; i<N; i+=2) {
@@ -116,17 +117,18 @@ public:
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
 template<unsigned N, typename T, int S>
 class InFreq {
+   typedef double LocalVType;
    InFreq<N/2,T,S> next;
 public:
    void apply(T* data) {
 
-      T wtemp,tempr,tempi,wr,wi,wpr,wpi;
+      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
 //    Change dynamic calculation to the static one
 //      wtemp = sin(M_PI/N);
-      wtemp = Sin<N,1,T>::value();
+      wtemp = Sin<N,1,LocalVType>::value();
       wpr = -2.0*wtemp*wtemp;
 //      wpi = -sin(2*M_PI/N);
-      wpi = -S*Sin<N,2,T>::value();
+      wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
       for (unsigned i=0; i<N; i+=2) {
@@ -226,16 +228,16 @@ public:
 /// Reordering of data for real-valued transforms
 template<unsigned N, typename T, int S>
 class Separate {
-//   enum { S = isInverse ? -1 : 1 };
+   typedef double LocalVType;
    enum { M = (S==1) ? 2 : 1 };
 public:
    void apply(T* data) {
       unsigned int i,i1,i2,i3,i4;
-      T wtemp,tempr,tempi,wr,wi,wpr,wpi;
-      T h1r,h1i,h2r,h2i;
-      wtemp = Sin<2*N,1,T>::value();
+      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
+      LocalVType h1r,h1i,h2r,h2i;
+      wtemp = Sin<2*N,1,LocalVType>::value();
       wpr = -2.0*wtemp*wtemp;
-      wpi = -S*Sin<N,1,T>::value();
+      wpi = -S*Sin<N,1,LocalVType>::value();
       wr = 1.0+wpr;
       wi = wpi;
       for (i=1; i<N/2; ++i) {

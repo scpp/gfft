@@ -24,6 +24,7 @@
 
 namespace DFT {
 
+
 template<class TList>
 struct PoliciesHandler;
 
@@ -70,16 +71,16 @@ public:
 class Empty { };
 
 
-/// Policy for a definition of direct FFT
+/// Policy for a definition of forward FFT
 template<unsigned N, typename T>
-struct Direct {
+struct Forward {
    enum { Sign = 1 };
    void apply(T*) { }
 };
 
-/// Policy for a definition of inverse FFT
+/// Policy for a definition of backward FFT
 template<unsigned N, typename T>
-struct Inverse {
+struct Backward {
    enum { Sign = -1 };
    void apply(T* data) {
       for (T* i=data; i<data+2*N; ++i) *i/=N;

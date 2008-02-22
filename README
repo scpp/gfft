@@ -1,0 +1,36 @@
+Generative Fast Fourier Transforms (GFFT), Version 0.1
+(C) Vladimir Myrnyy (Vladimir Mirnyi), 2005-2008
+
+Introduction
+
+    Generic simple and efficient Fast Fourier Transforms (FFT) implementation
+    using policy-based design and template metaprogramming.
+    Features:
+    - Transforms in-place
+    - Complex FFT of power-of-two length.
+      See Numerical recipes in C, Chap. 12.2 for theory
+      http://www.nrbook.com/a/bookcpdf/c12-2.pdf
+    - Single real function FFT of power-of-two length
+      See Numerical recipes in C, Chap. 12.3 for theory and data format
+      http://www.nrbook.com/a/bookcpdf/c12-3.pdf
+    - High and cache-independent performance
+    - No additional data is stored.
+      You can use all available RAM for your transformed data
+    - One-step transform.
+      Many known FFT implementation perform to steps: initialization and transform.
+      Initialization for a given length is usually computationally expensive,
+      while transform is fast. GFFT needs only to create an object instance that
+      includes FFT-algorithm, but no additional data or computation.
+
+Installation 
+
+   GFFT consists only of a few files and needs no installation.
+   You can take a look into sample file gfft.cpp to see, how the library is used.
+   It can be compiled by many modern C++ compilers.
+
+License
+
+   GFFT is provided under the terms of GPL.
+
+
+http://gfft.sourceforge.net
