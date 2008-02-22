@@ -20,15 +20,12 @@
 
 #include "gfft.h"
 
-#include "nrfft.h"
-
-
 using namespace std;
 
 typedef double ValueType;
 
 const unsigned Min = 1;
-const unsigned Max = 24;
+const unsigned Max = 30;
 
 int main(int argc, char *argv[])
 {
@@ -38,16 +35,16 @@ int main(int argc, char *argv[])
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::RVGFFT,DFT::InFreq,DFT::Direct>* gfft;
+    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::DIRECT>* gfft;
     DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
 //    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
-//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::GFFT,DFT::InFreq,DFT::Direct>::Result>::apply(gfft);
+//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::DIRECT>::Result>::apply(gfft);
 //    DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p);
 
 // 3) create FFT object of specific length, if the length is known at compile-time
-//     typedef DFT::GFFT<2,ValueType,DFT::InFreq,DFT::Direct> MyGFFT;
+//     typedef DFT::GFFT<2,ValueType,DFT::REAL,DFT::INTIME,DFT::DIRECT> MyGFFT;
 //     MyGFFT* fftobj = new MyGFFT;
 
 // create sample data

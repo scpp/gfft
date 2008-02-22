@@ -25,7 +25,7 @@ template<class TList>
 struct FactoryInit;
 
 /// Object factory initialization class
-/** Register all the classes from the TypeList in
+/** Register all classes from TypeList in
     object factory Fact
 */
 

@@ -27,8 +27,8 @@ namespace DFT {
 /// Danielson-Lanczos section of the decimation-in-time FFT version
 
 template<unsigned N, typename T, int S>
-class DLTime {
-   DLTime<N/2,T,S> next;
+class InTime {
+   InTime<N/2,T,S> next;
 public:
    void apply(T* data) {
       next.apply(data);
@@ -60,7 +60,7 @@ public:
 
 /// Specialization for N=4, decimation-in-time
 template<typename T, int S>
-class DLTime<4,T,S> {
+class InTime<4,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -93,7 +93,7 @@ public:
 
 /// Specialization for N=2, decimation-in-time
 template<typename T, int S>
-class DLTime<2,T,S> {
+class InTime<2,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -107,7 +107,7 @@ public:
 
 /// Specialization for N=1, decimation-in-time
 template<typename T, int S>
-class DLTime<1,T,S> {
+class InTime<1,T,S> {
 public:
    void apply(T* data) { }
 };
@@ -115,8 +115,8 @@ public:
 
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
 template<unsigned N, typename T, int S>
-class DLFreq {
-   DLFreq<N/2,T,S> next;
+class InFreq {
+   InFreq<N/2,T,S> next;
 public:
    void apply(T* data) {
 
@@ -149,7 +149,7 @@ public:
 
 /// Specialization for N=4, decimation-in-frequency
 template<typename T, int S>
-class DLFreq<4,T,S> {
+class InFreq<4,T,S> {
 public:
    void apply(T* data) {
       T tr = data[4];
@@ -182,7 +182,7 @@ public:
 
 /// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>
-class DLFreq<2,T,S> {
+class InFreq<2,T,S> {
 public:
    void apply(T* data) {
       T tr = data[2];
@@ -196,7 +196,7 @@ public:
 
 /// Specialization for N=1, decimation-in-frequency
 template<typename T, int S>
-class DLFreq<1,T,S> {
+class InFreq<1,T,S> {
 public:
    void apply(T* data) { }
 };

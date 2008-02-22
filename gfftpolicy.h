@@ -15,12 +15,42 @@
 #ifndef __gfftpolicy_h
 #define __gfftpolicy_h
 
+#include "loki/Typelist.h"
+
 /** \file
     \brief Policy classes
 */
 
 
 namespace DFT {
+
+template<class TList>
+struct PoliciesHandler;
+
+/// Instantiates each type of the typelist and calls function apply
+/**
+    All the classes in TList must include function apply(T*) with one parameter
+    as a pointer on type T.
+*/
+
+template<class Head, class Tail>
+struct PoliciesHandler<Loki::Typelist<Head,Tail> > {
+   template<typename T>
+   void apply(T* data) {
+      obj.apply(data);
+      next.apply(data);
+   }
+private:
+   Head obj;
+   PoliciesHandler<Tail> next;
+};
+
+template<>
+struct PoliciesHandler<Loki::NullType> {
+   template<typename T>
+   void apply(T*) { }
+};
+
 
 /// Abstract base class to build an object factory
 /** It shares the function fft(T*) between
@@ -38,46 +68,6 @@ public:
     to avoid a virtual function call penalty
 */
 class Empty { };
-
-
-/// Policy for decimation-in-time FFT
-template<unsigned P, class T, class Direction>
-class InTime {
-public:
-   enum { Power = P, N = 1<<P };
-   typedef T ValueType;
-   typedef Direction Dir;
-
-   void apply(T* data) {
-      scramble.apply(data);
-      recursion.apply(data);
-      direction.apply(data);
-   }
-private:
-   GFFTswap<N,T> scramble;
-   DLTime<N,T,Direction::Sign> recursion;
-   Direction direction;
-};
-
-
-/// Policy for decimation-in-frequency FFT
-template<unsigned P, class T, class Direction>
-class InFreq {
-public:
-   enum { Power = P, N = 1<<P };
-   typedef T ValueType;
-   typedef Direction Dir;
-
-   void apply(T* data) {
-      recursion.apply(data);
-      scramble.apply(data);
-      direction.apply(data);
-   }
-private:
-   GFFTswap<N,T> scramble;
-   DLFreq<N,T,Direction::Sign> recursion;
-   Direction direction;
-};
 
 
 /// Policy for a definition of direct FFT

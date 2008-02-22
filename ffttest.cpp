@@ -11,60 +11,110 @@
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
-/*
+
+#include <cmath>
 #include <iostream>
+
+#include <fftw3.h>
 
 #include "gfft.h"
 #include "nrfft.h"
 
 using namespace std;
 
-typedef double Tp;
+template<typename T>
+T norm_inf(const T* data, const unsigned int n) {
+   if (n<1) return 0.;
+   T d=fabs(data[0]);
+   for (unsigned int i=1; i<n; ++i) {
+     if (fabs(data[i])>d) d=fabs(data[i]);
+   }
+   return d;
+}
+
+template<typename T>
+T norm2(const T* data, const unsigned int n) {
+   T s=0.;
+   for (unsigned int i=0; i<n; ++i) {
+     s += data[i]*data[i];
+   }
+   return sqrt(s);
+}
+
+
+typedef double VType;
 
 int main(int argc, char *argv[])
 {
 
     const unsigned Min = 1;
-    const unsigned Max = 30;
+    const unsigned Max = 21;
 
-    int k=2;
-    int i,it;
-    double t,mt;
-    unsigned n= 1<<k;
-    it = int(10000000./n)+1;
+    int p;
+    int i;
+    double d,d1;
+    unsigned n;
 
+    VType *data, *data1;
 //     Loki::Factory<DFT::AbstractFFT<Tp>,unsigned int> fft;
 //     FactoryInit<DFT::GFFTList<DFT::GFFTf,Min,Max>::Result>::apply(fft);
 //     DFT::AbstractFFT<Tp>* mf = fft.CreateObject(k);
 
 //    gfft_init();
 //FactoryInit<DFT::GFFTList<DFT::GFFTf,Min,Max>::Result>::apply(DFT::gfft);
+    DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INTIME,DFT::DIRECT>* gfft;
 
-    DFT::GFFT_Singleton<double>* gfft;
-    DFT::AbstractFFT<Tp>* mf = gfft->Instance().CreateObject(k);
+   fftw_complex* in;
+//   fftw_plan plan;
 
+    for (p=1; p<Max; ++p) {
+    n=1<<p;
+
+    DFT::AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
 
 // sample data
-    Tp* data = new Tp [2*n*it];
-    for (unsigned int j=0; j<it; ++j) {
-      for (i=0; i < n; ++i) {
-        data[2*(n*j+i)] = 2*i+j;
-        data[2*(n*j+i)+1] = 2*i+j+1;
-      }
+    data = new VType [2*n];
+    data1 = new VType [2*n];
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*n);
+    for (i=0; i < n; ++i) {
+       data[2*i] = rand();
+       data1[2*i] = data[2*i];
+       data[2*i+1] = rand();
+       data1[2*i+1] = data[2*i+1];
+       in[i][0] = data[2*i];
+       in[i][1] = data[2*i+1];
     }
 
+
 // print out sample data
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 // apply FFT in-place
-    mf->fft(data);
-//    four1(data,n,1);
+    fftobj->fft(data);
+//    four1(data1,n,1);
 
+    fftw_plan plan = fftw_plan_dft_1d(n, in, in, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(plan);
+
+    d1=norm_inf(data,2*n);
+//    for (i=0; i<2*n; ++i) data[i]-=data1[i];
+    for (i=0; i<n; ++i) {
+      data[2*i]-=in[i][0];
+      data[2*i+1]-=in[i][1];
+    }
+
+    d=norm_inf(data,2*n);
+    cout<<"L2:"<<norm2(data,2*n)<<"  Max:"<<d<<"  Rel:"<<d/d1<<endl;
+
+    delete [] data1;
+    delete [] data;
+    fftw_free(in);
+
+    }
 // print out transformed data
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 
 }
-*/

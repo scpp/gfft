@@ -57,39 +57,51 @@
 
 namespace DFT {
 
+enum FFTDirection { DIRECT, INVERSE };
+enum FFTDecimation { INTIME, INFREQ };
+enum FFTType { COMPLEX, REAL };
 
-/// Complex-valued fast Fourier transform in-place
+/// Generic Fast Fourier transform in-place
 template<unsigned P, class T,
-template<unsigned,class,class> class Decimation,  // InTime, InFreq
-template<unsigned,class> class Direction,         // Direct, Inverse
+FFTType Type,                          // COMPLEX, REAL
+FFTDecimation Decimation,              // INTIME, INFREQ
+FFTDirection Direction=DIRECT,         // DIRECT, INVERSE
 class FactoryPolicy=Empty>
 class GFFT:public FactoryPolicy {
-   typedef Decimation<P,T,Direction<P,T> > Decim;
-   enum { N = Decim::N };
-   Decim gfft;
+   enum { N = 1<<P };
+   typedef GFFTswap<N,T> Swap;
+   typedef typename Loki::Select<Direction==DIRECT,
+           Direct<N,T>,Inverse<N,T> >::Result Dir;
+
+   typedef InTime<N,T,Dir::Sign> InT;
+   typedef InFreq<N,T,Dir::Sign> InF;
+   typedef Separate<N,T,Dir::Sign> Sep;
+
+   typedef typename Loki::Select<Decimation==INTIME,
+           TYPELIST_3(Swap,InT,Dir),TYPELIST_3(InF,Swap,Dir)>::Result TList;
+   typedef typename Loki::Select<Type==REAL,
+      typename Loki::Select<Direction==DIRECT,
+      typename Loki::TL::Append<TList,Sep>::Result,
+               Loki::Typelist<Sep,TList> >::Result,TList>::Result Alg;
+
+   PoliciesHandler<Alg> run;
 public:
-   enum { id = Decim::Power };
+   enum { id = P };
    static FactoryPolicy* Create() {
-      return new GFFT<P,T,Decimation,Direction,FactoryPolicy>();
+      return new GFFT<P,T,Type,Decimation,Direction,FactoryPolicy>();
    }
    void fft(T* data) {
-      gfft.apply(data);
+      run.apply(data);
    }
 };
 
-
+/*
+/// Real-valued direct fast Fourier transform in-place
 template<unsigned P, class T,
 template<unsigned,class,class> class Decimation,  // InTime, InFreq
 template<unsigned,class> class Direction,         // Direct, Inverse
 class FactoryPolicy=Empty>
-class RVGFFT;
-
-
-/// Real-valued direct fast Fourier transform in-place
-template<unsigned P, class T,
-template<unsigned,class,class> class Decimation,  // InTime, InFreq
-class FactoryPolicy>
-class RVGFFT<P,T,Decimation,Direct,FactoryPolicy>:public FactoryPolicy {
+class RVGFFT : public FactoryPolicy {
    typedef Decimation<P,T,Direct<P,T> > Decim;
    enum { N = Decim::N };
    Decim gfft;
@@ -125,48 +137,40 @@ public:
       gfft.apply(data);
    }
 };
+*/
 
 /// Generator of a Typelist of GFFTs classes
 template<unsigned Begin, unsigned End, typename T,
-template<unsigned,class,
-template<unsigned,class,class> class,
-template<unsigned,class> class,
-class> class FFT,
-template<unsigned,class,class> class Decimation,
-template<unsigned,class> class Direction=Direct,
+FFTType Type,                          // COMPLEX, REAL
+FFTDecimation Decimation,              // INTIME, INFREQ
+FFTDirection Direction=DIRECT,         // DIRECT, INVERSE
 class FactoryPolicy=AbstractFFT<T> >
 struct GFFTList {
-   typedef Loki::Typelist<FFT<Begin,T,Decimation,Direction,FactoryPolicy>,
-           typename GFFTList<Begin+1,End,T,FFT,Decimation,Direction,
+   typedef Loki::Typelist<GFFT<Begin,T,Type,Decimation,Direction,FactoryPolicy>,
+           typename GFFTList<Begin+1,End,T,Type,Decimation,Direction,
                     FactoryPolicy>::Result> Result;
 };
 
 template<unsigned End, typename T,
-template<unsigned,class,
-template<unsigned,class,class> class,
-template<unsigned,class> class,
-class> class FFT,
-template<unsigned,class,class> class Decimation,
-template<unsigned,class> class Direction,
+FFTType Type,                          // COMPLEX, REAL
+FFTDecimation Decimation,              // INTIME, INFREQ
+FFTDirection Direction,                // DIRECT, INVERSE
 class FactoryPolicy>
-struct GFFTList<End,End,T,FFT,Decimation,Direction,FactoryPolicy> {
+struct GFFTList<End,End,T,Type,Decimation,Direction,FactoryPolicy> {
    typedef Loki::NullType Result;
 };
 
 
 /// Singleton for GFFT object factory
 template<unsigned Min, unsigned Max, typename T,
-template<unsigned,class,
-template<unsigned,class,class> class,
-template<unsigned,class> class,
-class> class FFT,
-template<unsigned,class,class> class Decimation,
-template<unsigned,class> class Direction>
+FFTType Type,                          // COMPLEX, REAL
+FFTDecimation Decimation,              // INTIME, INFREQ
+FFTDirection Direction=DIRECT>
 class GFFT_Singleton
 : public Loki::SingletonHolder<Loki::Factory<AbstractFFT<T>,unsigned int> > {
    typedef Loki::Factory<AbstractFFT<T>,unsigned int> GFFT_Factory;
    typedef Loki::SingletonHolder<GFFT_Factory> Base;
-   typedef FactoryInit<typename GFFTList<Min,Max,T,FFT,Decimation,Direction>::Result> FInit;
+   typedef FactoryInit<typename GFFTList<Min,Max,T,Type,Decimation,Direction>::Result> FInit;
 
    //Protection
    //GFFT_Singleton();
