@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "gfft.h"
+#include "nrfft.h"
 
 
 using namespace std;
@@ -26,17 +27,17 @@ using namespace std;
 typedef double ValueType;
 
 const unsigned Min = 1;
-const unsigned Max = 30;
+const unsigned Max = 28;
 
 int main(int argc, char *argv[])
 {
 
-    unsigned int i,p=3;
+    unsigned int i,p=2;
     unsigned int n= 1<<p;
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INFREQ,DFT::FORWARD>* gfft;
+    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>* gfft;
     DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
@@ -52,7 +53,7 @@ int main(int argc, char *argv[])
     ValueType* data = new ValueType [2*n];
     for (i=0; i < n; ++i) {
        data[2*i] = 2*i;
-       data[2*i+1] = 2*i+1;
+       data[2*i+1] = 2*i+1; //2*i+1;
     }
 
 // print out sample data
@@ -61,7 +62,9 @@ int main(int argc, char *argv[])
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 // apply FFT in-place
-    fftobj->fft(data);
+//    fftobj->fft(data);
+    four1(data,n,-1);
+    for (i=0; i < 2*n; ++i) data[i]/=n;
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;

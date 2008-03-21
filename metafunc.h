@@ -55,6 +55,13 @@ struct Sin<B,A,double> {
    }
 };
 
+/// Compile-time calculation of sin(A*M_PI/B) function
+template<unsigned B, unsigned A>
+struct Sin<B,A,long double> {
+   static long double value() {
+      return (A*M_PI/B)*SinCosSeries<2,60,B,A>::value();
+   }
+};
 
 template<unsigned B, unsigned A, typename T=double>
 struct Cos;

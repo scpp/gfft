@@ -80,7 +80,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = /home/myrnyy/prog/gss/branches/fftbrunch/src/fft
+INPUT                  = 
 FILE_PATTERNS          = *.c \
                          *.cc \
                          *.cxx \
@@ -112,9 +112,9 @@ FILE_PATTERNS          = *.c \
                          *.xpm \
                          *.dox
 RECURSIVE              = NO
-EXCLUDE                = /home/myrnyy/prog/gss/branches/fftbrunch/src/fft/nrfft.h \
-                         /home/myrnyy/prog/gss/branches/fftbrunch/src/fft/timer.h \
-                         /home/myrnyy/prog/gss/branches/fftbrunch/src/fft/ffttest.cpp
+EXCLUDE                = nrfft.h \
+                         timer.h \
+                         ffttest.cpp
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
 EXAMPLE_PATH           = 

@@ -28,7 +28,7 @@ namespace DFT {
 
 template<unsigned N, typename T, int S>
 class InTime {
-   typedef double LocalVType;
+   typedef long double LocalVType;
    InTime<N/2,T,S> next;
 public:
    void apply(T* data) {
@@ -209,8 +209,8 @@ template<unsigned N, typename T=double>
 class GFFTswap {
 public:
    void apply(T* data) {
-     int i,m,j=1;
-     for (i=1; i<2*N; i+=2) {
+     unsigned int m,j=1;
+     for (unsigned i=1; i<2*N; i+=2) {
         if (j>i) {
             std::swap(data[j-1], data[i-1]);
             std::swap(data[j], data[i]);
@@ -233,7 +233,7 @@ class Separate {
 public:
    void apply(T* data) {
       unsigned int i,i1,i2,i3,i4;
-      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
+      LocalVType wtemp,wr,wi,wpr,wpi;
       LocalVType h1r,h1i,h2r,h2i;
       wtemp = Sin<2*N,1,LocalVType>::value();
       wpr = -2.0*wtemp*wtemp;

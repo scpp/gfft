@@ -61,6 +61,7 @@ template<typename T>
 class AbstractFFT {
 public:
    virtual void fft(T*) = 0;
+   virtual ~AbstractFFT() {}
 };
 
 /// Abstract empty base class
