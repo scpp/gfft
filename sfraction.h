@@ -58,8 +58,21 @@ public:
    typedef SFraction<Num,Den> Result;
 };
 
+template<class N, class D, int Num>
+class Mult<SFraction<N,D>,SInt<Num> > {
+   typedef typename Mult<N,SInt<Num> >::Result Numer;
+public:
+   typedef SFraction<Numer,D> Result;
+};
 
-//////////////////////////////////////////////
+template<class N, class D, bool S, class NList, unsigned int Base>
+class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {
+   typedef typename Mult<N,SBigInt<S,NList,Base> >::Result Numer;
+public:
+   typedef SFraction<Numer,D> Result;
+};
+
+/////////////////////////////////////////////////////////////
 
 template<class N1, class D1, class N2, class D2>
 class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
@@ -71,6 +84,23 @@ public:
    typedef SFraction<Num,Den> Result;
 };
 
+template<class N, class D, int Num>
+class Add<SFraction<N,D>,SInt<Num> > {
+   typedef SInt<Num> T;
+   typedef typename Add<
+           typename Mult<D,T>::Result,N>::Result Numer;
+public:
+   typedef SFraction<Numer,D> Result;
+};
+
+template<class N, class D, bool S, class NList, unsigned int Base>
+class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
+   typedef SBigInt<S,NList,Base> T;
+   typedef typename Add<
+           typename Mult<D,T>::Result,N>::Result Numer;
+public:
+   typedef SFraction<Numer,D> Result;
+};
 
 
 #endif

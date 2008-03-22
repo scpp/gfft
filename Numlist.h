@@ -506,6 +506,39 @@ struct Print<Numlist<Num,Tail> > {
                 typename Reverse<Tail>::Result, Head>::Result Result;
         };
 
+/// \class Range
+/// \brief Returns a range of a numlist given by start and end index
+/// \param NList a numlist
+/// \param Start index of the first element to be included in the range
+/// \param End index of the last element to be included in the range
+/// \return a numlist that is the (start-end) range of NList:
+/// Range<NList,Start,End>::Result
+////////////////////////////////////////////////////////////////////////////////
+
+        template <class NList, unsigned int Start, unsigned int End,
+           unsigned int I=0, bool C=((I>=Start) && (I<=End))>
+        struct Range;
+
+        template <IntT H, class T, unsigned int Start,
+           unsigned int End, unsigned int I>
+        struct Range<Numlist<H,T>,Start,End,I,true>
+        {
+            typedef Numlist<H,typename Range<T,Start,End,I+1>::Result> Result;
+        };
+
+        template <IntT H, class T, unsigned int Start,
+           unsigned int End, unsigned int I>
+        struct Range<Numlist<H,T>,Start,End,I,false>
+        {
+            typedef typename Range<T,Start,End,I+1>::Result Result;
+        };
+
+        template <unsigned int Start,
+           unsigned int End, unsigned int I, bool C>
+        struct Range<NullType,Start,End,I,C>
+        {
+            typedef NullType Result;
+        };
 
 /// \class Max
 /// \brief Calculates the maximum value of a numlist
@@ -823,39 +856,41 @@ struct Print<Numlist<Num,Tail> > {
             enum { value = Num + Sum<Tail>::value };
         };
 
-/// \class Greater
+/// \class Compare
 /// \brief Compares elements in the numlist NList1 with NList2
 /// \param NList1 a numlist
 /// \param NList2 a numlist
-/// \return true, if the numlist NList1 greater than NList2
+/// \return Positive value, if the numlist NList1 greater than NList2,
+///         negative value otherwise. Returns zero, if NList1 and NList2 are equal.
 ///         (last element is the most significant) \n
-/// Greater<NList1,NList2>::value
+/// Compare<NList1,NList2>::value
 ////////////////////////////////////////////////////////////////////////////////
 
-        template <class NList1, class NList2> struct Greater;
+        template <class NList1, class NList2> struct Compare;
 
         template <IntT H1, class T1, IntT H2, class T2>
-        struct Greater<Numlist<H1,T1>,Numlist<H2,T2> >
+        struct Compare<Numlist<H1,T1>,Numlist<H2,T2> >
         {
-            enum { value = Greater<T1,T2>::value };
+            enum { v = Compare<T1,T2>::value };
+            enum { value = (v==0) ? (H1-H2) : v };
         };
 
         template <IntT H, class T>
-        struct Greater<Numlist<H,T>,NullType>
+        struct Compare<Numlist<H,T>,NullType>
         {
-            enum { value = true };
+            enum { value = 1 };
         };
 
         template <IntT H, class T>
-        struct Greater<NullType,Numlist<H,T> >
+        struct Compare<NullType,Numlist<H,T> >
         {
-            enum { value = false };
+            enum { value = -1 };
         };
 
         template <IntT H1, IntT H2>
-        struct Greater<Numlist<H1,NullType>,Numlist<H2,NullType> >
+        struct Compare<Numlist<H1,NullType>,Numlist<H2,NullType> >
         {
-            enum { value = (H1>H2) };
+            enum { value = (H1-H2) };
         };
 
 /// \class Sort
