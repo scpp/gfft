@@ -1,6 +1,3 @@
-/*! \file
-    \brief
-*/
 /***************************************************************************
                           Numlist.h  -  description
                              -------------------
@@ -18,6 +15,9 @@
 #ifndef __numlist_h
 #define __numlist_h
 
+/*! \file
+    \brief Compile-time integer array container and operations
+*/
 
 #ifndef INT_MAX
 #define INT_MAX __INT_MAX__

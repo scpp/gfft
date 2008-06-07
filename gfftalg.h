@@ -16,7 +16,7 @@
 #define __gfftalg_h
 
 /** \file
-    \brief General algorithms and short-radix specifications of FFT
+    \brief General algorithms and short-radix FFT specifications
 */
 
 #include "metafunc.h"
@@ -210,7 +210,7 @@ class GFFTswap {
 public:
    void apply(T* data) {
      unsigned int m,j=1;
-     for (unsigned i=1; i<2*N; i+=2) {
+     for (unsigned int i=1; i<2*N; i+=2) {
         if (j>i) {
             std::swap(data[j-1], data[i-1]);
             std::swap(data[j], data[i]);
@@ -229,16 +229,16 @@ public:
 template<unsigned N, typename T, int S>
 class Separate {
    typedef double LocalVType;
-   enum { M = (S==1) ? 2 : 1 };
+   static const int M = (S==1) ? 2 : 1;
 public:
    void apply(T* data) {
       unsigned int i,i1,i2,i3,i4;
       LocalVType wtemp,wr,wi,wpr,wpi;
       LocalVType h1r,h1i,h2r,h2i;
       wtemp = Sin<2*N,1,LocalVType>::value();
-      wpr = -2.0*wtemp*wtemp;
+      wpr = -2.*wtemp*wtemp;
       wpi = -S*Sin<N,1,LocalVType>::value();
-      wr = 1.0+wpr;
+      wr = 1.+wpr;
       wi = wpi;
       for (i=1; i<N/2; ++i) {
         i1 = i+i;
@@ -261,6 +261,8 @@ public:
       h1r = data[0];
       data[0] = M*0.5*(h1r + data[1]);
       data[1] = M*0.5*(h1r - data[1]);
+
+      data[N+1] = -data[N+1];
    }
 };
 

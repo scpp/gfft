@@ -51,7 +51,9 @@ typedef SBigInt<true,LL1,10> BI1;
 typedef SBigInt<true,LL2,10> BI2;
 typedef Div<BI1,BI2> D;
 
-typedef NL::Print<D::DivResult>::Result deb1;
+//D::ModResult a;
+typedef NL::Print<D::DivResult>::Result deb0;
+typedef NL::Print<D::ModResult>::Result deb1;
 // typedef NL::Print<SInt<D::L1> >::Result deb2;
 // typedef NL::Print<SInt<D::L2> >::Result deb3;
 

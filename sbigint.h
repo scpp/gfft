@@ -15,19 +15,35 @@
 #ifndef __sbigint_h
 #define __sbigint_h
 
+/*! \file
+    \brief Compile-time big integer implementation based on Numlist compile-time arrays
+*/
+
 typedef unsigned int uint;
 #define IntT uint
 #include "Numlist.h"
 
 #include "loki/TypeManip.h"
 
+/// \brief Integer number metacontainer.
+///        Integer N is wrapped into container class to handle integers and other
+///        compile-time number-classes using the same operation classes specializing
+///        them for particular number-container.
+/// \param N an integer number
+/////////////////////////////////////////////////////////////////////////
 template<int N>
 struct SInt {
    enum { Value = N };
 };
 
+/// \brief Big integer number metacontainer.
+/// \param S sign of the big integer
+/// \param NList Numlist containing series of digits in the Base numerical system,
+///              first element is least significant
+/// \param Base Numerical system base for the big integer representation
+/////////////////////////////////////////////////////////////////////////
 template<bool S, class NList,
-         unsigned int B/*=(1<<(sizeof(IntT)*4))*/>
+         unsigned int B=(1<<(sizeof(IntT)*4))>
 struct SBigInt {
    enum { isPositive = S };
    enum { Base = B };
@@ -55,8 +71,19 @@ class Mod;
 template<class F>
 class Abs;
 
-/////////////////////////////////////////////////////////////
+template<class C>
+class Simplify;
 
+/// \class Align
+/// \brief Division of every element in NList by Base.
+/// Reminder is assigned to a digit and quotient is added to a higher digit.
+/// This common operation is needed after addition and multiplication of
+/// big integers.
+/// \param NList Numlist containing series of digits
+/// \param Base Numerical system base
+/// \param Rest Quotient to carry to a higher digit
+/// \return Numlist with the digits of a big integer in system Base
+/////////////////////////////////////////////////////////////////////////
 template<class NList, unsigned int Base, IntT Rest=0> struct Align;
 
 template<IntT H, class T, unsigned int Base, IntT Rest>
@@ -94,42 +121,77 @@ struct __SwitchToBigInt<N,false> {
       NL::Numlist<N,NL::NullType>,Base>::Result Result;
 };
 
+/// \brief Compile-time addition of two integers.
+/// \param N1 an integer
+/// \param N2 an integer
+/// \return container class representing sum of N1 and N2.
+/// This can be big integer, if N1+N2 exceeds the predefined type IntT
+////////////////////////////////////////////////////////////
 template<int N1, int N2>
 class Add<SInt<N1>, SInt<N2> > {
 public:
    typedef typename __SwitchToBigInt<N1+N2>::Result Result;
 };
 
+/// \brief Compile-time subtraction of two integers.
+/// \param N1 an integer
+/// \param N2 an integer
+/// \return container class representing difference of N1 and N2.
+////////////////////////////////////////////////////////////
 template<int N1, int N2>
 class Sub<SInt<N1>, SInt<N2> > {
 public:
    typedef SInt<N1-N2> Result;
 };
 
+/// \brief Compile-time negation of an integer.
+/// \param N an integer
+/// \return container class representing (-N)
+////////////////////////////////////////////////////////////
 template<int N>
 class Negate<SInt<N> > {
 public:
    typedef SInt<-N> Result;
 };
 
+/// \brief Compile-time multiplication of two integers.
+/// \param N1 an integer
+/// \param N2 an integer
+/// \return container class representing product of N1 and N2.
+/// This can be big integer, if N1*N2 exceeds the predefined type IntT
+////////////////////////////////////////////////////////////
 template<int N1, int N2>
 class Mult<SInt<N1>, SInt<N2> > {
 public:
    typedef typename __SwitchToBigInt<N1*N2>::Result Result;
 };
 
+/// \brief Quotient from division of two integers.
+/// \param N1 an integer
+/// \param N2 an integer
+/// \return container class representing quotient from division of N1 by N2.
+////////////////////////////////////////////////////////////
 template<int N1, int N2>
 class Div<SInt<N1>, SInt<N2> > {
 public:
    typedef SInt<N1/N2> Result;
 };
 
+/// \brief Reminder from division of two integers.
+/// \param N1 an integer
+/// \param N2 an integer
+/// \return container class representing reminder from division of N1 by N2.
+////////////////////////////////////////////////////////////
 template<int N1, int N2>
 class Mod<SInt<N1>, SInt<N2> > {
 public:
    typedef SInt<N1%N2> Result;
 };
 
+/// \brief Absolute value of an integer.
+/// \param N an integer
+/// \return container class representing absolute value of N.
+////////////////////////////////////////////////////////////
 template<int N>
 class Abs<SInt<N> > {
    enum { AN = (N>0) ? N : -N };
@@ -137,13 +199,56 @@ public:
    typedef SInt<AN> Result;
 };
 
-///////////////////////////////////////////////////////
+/// \brief Absolute value of a big integer.
+/// \param S sign of the big integer
+/// \param NList Numlist containing series of digits
+/// \param Base Numerical system base
+/// \return container class representing absolute value of the big integer
+////////////////////////////////////////////////////////////
+template<bool S, class NList, unsigned int Base>
+class Abs<SBigInt<S,NList,Base> > {
+public:
+   typedef SBigInt<true,NList,Base>  Result;
+};
 
+/// \brief Compile-time negation of a big integer.
+/// \param S sign of the big integer
+/// \param NList Numlist containing series of digits
+/// \param Base Numerical system base
+/// \return container class representing the
+/// negative big integer SBigInt<-S,NList,Base>
+////////////////////////////////////////////////////////////
 template<bool S, class NList, unsigned int Base>
 class Negate<SBigInt<S,NList,Base> > {
 public:
    typedef SBigInt<!S,NList,Base> Result;
 };
+
+template<bool S, IntT H, class T, unsigned int Base>
+class Simplify<SBigInt<S,NL::Numlist<H,T>,Base> > {
+public:
+   typedef typename Simplify<SBigInt<S,T,Base> >::Result Result;
+};
+
+template<bool S, IntT H, unsigned int Base>
+class Simplify<SBigInt<S,NL::Numlist<H,NL::NullType>,Base> > {
+public:
+   typedef SBigInt<S,NL::Numlist<H,NL::NullType>,Base> Result;
+};
+
+template<bool S, unsigned int Base>
+class Simplify<SBigInt<S,NL::Numlist<0,NL::NullType>,Base> > {
+public:
+   typedef SBigInt<S,NL::NullType,Base> Result;
+};
+
+template<bool S, unsigned int Base>
+class Simplify<SBigInt<S,NL::NullType,Base> > {
+public:
+   typedef SBigInt<S,NL::NullType,Base> Result;
+};
+
+///////////////////////////////////////////////////////
 
 template<class B1, class B2,
          bool C=(NL::Compare<typename B1::Num,typename B2::Num>::value>0)>
@@ -302,45 +407,38 @@ class __Div;
 
 template<IntT H, class T, class NList2, unsigned int Base, int I>
 class __Div<NL::Numlist<H,T>,NList2,Base,I> {
-//   typedef NL::Numlist<H,T> NList1;
    typedef __Div<T,NList2,Base,I-1> Next;
-   typedef typename Next::UList NList1;
+   typedef NL::Numlist<H,typename Next::UList> NList1;
    enum { L1 = NL::Length<NList1>::value };
    enum { L2 = NL::Length<NList2>::value };
    enum { V1 = NL::NumAt<NList2,L2-1>::value };
    enum { V2 = NL::NumAt<NList2,L2-2>::value };
-public:
-   enum { U0 = NL::NumAtNonStrict<NList1,L1-1>::value };
-   enum { U1 = NL::NumAtNonStrict<NList1,L1-2>::value };
-   enum { U2 = NL::NumAtNonStrict<NList1,L1-3>::value };
+   enum { U0 = NL::NumAtNonStrict<NList1,L1-I>::value };
+   enum { U1 = NL::NumAtNonStrict<NList1,L1-I-1>::value };
+   enum { U2 = NL::NumAtNonStrict<NList1,L1-I-2>::value };
    enum { U = U0*Base+U1 };
-   static const unsigned Q = U/V1;
-   static const unsigned R = U%V1;
+   static const unsigned Q = U/V1;  // trial quotient
+   static const unsigned R = U%V1;  // trial reminder
+   // Test trial Q
    static const unsigned Q1 = ((Q==Base) || (Q*V2>R*Base+U2)) ? Q-1 : Q;
    static const unsigned R1 = (Q1<Q) ? R+V1 : R;
    // Repeat, if (R1<Base)
    static const unsigned Q2 = ((R1<Base) && ((Q1==Base) || (Q1*V2>R1*Base+U2))) ? Q1-1 : Q1;
-   static const unsigned R2 = (Q2<Q1) ? R1+V1 : R1;
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
-   typedef typename Sub<BI1,typename Mult<BI2,SInt<Q2> >::Result>::Result T1;
-//typedef typename NL::Print<T>::Result DBG;
-//typedef typename NL::Print<SInt<L1> >::Result DBG;
-   typedef typename NL::Append<typename Next::DivList,Q2>::Result DivList;
-   typedef typename NL::Append<typename Next::ModList,R2>::Result ModList;
-   typedef NL::Numlist<H,typename T1::Num> UList;
+   typedef typename Sub<BI1,typename Mult<BI2,SInt<Q2> >::Result>::Result Dif;
+public:
+//typedef typename NL::Print<T1>::Result DBG;
+//typedef typename NL::Print<SInt<Q> >::Result DBG;
+   typedef NL::Numlist<Q2,typename Next::DivList> DivList;
+   typedef typename Dif::Num UList;
 };
 
 template<IntT H, class T, class NList2, unsigned int Base>
 class __Div<NL::Numlist<H,T>,NList2,Base,0> {
-   typedef NL::Numlist<H,T> NList1;
-   enum { L1 = NL::Length<T>::value };
 public:
-   enum { U1 = NL::NumAtNonStrict<NList1,L1-1>::value };
-   enum { U2 = NL::NumAtNonStrict<NList1,L1-2>::value };
    typedef NL::NullType DivList;
-   typedef NL::NullType ModList;
-   typedef NList1 UList;
+   typedef NL::Numlist<H,T> UList;
 };
 
 template<bool S1, class NList1, bool S2, class NList2, unsigned int Base>
@@ -359,12 +457,13 @@ public:
            typename U::Num>::Result UList;
    typedef typename Mult<BI2,SInt<D> >::Result V;
    // Loop
-   typedef __Div<UList,typename V::Num,Base,L1-L2> Loop;
+   typedef __Div<UList,typename V::Num,Base,L1-L2+1> Loop;
 
-/*   typedef typename Div<SBigInt<true,
-           typename NL::Range<NList1,0,L2-1>::Result,Base>,SInt<D> >::Result Mod;*/
+/*  typedef typename Div<SBigInt<true,
+           typename NL::Range<NList1,0,L2-1>::Result,Base>,SInt<D> >::DivResult ModResult;*/
+   typedef typename Div<SBigInt<true,typename Loop::UList,Base>,SInt<D> >::DivResult ModResult;
    typedef SBigInt<(S1==S2),typename Loop::DivList,Base> DivResult;
-   typedef SBigInt<true,typename Loop::ModList,Base> ModResult;
+//   typedef SBigInt<true,typename Loop::ModList,Base> ModResult;
 };
 
 template<bool S1, bool S2, class NList2, unsigned int Base>

@@ -23,9 +23,6 @@ struct SFraction {
    typedef Den Denom;
 };
 
-template<class C>
-class Simplify;
-
 ///Greatest common divisor of A and B
 template<class A, class B>
 struct GCD;
