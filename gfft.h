@@ -30,6 +30,7 @@
 
 #include "finit.h"
 #include "gfftalg.h"
+#include "gfftstdalg.h"
 #include "gfftpolicy.h"
 
 namespace DFT {
@@ -43,6 +44,66 @@ enum FFTDecimation { INTIME, INFREQ };
 /// Type of transform
 enum FFTType { COMPLEX, REAL };
 
+
+template<unsigned N, typename T,
+FFTType Type, FFTDecimation Decimation, FFTDirection Dir>
+class DecimationTrait;
+
+template<unsigned N, typename T>
+class DecimationTrait<N,T,COMPLEX,INTIME,FORWARD> {
+   typedef Forward<N,T> Dir;
+   typedef GFFTswap<N,T> Swap;
+   typedef InTime<N,T,Dir::Sign> InT;
+public:
+   typename TYPELIST_3(Swap,InT,Dir) Result;
+};
+
+template<unsigned N, typename T>
+class DecimationTrait<N,T,COMPLEX,INTIME,BACKWARD> {
+   typedef Backward<N,T> Dir;
+   typedef GFFTswap<N,T> Swap;
+   typedef InTime<N,T,Dir::Sign> InT;
+public:
+   typename TYPELIST_3(Swap,InT,Dir) Result;
+};
+
+template<unsigned N, typename T>
+class DecimationTrait<N,T,COMPLEX,INFREQ,FORWARD> {
+   typedef Forward<N,T> Dir;
+   typedef GFFTswap<N,T> Swap;
+   typedef InFreq<N,T,Dir::Sign> InF;
+public:
+   typename TYPELIST_3(InF,Swap,Dir) Result;
+};
+
+template<unsigned N, typename T>
+class DecimationTrait<N,T,COMPLEX,INFREQ,BACKWARD> {
+   typedef Backward<N,T> Dir;
+   typedef GFFTswap<N,T> Swap;
+   typedef InFreq<N,T,Dir::Sign> InF;
+public:
+   typename TYPELIST_3(InF,Swap,Dir) Result;
+};
+
+template<unsigned N, typename T,
+FFTDecimation Decimation>
+class DecimationTrait<N,T,REAL,Decimation,FORWARD> {
+   typedef Forward<N,T> Dir;
+   typedef Separate<N,T,Dir::Sign> Sep;
+   typedef typename DecimationTrait<N,T,COMPLEX,Decimation,FORWARD>::Result TList;
+public:
+   typedef typename Loki::TL::Append<TList,Sep>::Result Result;
+};
+
+template<unsigned N, typename T,
+FFTDecimation Decimation>
+class DecimationTrait<N,T,REAL,Decimation,BACKWARD> {
+   typedef Forward<N,T> Dir;
+   typedef Separate<N,T,Dir::Sign> Sep;
+   typedef typename DecimationTrait<N,T,COMPLEX,Decimation,BACKWARD>::Result TList;
+public:
+   typedef Loki::Typelist<Sep,TList> Result;
+};
 
 /// Generic Fast Fourier transform in-place
 /**
@@ -61,8 +122,8 @@ class FactoryPolicy=Empty>
 class GFFT:public FactoryPolicy {
    enum { N = 1<<P };
    typedef GFFTswap<N,T> Swap;
-   typedef typename Loki::Select<Direction==FORWARD,
-           Forward<N,T>,Backward<N,T> >::Result Dir;
+   typedef typename Loki::Select<Direction==BACKWARD,
+           Backward<N,T>,Forward<N,T> >::Result Dir;
 
    typedef InTime<N,T,Dir::Sign> InT;
    typedef InFreq<N,T,Dir::Sign> InF;

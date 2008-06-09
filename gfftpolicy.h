@@ -28,22 +28,25 @@ namespace DFT {
 template<class TList>
 struct PoliciesHandler;
 
+template<class TList>
+struct SPoliciesHandler;
+
 /// Instantiates each type of the typelist and calls function apply
 /**
     All the classes in TList must include function apply(T*) with one parameter
-    as a pointer on type T.
+    as a pointer of type T*.
 */
 
 template<class Head, class Tail>
 struct PoliciesHandler<Loki::Typelist<Head,Tail> > {
    template<typename T>
    void apply(T* data) {
-      obj.apply(data);
-      next.apply(data);
+      obj_.apply(data);
+      next_.apply(data);
    }
 private:
-   Head obj;
-   PoliciesHandler<Tail> next;
+   Head obj_;
+   PoliciesHandler<Tail> next_;
 };
 
 template<>
@@ -52,6 +55,26 @@ struct PoliciesHandler<Loki::NullType> {
    void apply(T*) { }
 };
 
+/// Calls static function apply in each type of the typelist
+/**
+    All the classes in TList must include static function apply(T*) with one parameter
+    as a pointer of type T*.
+*/
+
+template<class Head, class Tail>
+struct SPoliciesHandler<Loki::Typelist<Head,Tail> > {
+   template<typename T>
+   static void apply(T* data) {
+      Head::apply(data);
+      SPoliciesHandler<Tail>::apply(data);
+   }
+};
+
+template<>
+struct SPoliciesHandler<Loki::NullType> {
+   template<typename T>
+   static void apply(T*) { }
+};
 
 /// Abstract base class to build an object factory
 /** It shares the function fft(T*) between
@@ -79,6 +102,13 @@ struct Forward {
    void apply(T*) { }
 };
 
+template<unsigned N, typename T,
+template<typename> class Complex>
+struct Forward<N,Complex<T> > {
+   enum { Sign = 1 };
+   void apply(Complex<T>*) { }
+};
+
 /// Policy for a definition of backward FFT
 template<unsigned N, typename T>
 struct Backward {
@@ -88,6 +118,17 @@ struct Backward {
    }
 };
 
+template<unsigned N, typename T,
+template<typename> class Complex>
+struct Backward<N,Complex<T> > {
+   enum { Sign = -1 };
+   void apply(Complex<T>* data) {
+      for (unsigned int i=0; i<N; ++i) {
+        data[i].real()/=N;
+        data[i].imag()/=N;
+      }
+   }
+};
 
 }  //namespace DFT
 
