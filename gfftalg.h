@@ -55,17 +55,17 @@ struct TempTypeTrait<Complex<T> > {
    typedef typename TempTypeTrait<T>::Result Result;
 };
 
-// template<typename T, typename A,
-// template<typename,typename> class Complex>
-// struct TempTypeTrait<Complex<T,A> > {
-//    typedef typename TempTypeTrait<T>::Result Result;
-// };
-
 template<typename T, typename A,
 template<typename,typename> class Complex>
 struct TempTypeTrait<Complex<T,A> > {
-   typedef T Result;
+   typedef typename TempTypeTrait<T>::Result Result;
 };
+
+// template<typename T, typename A,
+// template<typename,typename> class Complex>
+// struct TempTypeTrait<Complex<T,A> > {
+//    typedef T Result;
+// };
 
 /// Danielson-Lanczos section of the decimation-in-time FFT version
 template<unsigned N, typename T, int S>
@@ -182,7 +182,7 @@ public:
       next.apply(data+N);
    }
 };
-/*
+
 /// Specialization for N=4, decimation-in-frequency
 template<typename T, int S>
 class InFreq<4,T,S> {
@@ -215,7 +215,7 @@ public:
       data[5] += ti;
    }
 };
-*/
+
 /// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>
 class InFreq<2,T,S> {

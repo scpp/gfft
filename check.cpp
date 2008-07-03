@@ -69,6 +69,7 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
 #endif
 
     for (p=1; p<Max; ++p) {
+//    for (p=1; p<2; ++p) {
     n=1<<p;
 
     DFT::AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
@@ -94,8 +95,14 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
     fftobj->fft(data);
     four1(nrdata,n,sign);
     if (sign==-1) {
-       for (i=0; i < 2*n; ++i) data[i]/=n;
+       for (i=0; i < 2*n; ++i) nrdata[i]/=(VType)n;
     }
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<nrdata[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 #ifdef FFTW
     if (sign==1)
