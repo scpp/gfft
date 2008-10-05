@@ -63,7 +63,7 @@ public:
    }
 };
 
-/// Specialization for N=2, decimation-in-time
+/// Specialization for N=4, decimation-in-time
 template<typename T, int S,
 template<typename> class Complex>
 class InTime<4,Complex<T>,S> {
@@ -132,7 +132,7 @@ public:
    }
 };
 
-/// Specialization for N=2, decimation-in-frequency
+/// Specialization for N=4, decimation-in-frequency
 template<typename T, int S,
 template<typename> class Complex>
 class InFreq<2,Complex<T>,S> {

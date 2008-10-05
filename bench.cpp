@@ -13,20 +13,22 @@
  ***************************************************************************/
 
 /** \file
-    \brief Sample program to represent GFFT usage
+    \brief Performance benchmarks for GFFT
 */
 
 #include <iostream>
 
-#include "gfft.h"
+//#include "gfft.h"
+#include "gfftconf.h"
+
 
 
 using namespace std;
 
-typedef float ValueType;
+typedef double ValueType;
 
 const unsigned Min = 1;
-const unsigned Max = 27;
+const unsigned Max = 4;
 
 int main(int argc, char *argv[])
 {
@@ -36,17 +38,26 @@ int main(int argc, char *argv[])
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD>* gfft;
-    DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
-
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>* igfft;
-    DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
+//     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD>* gfft;
+//     DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
+//
+//     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>* igfft;
+//     DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
-//    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
-//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INFREQ,DFT::FORWARD>::Result>::apply(gfft);
-//    DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p);
-//
+   Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
+   typedef DFT::GenList<1,3,DFT::DOUBLE> List;
+//   typedef DFT::Print<List::Result>::Result deb;
+   FactoryInit<List::Result>::apply(gfft);
+
+   unsigned int id1[5] = {0,0,0,0,2};
+   unsigned int id2[5] = {1,0,0,0,2};
+   unsigned int p1 = List::trans_id(id1);
+   unsigned int p2 = List::trans_id(id2);
+   cout<<p1<<" "<<p2<<endl;
+   DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p1);
+   DFT::AbstractFFT<ValueType>* ifftobj = gfft.CreateObject(p2);
+
 //    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> igfft;
 //    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INFREQ,DFT::BACKWARD>::Result>::apply(igfft);
 //    DFT::AbstractFFT<ValueType>* ifftobj = igfft.CreateObject(p);

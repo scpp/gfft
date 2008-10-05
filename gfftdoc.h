@@ -12,6 +12,10 @@
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
 
+/** \file
+    \brief General GFFT documentation
+*/
+
 /**
 \mainpage
     Generic simple and efficient Fast Fourier Transforms (FFT) implementation
@@ -35,7 +39,7 @@
 
 \section start Getting started
 
-GFFT consists now from only 5 headers, one sample programm gfft.cpp.
+GFFT consists now from only a few headers, two sample programs (gfft.cpp and cgfft.cpp)
 and some files from Loki-lib library by Andrei Alexandrescu.
 It doesn't need any installation or additional packages.
 

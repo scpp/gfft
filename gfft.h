@@ -21,7 +21,9 @@
 #define __gfft_h
 
 // General Doxygen documentation
+#ifdef GFFTDOC
 #include "gfftdoc.h"
+#endif
 
 #include "loki/Typelist.h"
 #include "loki/Factory.h"
@@ -35,13 +37,70 @@
 namespace DFT {
 
 /// Direction of transform
-enum FFTDirection { FORWARD, BACKWARD };
+struct FORWARD {
+   enum { ID = 0 };
+   template<unsigned N, typename T>
+   struct Type : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct AddSeparator {
+      typedef typename Loki::TL::Append<List,Separator>::Result Result;
+   };
+};
+
+struct BACKWARD {
+   enum { ID = 1 };
+   template<unsigned N, typename T>
+   struct Type : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct AddSeparator {
+      typedef Loki::Typelist<Separator,List> Result;
+   };
+};
 
 /// Type of decimation used in transform: in-time or in-frequency
-enum FFTDecimation { INTIME, INFREQ };
+struct INTIME {
+   enum { ID = 0 };
+   template<unsigned N, typename T,
+            class Swap,
+            class Direction>
+   class List {
+      typedef InTime<N,T,Direction::Sign> InT;
+   public:
+      typedef TYPELIST_3(Swap,InT,Direction) Result;
+   };
+};
+
+struct INFREQ {
+   enum { ID = 1 };
+   template<unsigned N, typename T,
+            class Swap,
+            class Direction>
+   class List {
+      typedef InFreq<N,T,Direction::Sign> InF;
+   public:
+      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   };
+};
 
 /// Type of transform
-enum FFTType { COMPLEX, REAL };
+struct COMPLEX {
+   enum { ID = 0 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+struct REAL {
+   enum { ID = 1 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef typename Direction::
+         template AddSeparator<List,Separator>::Result Result;
+   };
+};
 
 
 /// Generic Fast Fourier transform in-place
@@ -54,30 +113,26 @@ enum FFTType { COMPLEX, REAL };
 \param FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
 */
 template<unsigned P, class T,
-FFTType Type,                          ///< COMPLEX, REAL
-FFTDecimation Decimation=INFREQ,              // INTIME, INFREQ
-FFTDirection Direction=FORWARD,         // FORWARD, BACKWARD
-class FactoryPolicy=Empty>
+class Type,                          ///< COMPLEX, REAL
+class Decimation=INFREQ,              // INTIME, INFREQ
+class Direction=FORWARD,         // FORWARD, BACKWARD
+class FactoryPolicy=Empty,
+unsigned IDN = P>
 class GFFT:public FactoryPolicy {
    enum { N = 1<<P };
    typedef GFFTswap<N,T> Swap;
-   typedef typename Loki::Select<Direction==BACKWARD,
-           Backward<N,T>,Forward<N,T> >::Result Dir;
 
-   typedef InTime<N,T,Dir::Sign> InT;
-   typedef InFreq<N,T,Dir::Sign> InF;
+   typedef typename Direction::template Type<N,T> Dir;
+
    typedef Separate<N,T,Dir::Sign> Sep;
 
-   typedef typename Loki::Select<Decimation==INTIME,
-           TYPELIST_3(Swap,InT,Dir),TYPELIST_3(InF,Swap,Dir)>::Result TList;
-   typedef typename Loki::Select<Type==REAL,
-      typename Loki::Select<Direction==FORWARD,
-      typename Loki::TL::Append<TList,Sep>::Result,
-               Loki::Typelist<Sep,TList> >::Result,TList>::Result Alg;
+   typedef typename Decimation::template List<N,T,Swap,Dir>::Result TList;
+
+   typedef typename Type::template Algorithm<Direction,TList,Sep>::Result Alg;
 
    PoliciesHandler<Alg> run;
 public:
-   enum { id = P };
+   enum { ID = IDN };
    static FactoryPolicy* Create() {
       return new GFFT<P,T,Type,Decimation,Direction,FactoryPolicy>();
    }
@@ -88,9 +143,9 @@ public:
 
 /// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
 template<unsigned Begin, unsigned End, typename T,
-FFTType Type,                          // COMPLEX, REAL
-FFTDecimation Decimation=INFREQ,              // INTIME, INFREQ
-FFTDirection Direction=FORWARD,         // FORWARD, BACKWARD
+class Type,                          // COMPLEX, REAL
+class Decimation=INFREQ,              // INTIME, INFREQ
+class Direction=FORWARD,         // FORWARD, BACKWARD
 class FactoryPolicy=AbstractFFT<T> >
 struct GFFTList {
    typedef Loki::Typelist<GFFT<Begin,T,Type,Decimation,Direction,FactoryPolicy>,
@@ -99,9 +154,9 @@ struct GFFTList {
 };
 
 template<unsigned End, typename T,
-FFTType Type,                          // COMPLEX, REAL
-FFTDecimation Decimation,              // INTIME, INFREQ
-FFTDirection Direction,                // FORWARD, BACKWARD
+class Type,                          // COMPLEX, REAL
+class Decimation,              // INTIME, INFREQ
+class Direction,                // FORWARD, BACKWARD
 class FactoryPolicy>
 struct GFFTList<End,End,T,Type,Decimation,Direction,FactoryPolicy> {
    typedef Loki::NullType Result;
@@ -109,16 +164,16 @@ struct GFFTList<End,End,T,Type,Decimation,Direction,FactoryPolicy> {
 
 
 template<
-FFTType Type,                          // COMPLEX, REAL
-FFTDecimation Decimation,              // INTIME, INFREQ
-FFTDirection Direction=FORWARD>
+class Type,                          // COMPLEX, REAL
+class Decimation,              // INTIME, INFREQ
+class Direction=FORWARD>
 class GFFT_Options { };
 
 /// Singleton for GFFT object factory
 template<unsigned Min, unsigned Max, typename T,
-FFTType Type,                          // COMPLEX, REAL
-FFTDecimation Decimation,              // INTIME, INFREQ
-FFTDirection Direction=FORWARD>
+class Type,                          // COMPLEX, REAL
+class Decimation,              // INTIME, INFREQ
+class Direction=FORWARD>
 class GFFT_Singleton
 : public Loki::SingletonHolder<Loki::Factory<AbstractFFT<T>,unsigned int>,
                                GFFT_Options<Type,Decimation,Direction> > {

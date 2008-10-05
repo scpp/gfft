@@ -33,7 +33,7 @@ template<class H, class T>
 struct FactoryInit<Loki::Typelist<H,T> > {
    template<class Fact>
    static void apply(Fact& f) {
-      f.Register(H::id,H::Create);
+      f.Register(H::ID,H::Create);
       FactoryInit<T>::apply(f);
    }
 };
