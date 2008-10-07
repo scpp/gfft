@@ -66,16 +66,25 @@ struct GenNumList<End,End> {
    typedef Loki::NullType Result;
 };
 
+// template<class TList, int ID>
+// struct DefineGFFT {
+//    typedef typename TList::Tail::Tail::Tail::Head::value_type VType;
+//    typedef GFFT<TList::Tail::Tail::Tail::Tail::Head::Value,VType,
+//                 typename TList::Tail::Tail::Head,
+//                 typename TList::Tail::Head,
+//                 typename TList::Head,
+//                 AbstractFFT<VType>,ID> Result;
+// };
+
 template<class TList, int ID>
 struct DefineGFFT {
-   typedef typename TList::Tail::Tail::Tail::Head::value_type VType;
-   typedef GFFT<TList::Tail::Tail::Tail::Tail::Head::Value,VType,
+   typedef typename TList::Tail::Head::value_type VType;
+   typedef GFFT<TList::Head::Value,VType,
                 typename TList::Tail::Tail::Head,
-                typename TList::Tail::Head,
-                typename TList::Head,
+                typename TList::Tail::Tail::Tail::Head,
+                typename TList::Tail::Tail::Tail::Tail::Head,
                 AbstractFFT<VType>,ID> Result;
 };
-
 
 
 template<class TList, class TLenList,
@@ -123,7 +132,7 @@ struct TranslateID<NL::Numlist<N,T> > {
 template<int N>
 struct TranslateID<NL::Numlist<N,NL::NullType> > {
    static unsigned int apply(const unsigned int* n) {
-      return *n - 1;
+      return *n;
    }
 };
 
@@ -140,11 +149,17 @@ class GenList {
    enum { L4 = Loki::TL::Length<DecimationList>::value };
    enum { L5 = Loki::TL::Length<DirectionList>::value };
    typedef NUMLIST_5(L1,L2,L3,L4,L5) LenList;
-   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
+//   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
 
-   typedef TranslateID<typename NL::Reverse<LenList>::Result> Trans;
+//   typedef typename Loki::TL::Reverse<List>::Result RevList;  // ? fails
+   typedef typename NL::Reverse<LenList>::Result RevLenList;
+
+//    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
+   typedef TYPELIST_5(Direction,Decimation,TransType,T,NList) RevList;
+
+   typedef TranslateID<LenList> Trans;
 public:
-   typedef typename ListGenerator<List,LenList>::Result Result;
+   typedef typename ListGenerator<RevList,RevLenList>::Result Result;
 
    static unsigned int trans_id(const unsigned int* n) {
       return Trans::apply(n);

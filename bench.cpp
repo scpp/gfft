@@ -21,19 +21,17 @@
 //#include "gfft.h"
 #include "gfftconf.h"
 
-
-
 using namespace std;
 
 typedef double ValueType;
 
-const unsigned Min = 1;
-const unsigned Max = 4;
+// const unsigned Min = 1;
+// const unsigned Max = 4;
 
 int main(int argc, char *argv[])
 {
 
-    unsigned int i,p=2;
+    unsigned int i,p=4;
     unsigned int n= 1<<p;
 
 // There are three ways to create object to perform FFT of the length 2^p
@@ -46,12 +44,12 @@ int main(int argc, char *argv[])
 
 // 2) Create the object factory without singleton
    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
-   typedef DFT::GenList<1,3,DFT::DOUBLE> List;
+   typedef DFT::GenList<1,5,DFT::DOUBLE> List;
 //   typedef DFT::Print<List::Result>::Result deb;
    FactoryInit<List::Result>::apply(gfft);
 
-   unsigned int id1[5] = {0,0,0,0,2};
-   unsigned int id2[5] = {1,0,0,0,2};
+   unsigned int id1[5] = {p-1,0,1,1,0};
+   unsigned int id2[5] = {p-1,0,1,1,1};
    unsigned int p1 = List::trans_id(id1);
    unsigned int p2 = List::trans_id(id2);
    cout<<p1<<" "<<p2<<endl;

@@ -23,18 +23,10 @@ typedef unsigned int uint;
 #define IntT uint
 #include "Numlist.h"
 
+#include "sint.h"
+
 #include "loki/TypeManip.h"
 
-/// \brief Integer number metacontainer.
-///        Integer N is wrapped into container class to handle integers and other
-///        compile-time number-classes using the same operation classes specializing
-///        them for particular number-container.
-/// \param N an integer number
-/////////////////////////////////////////////////////////////////////////
-template<int N>
-struct SInt {
-   enum { Value = N };
-};
 
 /// \brief Big integer number metacontainer.
 /// \param S sign of the big integer
