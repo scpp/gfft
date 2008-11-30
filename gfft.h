@@ -102,6 +102,15 @@ struct REAL {
    };
 };
 
+struct REAL2 {
+   enum { ID = 2 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef typename Direction::
+         template AddSeparator<List,Separator>::Result Result;
+   };
+};
+
 
 /// Generic Fast Fourier transform in-place
 /**
@@ -112,7 +121,7 @@ struct REAL {
 \param Direction transform direction: FORWARD, BACKWARD
 \param FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
 */
-template<unsigned P, class T,
+template<unsigned P, class VType,
 class Type,                          ///< COMPLEX, REAL
 class Decimation=INFREQ,              // INTIME, INFREQ
 class Direction=FORWARD,         // FORWARD, BACKWARD
@@ -120,6 +129,7 @@ class FactoryPolicy=Empty,
 unsigned IDN = P>
 class GFFT:public FactoryPolicy {
    enum { N = 1<<P };
+   typedef typename VType::ValueType T;
    typedef GFFTswap<N,T> Swap;
 
    typedef typename Direction::template Type<N,T> Dir;
@@ -132,10 +142,17 @@ class GFFT:public FactoryPolicy {
 
    PoliciesHandler<Alg> run;
 public:
-   enum { ID = IDN };
+   typedef VType ValueType;
+   typedef Type TransformType;
+   typedef Decimation DecimationType;
+   typedef Direction DirectionType;
+
+   enum { ID = IDN, Len = N, PLen = P };
+
    static FactoryPolicy* Create() {
-      return new GFFT<P,T,Type,Decimation,Direction,FactoryPolicy>();
+      return new GFFT<P,VType,Type,Decimation,Direction,FactoryPolicy>();
    }
+
    void fft(T* data) {
       run.apply(data);
    }
@@ -161,7 +178,6 @@ class FactoryPolicy>
 struct GFFTList<End,End,T,Type,Decimation,Direction,FactoryPolicy> {
    typedef Loki::NullType Result;
 };
-
 
 template<
 class Type,                          // COMPLEX, REAL

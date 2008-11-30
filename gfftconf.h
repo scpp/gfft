@@ -33,12 +33,12 @@ struct Print<Loki::Typelist<Head,Tail> > {
 
 struct DOUBLE {
    enum { ID = 0 };
-   typedef double value_type;
+   typedef double ValueType;
 };
 
 struct FLOAT {
    enum { ID = 1 };
-   typedef float value_type;
+   typedef float ValueType;
 };
 
 template<unsigned int N>
@@ -68,7 +68,7 @@ struct GenNumList<End,End> {
 
 // template<class TList, int ID>
 // struct DefineGFFT {
-//    typedef typename TList::Tail::Tail::Tail::Head::value_type VType;
+//    typedef typename TList::Tail::Tail::Tail::Head VType;
 //    typedef GFFT<TList::Tail::Tail::Tail::Tail::Head::Value,VType,
 //                 typename TList::Tail::Tail::Head,
 //                 typename TList::Tail::Head,
@@ -76,14 +76,15 @@ struct GenNumList<End,End> {
 //                 AbstractFFT<VType>,ID> Result;
 // };
 
+/// Takes types from TList to define GFFT class
 template<class TList, int ID>
 struct DefineGFFT {
-   typedef typename TList::Tail::Head::value_type VType;
+   typedef typename TList::Tail::Head VType;
    typedef GFFT<TList::Head::Value,VType,
                 typename TList::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Tail::Head,
-                AbstractFFT<VType>,ID> Result;
+                AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
 

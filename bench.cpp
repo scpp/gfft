@@ -17,22 +17,97 @@
 */
 
 #include <iostream>
+#include <iomanip>
 
 //#include "gfft.h"
 #include "gfftconf.h"
+
+#include "timer.h"
 
 using namespace std;
 
 typedef double ValueType;
 
-// const unsigned Min = 1;
-// const unsigned Max = 4;
+
+template<class GenListResult>
+class GFFTbench;
+
+template<class H, class T>
+class GFFTbench<Loki::Typelist<H,T> > {
+  typedef typename H::ValueType::ValueType Tp;
+  GFFTbench<T> next;
+  H gfft;
+public:
+  void apply(const int hardware_id, const int system_id,
+             const int compiler_id, const int release_id)
+  {
+     next.apply(hardware_id,system_id,compiler_id,release_id);
+
+     size_t i,it;
+     double t,mt;
+     char space = '\t';
+     progClock* cl=new progClock();
+
+     it = size_t(1000000./(double)H::Len)+1;
+
+     Tp* data = new Tp [2*H::Len*it];
+
+      // initial data
+     for (i=0; i<2*H::Len*it; ++i)
+       data[i] = 0;
+
+/*      for (unsigned int j=0; j<it; ++j) {
+        for (i=0; i < n; ++i) {
+          data[2*(n*j+i)] = (2*i+j)/(double)n;
+          data[2*(n*j+i)+1] = (2*i+j+1)/(double)n;
+        }
+      }*/
+      Tp* d=data;
+      mt = 1e+100;
+      for (i=0; i<3; ++i) {
+        d=data;
+        cl->start();
+        for (size_t j=0; j<it; ++j) {
+          gfft.fft(d);
+          d+=2*H::Len;
+        }
+        t = cl->GetTime();
+        if (t<mt) mt=t;
+      }
+      mt /= (double)it;
+      cout<<hardware_id<<space<<system_id<<space
+          <<compiler_id<<space<<release_id<<space
+          <<H::TransformType::ID<<space
+          <<H::ValueType::ID<<space
+          <<H::DecimationType::ID<<space
+          <<H::DirectionType::ID<<space
+          <<0<<space
+          <<H::PLen-9<<space<<mt<<endl;
+      //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
+
+      delete [] data;
+      delete cl;
+
+   }
+};
+
+template<>
+class GFFTbench<Loki::NullType> {
+public:
+  void apply(const int, const int, const int, const int) { }
+};
+
 
 int main(int argc, char *argv[])
 {
 
-    unsigned int i,p=4;
-    unsigned int n= 1<<p;
+//     unsigned int i,p=2;
+//     unsigned int n= 1<<p;
+
+    if (argc<4) {
+      cout<<"usage: bench <hardware_id> <system_id> <compiler_id> <release_id>"<<endl;
+      exit(1);
+    }
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
@@ -43,53 +118,29 @@ int main(int argc, char *argv[])
 //     DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
-   Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
-   typedef DFT::GenList<1,5,DFT::DOUBLE> List;
+   typedef DFT::GenList<10,26> List;
 //   typedef DFT::Print<List::Result>::Result deb;
-   FactoryInit<List::Result>::apply(gfft);
+//    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
+//    FactoryInit<List::Result>::apply(gfft);
 
-   unsigned int id1[5] = {p-1,0,1,1,0};
-   unsigned int id2[5] = {p-1,0,1,1,1};
-   unsigned int p1 = List::trans_id(id1);
-   unsigned int p2 = List::trans_id(id2);
-   cout<<p1<<" "<<p2<<endl;
-   DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p1);
-   DFT::AbstractFFT<ValueType>* ifftobj = gfft.CreateObject(p2);
+//    unsigned int id1[5] = {p-1,0,1,1,0};
+//    unsigned int id2[5] = {p-1,0,1,1,1};
+//    unsigned int p1 = List::trans_id(id1);
+//    unsigned int p2 = List::trans_id(id2);
+//    cout<<p1<<" "<<p2<<endl;
+//    DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p1);
+//    DFT::AbstractFFT<ValueType>* ifftobj = gfft.CreateObject(p2);
 
-//    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> igfft;
-//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INFREQ,DFT::BACKWARD>::Result>::apply(igfft);
-//    DFT::AbstractFFT<ValueType>* ifftobj = igfft.CreateObject(p);
+   int hardware_id = atoi(argv[1]);
+   int system_id = atoi(argv[2]);
+   int compiler_id = atoi(argv[3]);
+   int release_id = atoi(argv[4]);
 
-// 3) create FFT object of specific length, if the length is known at compile-time
-//     typedef DFT::GFFT<2,ValueType,DFT::REAL,DFT::INTIME,DFT::FORWARD> MyGFFT;
-//     MyGFFT* fftobj = new MyGFFT;
+   cout<<setprecision(12);
 
-// create sample data
-    ValueType* data = new ValueType [2*n];
-    for (i=0; i < n; ++i) {
-       data[2*i] = 2*i;
-       data[2*i+1] = 2*i+1; //2*i+1;
-    }
+   GFFTbench<List::Result> bench;
+   bench.apply(hardware_id,system_id,compiler_id,release_id);
 
-// print out sample data
-    cout<<"Input data:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-
-// apply FFT in-place
-    fftobj->fft(data);
-
-// print out transformed data
-    cout<<"Result of transform:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-
-    ifftobj->fft(data);
-
-// print out transformed data
-    cout<<"Result of backward transform:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-
+   return 0;
 }
 
