@@ -67,6 +67,7 @@ struct TempTypeTrait<Complex<T,A> > {
 //    typedef T Result;
 // };
 
+
 /// Danielson-Lanczos section of the decimation-in-time FFT version
 template<unsigned N, typename T, int S>
 class InTime {
@@ -74,19 +75,21 @@ class InTime {
    InTime<N/2,T,S> next;
 public:
    void apply(T* data) {
+
+      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi,t;
+
       next.apply(data);
       next.apply(data+N);
 
-      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
 //    Change dynamic calculation to the static one
 //      wtemp = sin(S*M_PI/N);
-      wtemp = Sin<N,1,LocalVType>::value();
-      wpr = -2.0*wtemp*wtemp;
+      t = Sin<N,1,LocalVType>::value();
+      wpr = -2.0*t*t;
 //      wpi = -sin(2*M_PI/N);
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned i=0; i<N; i+=2) {
+      for (unsigned int i=0; i<N; i+=2) {
         tempr = data[i+N]*wr - data[i+N+1]*wi;
         tempi = data[i+N]*wi + data[i+N+1]*wr;
         data[i+N] = data[i]-tempr;
@@ -101,6 +104,7 @@ public:
    }
 };
 
+/*
 /// Specialization for N=4, decimation-in-time
 template<typename T, int S>
 class InTime<4,T,S> {
@@ -133,6 +137,7 @@ public:
       data[3] += ti;
    }
 };
+*/
 
 /// Specialization for N=2, decimation-in-time
 template<typename T, int S>
@@ -182,7 +187,7 @@ public:
       next.apply(data+N);
    }
 };
-
+/*
 /// Specialization for N=4, decimation-in-frequency
 template<typename T, int S>
 class InFreq<4,T,S> {
@@ -215,7 +220,7 @@ public:
       data[5] += ti;
    }
 };
-
+*/
 /// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>
 class InFreq<2,T,S> {
@@ -229,6 +234,7 @@ class InFreq<1,T,S> {
 public:
    void apply(T* data) { }
 };
+
 
 /// Binary reordering of array elements
 template<unsigned N, typename T>
@@ -250,6 +256,33 @@ public:
      }
    }
 };
+
+
+//-------------------------------------------------
+
+template<unsigned P, typename T=double,
+unsigned I=0>
+class GFFTswap2 {
+   enum { BN = 1<<(I+1), BR = 1<<(P-I) };
+   GFFTswap2<P,T,I+1> next;
+public:
+   void apply(T* data, unsigned n=0, unsigned r=0) {
+      next.apply(data,n,r);
+      next.apply(data,n|BN,r|BR);
+   }
+};
+
+template<unsigned P, typename T>
+class GFFTswap2<P,T,P> {
+public:
+   void apply(T* data, unsigned n, unsigned r) {
+      if (n>r) {
+        swap(data[n],data[r]);
+        swap(data[n+1],data[r+1]);
+      }
+   }
+};
+
 
 /// Reordering of data for real-valued transforms
 template<unsigned N, typename T, int S>

@@ -24,6 +24,10 @@
 
 #include "timer.h"
 
+#include "boost/date_time/posix_time/posix_time.hpp"
+
+#include <omp.h>
+
 using namespace std;
 
 typedef double ValueType;
@@ -101,6 +105,9 @@ public:
 int main(int argc, char *argv[])
 {
 
+//     omp_set_num_threads(4);
+//     omp_set_nested(true);
+
 //     unsigned int i,p=2;
 //     unsigned int n= 1<<p;
 
@@ -118,7 +125,10 @@ int main(int argc, char *argv[])
 //     DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
-   typedef DFT::GenList<10,26> List;
+
+    typedef DFT::GenList<17,25,DFT::DOUBLE,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD> List;
+//    typedef DFT::GenList<10,15> List;
+
 //   typedef DFT::Print<List::Result>::Result deb;
 //    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
 //    FactoryInit<List::Result>::apply(gfft);
@@ -139,7 +149,21 @@ int main(int argc, char *argv[])
    cout<<setprecision(12);
 
    GFFTbench<List::Result> bench;
+
+   using namespace boost::posix_time;
+   using namespace boost::gregorian;
+
+   time_duration td;
+   ptime t1,t2;
+   td = seconds(0);
+   t1 = microsec_clock::universal_time();
+
    bench.apply(hardware_id,system_id,compiler_id,release_id);
+
+   t2 = microsec_clock::universal_time();
+   td = t2 - t1;
+   double rt = (td.total_seconds()*1000000+td.fractional_seconds());
+   cout<<rt<<"ms"<<endl;
 
    return 0;
 }

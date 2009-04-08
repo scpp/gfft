@@ -30,7 +30,7 @@
 #include "loki/Singleton.h"
 
 #include "finit.h"
-#include "gfftalg.h"
+#include "gfftomp.h"
 #include "gfftstdalg.h"
 #include "gfftpolicy.h"
 
@@ -64,9 +64,10 @@ struct INTIME {
    enum { ID = 0 };
    template<unsigned N, typename T,
             class Swap,
-            class Direction>
+            class Direction, unsigned NT>
    class List {
-      typedef InTime<N,T,Direction::Sign> InT;
+//      typedef InTime<N,T,Direction::Sign> InT;
+      typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
@@ -76,9 +77,10 @@ struct INFREQ {
    enum { ID = 1 };
    template<unsigned N, typename T,
             class Swap,
-            class Direction>
+            class Direction, unsigned NT>
    class List {
-      typedef InFreq<N,T,Direction::Sign> InF;
+//      typedef InFreq<N,T,Direction::Sign> InF;
+      typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
    public:
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
@@ -111,6 +113,25 @@ struct REAL2 {
    };
 };
 
+struct Serial {
+   static unsigned NParProc = 1;
+
+   template<unsigned P, class T>
+   struct Swap {
+      enum { N = 1<<P };
+      typedef GFFTswap<N,T> Swap;
+   };
+};
+
+template<unsigned NT>
+struct OpenMP {
+   static unsigned NParProc = NT;
+
+   template<unsigned P, class T>
+   struct Swap {
+      typedef GFFTswap2OMP<NT,P,T> Swap;
+   };
+};
 
 /// Generic Fast Fourier transform in-place
 /**
@@ -125,12 +146,16 @@ template<unsigned P, class VType,
 class Type,                          ///< COMPLEX, REAL
 class Decimation=INFREQ,              // INTIME, INFREQ
 class Direction=FORWARD,         // FORWARD, BACKWARD
+class Parall = Serial,
 class FactoryPolicy=Empty,
 unsigned IDN = P>
 class GFFT:public FactoryPolicy {
    enum { N = 1<<P };
    typedef typename VType::ValueType T;
-   typedef GFFTswap<N,T> Swap;
+   //typedef GFFTswap<N,T> Swap;
+   //typedef GFFTswap2<P,T> Swap;
+   //typedef GFFTswapOMP<2,N,T> Swap;
+   typedef GFFTswap2OMP<2,P,T> Swap;
 
    typedef typename Direction::template Type<N,T> Dir;
 
@@ -159,23 +184,23 @@ public:
 };
 
 /// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
-template<unsigned Begin, unsigned End, typename T,
+template<unsigned Begin, unsigned End, typename VType,
 class Type,                          // COMPLEX, REAL
 class Decimation=INFREQ,              // INTIME, INFREQ
 class Direction=FORWARD,         // FORWARD, BACKWARD
-class FactoryPolicy=AbstractFFT<T> >
+class FactoryPolicy=AbstractFFT<typename VType::ValueType> >
 struct GFFTList {
-   typedef Loki::Typelist<GFFT<Begin,T,Type,Decimation,Direction,FactoryPolicy>,
-           typename GFFTList<Begin+1,End,T,Type,Decimation,Direction,
+   typedef Loki::Typelist<GFFT<Begin,VType,Type,Decimation,Direction,FactoryPolicy>,
+           typename GFFTList<Begin+1,End,VType,Type,Decimation,Direction,
                     FactoryPolicy>::Result> Result;
 };
 
-template<unsigned End, typename T,
-class Type,                          // COMPLEX, REAL
+template<unsigned End, typename VType,
+class Type,                    // COMPLEX, REAL
 class Decimation,              // INTIME, INFREQ
-class Direction,                // FORWARD, BACKWARD
+class Direction,               // FORWARD, BACKWARD
 class FactoryPolicy>
-struct GFFTList<End,End,T,Type,Decimation,Direction,FactoryPolicy> {
+struct GFFTList<End,End,VType,Type,Decimation,Direction,FactoryPolicy> {
    typedef Loki::NullType Result;
 };
 
@@ -186,17 +211,17 @@ class Direction=FORWARD>
 class GFFT_Options { };
 
 /// Singleton for GFFT object factory
-template<unsigned Min, unsigned Max, typename T,
+template<unsigned Min, unsigned Max, typename VType,
 class Type,                          // COMPLEX, REAL
 class Decimation,              // INTIME, INFREQ
 class Direction=FORWARD>
 class GFFT_Singleton
-: public Loki::SingletonHolder<Loki::Factory<AbstractFFT<T>,unsigned int>,
+: public Loki::SingletonHolder<Loki::Factory<AbstractFFT<typename VType::ValueType>,unsigned int>,
                                GFFT_Options<Type,Decimation,Direction> > {
-   typedef Loki::Factory<AbstractFFT<T>,unsigned int> GFFT_Factory;
+   typedef Loki::Factory<AbstractFFT<typename VType::ValueType>,unsigned int> GFFT_Factory;
    typedef GFFT_Options<Type,Decimation,Direction> Options;
    typedef Loki::SingletonHolder<GFFT_Factory,Options> Base;
-   typedef FactoryInit<typename GFFTList<Min,Max,T,Type,Decimation,Direction>::Result> FInit;
+   typedef FactoryInit<typename GFFTList<Min,Max,VType,Type,Decimation,Direction>::Result> FInit;
 
    //Protection
    GFFT_Singleton();

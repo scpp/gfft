@@ -87,7 +87,10 @@ struct DefineGFFT {
                 AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
-
+/// Generates all different combinations of parameters given 
+/// in the two-dimensional compile-time array TList taking one
+/// parameter from every TList's entry. The entry may be either 
+/// a type or a Typelist.
 template<class TList, class TLenList,
          class WorkingList=Loki::NullType,
          int ID=0>
@@ -120,6 +123,8 @@ struct ListGenerator<Loki::NullType,NL::NullType,WorkingList,ID> {
    typedef Loki::Typelist<typename DefineGFFT<WorkingList,ID>::Result,Loki::NullType> Result;
 };
 
+
+
 template<class NList>
 struct TranslateID;
 
@@ -136,6 +141,8 @@ struct TranslateID<NL::Numlist<N,NL::NullType> > {
       return *n;
    }
 };
+
+
 
 template<unsigned Begin, unsigned End,
 class T = ValueTypeList,

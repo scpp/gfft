@@ -18,29 +18,32 @@
 
 #include <iostream>
 
-#include "gfft.h"
+#include "gfftconf.h"
 
+#include <omp.h>
 
 using namespace std;
 
-typedef float ValueType;
+typedef DFT::FLOAT ValueType;
 
 const unsigned Min = 1;
-const unsigned Max = 27;
+const unsigned Max = 7;
 
 int main(int argc, char *argv[])
 {
 
-    unsigned int i,p=2;
+//    omp_set_num_threads(4);
+
+    unsigned int i,p=6;
     unsigned int n= 1<<p;
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD>* gfft;
-    DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
+    DFT::AbstractFFT<ValueType::ValueType>* fftobj = gfft->Instance().CreateObject(p);
 
     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>* igfft;
-    DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
+    DFT::AbstractFFT<ValueType::ValueType>* ifftobj = igfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton
 //    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
@@ -56,7 +59,7 @@ int main(int argc, char *argv[])
 //     MyGFFT* fftobj = new MyGFFT;
 
 // create sample data
-    ValueType* data = new ValueType [2*n];
+    ValueType::ValueType* data = new ValueType::ValueType [2*n];
     for (i=0; i < n; ++i) {
        data[2*i] = 2*i;
        data[2*i+1] = 2*i+1; //2*i+1;
