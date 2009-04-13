@@ -50,9 +50,12 @@ typedef TYPELIST_2(DOUBLE,FLOAT) ValueTypeList;
 
 typedef TYPELIST_2(COMPLEX,REAL) TransformTypeList;
 
+typedef TYPELIST_2(FORWARD,BACKWARD) DirectionList;
+
+typedef TYPELIST_2(Serial,OpenMP<2>) ParallelizationList;
+
 typedef TYPELIST_2(INTIME,INFREQ) DecimationList;
 
-typedef TYPELIST_2(FORWARD,BACKWARD) DirectionList;
 
 
 template<unsigned Begin, unsigned End>
@@ -84,6 +87,7 @@ struct DefineGFFT {
                 typename TList::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Tail::Head,
+                typename TList::Tail::Tail::Tail::Tail::Tail::Head,
                 AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
@@ -145,25 +149,27 @@ struct TranslateID<NL::Numlist<N,NL::NullType> > {
 
 
 template<unsigned Begin, unsigned End,
-class T = ValueTypeList,
-class TransType = TransformTypeList,     // COMPLEX, REAL
-class Decimation = DecimationList,              // INTIME, INFREQ
-class Direction = DirectionList>
+class T          = ValueTypeList,
+class TransType  = TransformTypeList,     // COMPLEX, REAL
+class Direction  = DirectionList,
+class Parall     = ParallelizationList,
+class Decimation = DecimationList>        // INTIME, INFREQ
 class GenList {
    typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
    enum { L2 = Loki::TL::Length<ValueTypeList>::value };
    enum { L3 = Loki::TL::Length<TransformTypeList>::value };
-   enum { L4 = Loki::TL::Length<DecimationList>::value };
-   enum { L5 = Loki::TL::Length<DirectionList>::value };
-   typedef NUMLIST_5(L1,L2,L3,L4,L5) LenList;
+   enum { L4 = Loki::TL::Length<DirectionList>::value };
+   enum { L5 = Loki::TL::Length<ParallelizationList>::value };
+   enum { L6 = Loki::TL::Length<DecimationList>::value };
+   typedef NUMLIST_6(L1,L2,L3,L4,L5,L6) LenList;
 //   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
 
 //   typedef typename Loki::TL::Reverse<List>::Result RevList;  // ? fails
    typedef typename NL::Reverse<LenList>::Result RevLenList;
 
 //    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
-   typedef TYPELIST_5(Direction,Decimation,TransType,T,NList) RevList;
+   typedef TYPELIST_6(Decimation,Parall,Direction,TransType,T,NList) RevList;
 
    typedef TranslateID<LenList> Trans;
 public:

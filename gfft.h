@@ -114,22 +114,24 @@ struct REAL2 {
 };
 
 struct Serial {
-   static unsigned NParProc = 1;
+   enum { ID = 0 };
+   static const unsigned NParProc = 1;
 
    template<unsigned P, class T>
    struct Swap {
       enum { N = 1<<P };
-      typedef GFFTswap<N,T> Swap;
+      typedef GFFTswap<N,T> Result;
    };
 };
 
 template<unsigned NT>
 struct OpenMP {
-   static unsigned NParProc = NT;
+   enum { ID = NT-1 };
+   static const unsigned NParProc = NT;
 
    template<unsigned P, class T>
    struct Swap {
-      typedef GFFTswap2OMP<NT,P,T> Swap;
+      typedef GFFTswap2OMP<NT,P,T> Result;
    };
 };
 
@@ -142,11 +144,12 @@ struct OpenMP {
 \param Direction transform direction: FORWARD, BACKWARD
 \param FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
 */
-template<unsigned P, class VType,
+template<unsigned P,
+class VType,
 class Type,                          ///< COMPLEX, REAL
-class Decimation=INFREQ,              // INTIME, INFREQ
-class Direction=FORWARD,         // FORWARD, BACKWARD
-class Parall = Serial,
+class Direction,         // FORWARD, BACKWARD
+class Parall,
+class Decimation,              // INTIME, INFREQ
 class FactoryPolicy=Empty,
 unsigned IDN = P>
 class GFFT:public FactoryPolicy {
@@ -155,13 +158,13 @@ class GFFT:public FactoryPolicy {
    //typedef GFFTswap<N,T> Swap;
    //typedef GFFTswap2<P,T> Swap;
    //typedef GFFTswapOMP<2,N,T> Swap;
-   typedef GFFTswap2OMP<2,P,T> Swap;
+   typedef typename Parall::template Swap<P,T>::Result Swap;
 
    typedef typename Direction::template Type<N,T> Dir;
 
    typedef Separate<N,T,Dir::Sign> Sep;
 
-   typedef typename Decimation::template List<N,T,Swap,Dir>::Result TList;
+   typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
 
    typedef typename Type::template Algorithm<Direction,TList,Sep>::Result Alg;
 
@@ -175,7 +178,7 @@ public:
    enum { ID = IDN, Len = N, PLen = P };
 
    static FactoryPolicy* Create() {
-      return new GFFT<P,VType,Type,Decimation,Direction,FactoryPolicy>();
+      return new GFFT<P,VType,Type,Direction,Parall,Decimation,FactoryPolicy>();
    }
 
    void fft(T* data) {
@@ -184,44 +187,51 @@ public:
 };
 
 /// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
-template<unsigned Begin, unsigned End, typename VType,
-class Type,                          // COMPLEX, REAL
-class Decimation=INFREQ,              // INTIME, INFREQ
-class Direction=FORWARD,         // FORWARD, BACKWARD
-class FactoryPolicy=AbstractFFT<typename VType::ValueType> >
+template<unsigned Begin, unsigned End, 
+typename ValueType,
+class TransformType,                 // COMPLEX, REAL
+class Direction=FORWARD,             // FORWARD, BACKWARD
+class Parall=Serial,
+class Decimation=INFREQ,             // INTIME, INFREQ
+class FactoryPolicy=AbstractFFT<typename ValueType::ValueType> >
 struct GFFTList {
-   typedef Loki::Typelist<GFFT<Begin,VType,Type,Decimation,Direction,FactoryPolicy>,
-           typename GFFTList<Begin+1,End,VType,Type,Decimation,Direction,
+   typedef Loki::Typelist<GFFT<Begin,ValueType,TransformType,Direction,Parall,Decimation,FactoryPolicy>,
+           typename GFFTList<Begin+1,End,ValueType,TransformType,Direction,Parall,Decimation,
                     FactoryPolicy>::Result> Result;
 };
 
-template<unsigned End, typename VType,
-class Type,                    // COMPLEX, REAL
-class Decimation,              // INTIME, INFREQ
+template<unsigned End, 
+typename ValueType,
+class TransformType,           // COMPLEX, REAL
 class Direction,               // FORWARD, BACKWARD
+class Parall,
+class Decimation,              // INTIME, INFREQ
 class FactoryPolicy>
-struct GFFTList<End,End,VType,Type,Decimation,Direction,FactoryPolicy> {
+struct GFFTList<End,End,ValueType,TransformType,Direction,Parall,Decimation,FactoryPolicy> {
    typedef Loki::NullType Result;
 };
 
 template<
 class Type,                          // COMPLEX, REAL
-class Decimation,              // INTIME, INFREQ
-class Direction=FORWARD>
+class Direction=FORWARD,
+class Parall=Serial,
+class Decimation=INFREQ>
 class GFFT_Options { };
 
 /// Singleton for GFFT object factory
-template<unsigned Min, unsigned Max, typename VType,
-class Type,                          // COMPLEX, REAL
-class Decimation,              // INTIME, INFREQ
-class Direction=FORWARD>
+template<unsigned Min, unsigned Max, 
+typename ValueType,
+class TransformType,                          // COMPLEX, REAL
+class Direction=FORWARD,
+class Parall=Serial,
+class Decimation=INFREQ>              // INTIME, INFREQ
 class GFFT_Singleton
-: public Loki::SingletonHolder<Loki::Factory<AbstractFFT<typename VType::ValueType>,unsigned int>,
-                               GFFT_Options<Type,Decimation,Direction> > {
-   typedef Loki::Factory<AbstractFFT<typename VType::ValueType>,unsigned int> GFFT_Factory;
-   typedef GFFT_Options<Type,Decimation,Direction> Options;
+: public Loki::SingletonHolder<Loki::Factory<AbstractFFT<typename ValueType::ValueType>,unsigned int>,
+                               GFFT_Options<TransformType,Direction,Parall,Decimation> > {
+   typedef Loki::Factory<AbstractFFT<typename ValueType::ValueType>,unsigned int> GFFT_Factory;
+   typedef GFFT_Options<TransformType,Direction,Parall,Decimation> Options;
    typedef Loki::SingletonHolder<GFFT_Factory,Options> Base;
-   typedef FactoryInit<typename GFFTList<Min,Max,VType,Type,Decimation,Direction>::Result> FInit;
+   typedef FactoryInit<typename GFFTList<Min,Max,ValueType,TransformType,Direction,Parall,Decimation>::Result> FInit;
 
    //Protection
    GFFT_Singleton();

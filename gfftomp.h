@@ -84,13 +84,15 @@ template<unsigned NThreads, unsigned N, typename T, int S>
 class InFreqOMP<NThreads,N,T,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InFreqOMP<NThreads/2,N/2,T,S> next;
+   static const int IN = N;
 public:
    void apply(T* data) {
 
       LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
 
-      #pragma omp parallel shared(data,wpr,wpi,t) private(wtemp,tempr,tempi,wr,wi)
+      #pragma omp parallel shared(data,wpr,wpi) private(wtemp,tempr,tempi,wr,wi)
       {
+
       wtemp = Sin<N,1,LocalVType>::value();
       wpr = -2.0*wtemp*wtemp;
       wpi = -S*Sin<N,2,LocalVType>::value();
@@ -99,7 +101,7 @@ public:
       int i,chunk = N/2;
 
       #pragma omp for schedule(static,chunk)
-      for (i=0; i<N; i+=2) {
+      for (i=0; i<IN; i+=2) {
         tempr = data[i] - data[i+N];
         tempi = data[i+1] - data[i+N+1];
         data[i] += data[i+N];
@@ -124,10 +126,10 @@ public:
 };
 
 template<unsigned N, typename T, int S>
-class InTimeOMP<1,N,T,S,true> : public InTime<N,T,S> { };
+class InFreqOMP<1,N,T,S,true> : public InFreq<N,T,S> { };
 
 template<unsigned NThreads, unsigned N, typename T, int S>
-class InTimeOMP<NThreads,N,T,S,false> : public InTime<N,T,S> { };
+class InFreqOMP<NThreads,N,T,S,false> : public InFreq<N,T,S> { };
 
 
 // doesn't work
