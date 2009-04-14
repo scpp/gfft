@@ -122,6 +122,9 @@ struct Serial {
       enum { N = 1<<P };
       typedef GFFTswap<N,T> Result;
    };
+
+   template<typename T>
+   void apply(T*) { }
 };
 
 template<unsigned NT>
@@ -133,6 +136,12 @@ struct OpenMP {
    struct Swap {
       typedef GFFTswap2OMP<NT,P,T> Result;
    };
+
+   template<typename T>
+   void apply(T*) {
+      omp_set_num_threads(NT);
+      omp_set_nested(true);
+   }
 };
 
 /// Generic Fast Fourier transform in-place
@@ -168,7 +177,7 @@ class GFFT:public FactoryPolicy {
 
    typedef typename Type::template Algorithm<Direction,TList,Sep>::Result Alg;
 
-   PoliciesHandler<Alg> run;
+   PoliciesHandler<Loki::Typelist<Parall,Alg> > run;
 public:
    typedef VType ValueType;
    typedef Type TransformType;

@@ -39,10 +39,10 @@ int main(int argc, char *argv[])
 
 // There are three ways to create object to perform FFT of the length 2^p
 // 1) Singleton holds the object factory for GFFT
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::FORWARD,DFT::OpenMP<2>,DFT::INTIME>* gfft;
+    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::FORWARD,DFT::OpenMP<3>,DFT::INTIME>* gfft;
     DFT::AbstractFFT<ValueType::ValueType>* fftobj = gfft->Instance().CreateObject(p);
 
-    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::BACKWARD,DFT::OpenMP<2>,DFT::INTIME>* igfft;
+    DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::BACKWARD,DFT::OpenMP<3>,DFT::INTIME>* igfft;
     DFT::AbstractFFT<ValueType::ValueType>* ifftobj = igfft->Instance().CreateObject(p);
 
 // 2) Create the object factory without singleton

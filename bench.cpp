@@ -26,8 +26,6 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include <omp.h>
-
 using namespace std;
 
 typedef double ValueType;
@@ -126,7 +124,7 @@ int main(int argc, char *argv[])
 
 // 2) Create the object factory without singleton
 
-    typedef DFT::GenList<17,25,DFT::DOUBLE,DFT::COMPLEX,DFT::FORWARD,DFT::OpenMP<2>,DFT::INFREQ> List;
+    typedef DFT::GenList<17,25,DFT::DOUBLE,DFT::COMPLEX,DFT::FORWARD,DFT::OpenMP<4>,DFT::INFREQ> List;
 //    typedef DFT::GenList<10,15> List;
 
 //   typedef DFT::Print<List::Result>::Result deb;

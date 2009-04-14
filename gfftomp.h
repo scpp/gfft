@@ -17,6 +17,7 @@
 
 #include "gfftalg.h"
 
+#include <omp.h>
 
 namespace DFT {
 
