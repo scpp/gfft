@@ -22,4 +22,18 @@ struct SInt {
    enum { Value = N };
 };
 
+#define STATIC_INTEGER_CLASS(Type, Name) \
+template<Type N>                         \
+struct s_##Name {                        \
+   typedef Type value_type;              \
+   static const Type value = N;          \
+};
+
+STATIC_INTEGER_CLASS(int, int)
+STATIC_INTEGER_CLASS(unsigned int, uint)
+STATIC_INTEGER_CLASS(long, long)
+STATIC_INTEGER_CLASS(unsigned long, ulong)
+
+#undef STATIC_INTEGER_CLASS
+
 #endif

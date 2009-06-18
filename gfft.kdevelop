@@ -17,7 +17,7 @@
   <kdevautoproject>
     <general>
       <activetarget>gfft</activetarget>
-      <useconfiguration>optimized</useconfiguration>
+      <useconfiguration>debug</useconfiguration>
     </general>
     <run>
       <mainprogram>/home/vladimir/prog/gfft/optimized</mainprogram>

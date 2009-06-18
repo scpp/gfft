@@ -22,7 +22,7 @@
 #include "metafunc.h"
 
 
-namespace DFT {
+namespace GFFT {
 
 
 template<typename T>

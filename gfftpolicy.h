@@ -22,7 +22,7 @@
 */
 
 
-namespace DFT {
+namespace GFFT {
 
 
 template<class TList>

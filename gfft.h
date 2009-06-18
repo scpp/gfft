@@ -34,7 +34,7 @@
 #include "gfftstdalg.h"
 #include "gfftpolicy.h"
 
-namespace DFT {
+namespace GFFT {
 
 /// Direction of transform
 struct FORWARD {
@@ -113,6 +113,55 @@ struct REAL2 {
    };
 };
 
+struct DFT {
+   enum { ID = 0 };
+
+   template<unsigned N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+struct IDFT {
+   enum { ID = 1 };
+
+   template<unsigned N, typename T>
+   struct Direction : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+struct RDFT {
+   enum { ID = 2 };
+
+   template<unsigned N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef typename Loki::TL::Append<List,Separator>::Result Result;
+   };
+};
+
+struct IRDFT {
+   enum { ID = 3 };
+
+   template<unsigned N, typename T>
+   struct Direction : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef Loki::Typelist<Separator,List> Result;
+   };
+};
+
+
 struct Serial {
    enum { ID = 0 };
    static const unsigned NParProc = 1;
@@ -168,13 +217,9 @@ class GFFT:public FactoryPolicy {
    //typedef GFFTswap2<P,T> Swap;
    //typedef GFFTswapOMP<2,N,T> Swap;
    typedef typename Parall::template Swap<P,T>::Result Swap;
-
    typedef typename Direction::template Type<N,T> Dir;
-
    typedef Separate<N,T,Dir::Sign> Sep;
-
    typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
-
    typedef typename Type::template Algorithm<Direction,TList,Sep>::Result Alg;
 
    PoliciesHandler<Loki::Typelist<Parall,Alg> > run;
@@ -194,6 +239,45 @@ public:
       run.apply(data);
    }
 };
+
+
+template<class Power2,
+class VType,
+class Type,                    ///< DFT, IDFT, RDFT, IRDFT
+class Parall,
+class Decimation,              // INTIME, INFREQ
+class FactoryPolicy=Empty,
+unsigned IDN = Power2::ID>
+class Transform:public FactoryPolicy {
+   enum { P = Power2::Value, N = 1<<P };
+   typedef typename VType::ValueType T;
+   //typedef GFFTswap<N,T> Swap;
+   //typedef GFFTswap2<P,T> Swap;
+   //typedef GFFTswapOMP<2,N,T> Swap;
+   typedef typename Parall::template Swap<P,T>::Result Swap;
+   typedef typename Type::template Direction<N,T> Dir;
+   typedef Separate<N,T,Dir::Sign> Sep;
+   typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
+
+   PoliciesHandler<Loki::Typelist<Parall,Alg> > run;
+public:
+   typedef VType ValueType;
+   typedef Type TransformType;
+   typedef Decimation DecimationType;
+//   typedef Direction DirectionType;
+
+   enum { ID = IDN, Len = N, PLen = P };
+
+   static FactoryPolicy* Create() {
+      return new Transform<Power2,VType,Type,Parall,Decimation,FactoryPolicy>();
+   }
+
+   void fft(T* data) {
+      run.apply(data);
+   }
+};
+
 
 /// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
 template<unsigned Begin, unsigned End, 

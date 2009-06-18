@@ -21,7 +21,7 @@
 */
 
 
-namespace DFT {
+namespace GFFT {
 
 
 template<typename T,

@@ -20,7 +20,7 @@
 
 #include "Numlist.h"
 
-namespace DFT {
+namespace GFFT {
 
 template<class TList> struct Print;
 
@@ -56,6 +56,7 @@ typedef TYPELIST_2(Serial,OpenMP<2>) ParallelizationList;
 
 typedef TYPELIST_2(INTIME,INFREQ) DecimationList;
 
+typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) NewTransformTypeList;
 
 
 template<unsigned Begin, unsigned End>
@@ -91,40 +92,55 @@ struct DefineGFFT {
                 AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
+/// Takes types from TList to define Transform class
+template<class TList, int ID>
+struct DefineTransform {
+   typedef typename TList::Tail::Head VType;
+   typedef Transform<typename TList::Head,VType,
+                typename TList::Tail::Tail::Head,
+                typename TList::Tail::Tail::Tail::Head,
+                typename TList::Tail::Tail::Tail::Tail::Head,
+                AbstractFFT<typename VType::ValueType>,ID> Result;
+};
+
 /// Generates all different combinations of parameters given 
 /// in the two-dimensional compile-time array TList taking one
 /// parameter from every TList's entry. The entry may be either 
 /// a type or a Typelist.
-template<class TList, class TLenList,
-         class WorkingList=Loki::NullType,
-         int ID=0>
+template<class TList, class TLenList, 
+         template<class,int> class DefTrans,
+         class WorkingList=Loki::NullType, int ID=0>
 struct ListGenerator;
 
 // H is a simple type
-template<class H, class Tail, int N, class NTail, class WorkingList, int ID>
-struct ListGenerator<Loki::Typelist<H,Tail>,NL::Numlist<N,NTail>,WorkingList,ID> {
+template<class H, class Tail, int N, class NTail, 
+         template<class,int> class DefTrans, class WorkingList, int ID>
+struct ListGenerator<Loki::Typelist<H,Tail>,NL::Numlist<N,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,WList,(ID*N)+H::ID>::Result Result;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
 };
 
 // Typelist is in the head
-template<class H, class T, class Tail, int N, class NTail, class WorkingList, int ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,NL::Numlist<N,NTail>,WorkingList,ID> {
+template<class H, class T, class Tail, int N, class NTail, 
+         template<class,int> class DefTrans, class WorkingList, int ID>
+struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,NL::Numlist<N,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Loki::Typelist<T,Tail>,NL::Numlist<N,NTail>,WorkingList,ID>::Result L1;
-   typedef typename ListGenerator<Tail,NTail,WList,(ID*N)+H::ID>::Result L2;
+   typedef typename ListGenerator<Loki::Typelist<T,Tail>,NL::Numlist<N,NTail>,DefTrans,WorkingList,ID>::Result L1;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result L2;
    typedef typename Loki::TL::Append<L1,L2>::Result Result;
 };
 
-template<class H, class Tail, int N, class NTail, class WorkingList, int ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,NL::Numlist<N,NTail>,WorkingList,ID> {
+template<class H, class Tail, int N, class NTail, 
+         template<class,int> class DefTrans, class WorkingList, int ID>
+struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,
+                     NL::Numlist<N,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,WList,(ID*N)+H::ID>::Result Result;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
 };
 
-template<class WorkingList, int ID>
-struct ListGenerator<Loki::NullType,NL::NullType,WorkingList,ID> {
-   typedef Loki::Typelist<typename DefineGFFT<WorkingList,ID>::Result,Loki::NullType> Result;
+template<template<class,int> class DefTrans, class WorkingList, int ID>
+struct ListGenerator<Loki::NullType,NL::NullType,DefTrans,WorkingList,ID> {
+   typedef Loki::Typelist<typename DefTrans<WorkingList,ID>::Result,Loki::NullType> Result;
 };
 
 
@@ -173,7 +189,37 @@ class GenList {
 
    typedef TranslateID<LenList> Trans;
 public:
-   typedef typename ListGenerator<RevList,RevLenList>::Result Result;
+   typedef typename ListGenerator<RevList,RevLenList,DefineGFFT>::Result Result;
+
+   static unsigned int trans_id(const unsigned int* n) {
+      return Trans::apply(n);
+   }
+};
+
+template<unsigned Begin, unsigned End,
+class T          = ValueTypeList,
+class TransType  = NewTransformTypeList,     // DFT, IDFT, RDFT, IRDFT
+class Parall     = ParallelizationList,
+class Decimation = DecimationList>        // INTIME, INFREQ
+class Generate {
+   typedef typename GenNumList<Begin,End>::Result NList;
+   enum { L1 = Loki::TL::Length<NList>::value };
+   enum { L2 = Loki::TL::Length<ValueTypeList>::value };
+   enum { L3 = Loki::TL::Length<NewTransformTypeList>::value };
+   enum { L5 = Loki::TL::Length<ParallelizationList>::value };
+   enum { L6 = Loki::TL::Length<DecimationList>::value };
+   typedef NUMLIST_5(L1,L2,L3,L5,L6) LenList;
+//   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
+
+//   typedef typename Loki::TL::Reverse<List>::Result RevList;  // ? fails
+   typedef typename NL::Reverse<LenList>::Result RevLenList;
+
+//    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
+   typedef TYPELIST_5(Decimation,Parall,TransType,T,NList) RevList;
+
+   typedef TranslateID<LenList> Trans;
+public:
+   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
 
    static unsigned int trans_id(const unsigned int* n) {
       return Trans::apply(n);

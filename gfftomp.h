@@ -19,7 +19,7 @@
 
 #include <omp.h>
 
-namespace DFT {
+namespace GFFT {
 
 /// OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
 template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>4))>
