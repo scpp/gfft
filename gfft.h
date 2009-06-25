@@ -116,6 +116,11 @@ struct REAL2 {
 struct DFT {
    enum { ID = 0 };
 
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::Value };
+   };
+
    template<unsigned N, typename T>
    struct Direction : public Forward<N,T> {};
 
@@ -127,6 +132,11 @@ struct DFT {
 
 struct IDFT {
    enum { ID = 1 };
+
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::Value };
+   };
 
    template<unsigned N, typename T>
    struct Direction : public Backward<N,T> {};
@@ -140,6 +150,11 @@ struct IDFT {
 struct RDFT {
    enum { ID = 2 };
 
+   template<typename TPower>
+   struct Length {
+      static const unsigned int Value = TPower::Value-1;
+   };
+
    template<unsigned N, typename T>
    struct Direction : public Forward<N,T> {};
 
@@ -151,6 +166,11 @@ struct RDFT {
 
 struct IRDFT {
    enum { ID = 3 };
+
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::Value-1 };
+   };
 
    template<unsigned N, typename T>
    struct Direction : public Backward<N,T> {};
@@ -249,11 +269,9 @@ class Decimation,              // INTIME, INFREQ
 class FactoryPolicy=Empty,
 unsigned IDN = Power2::ID>
 class Transform:public FactoryPolicy {
-   enum { P = Power2::Value, N = 1<<P };
+   enum { P = Type::template Length<Power2>::Value };
+   enum { N = 1<<P };
    typedef typename VType::ValueType T;
-   //typedef GFFTswap<N,T> Swap;
-   //typedef GFFTswap2<P,T> Swap;
-   //typedef GFFTswapOMP<2,N,T> Swap;
    typedef typename Parall::template Swap<P,T>::Result Swap;
    typedef typename Type::template Direction<N,T> Dir;
    typedef Separate<N,T,Dir::Sign> Sep;

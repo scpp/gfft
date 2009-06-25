@@ -169,7 +169,7 @@ class T          = ValueTypeList,
 class TransType  = TransformTypeList,     // COMPLEX, REAL
 class Direction  = DirectionList,
 class Parall     = ParallelizationList,
-class Decimation = DecimationList>        // INTIME, INFREQ
+class Decimation = INFREQ>        // INTIME, INFREQ
 class GenList {
    typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
@@ -200,7 +200,7 @@ template<unsigned Begin, unsigned End,
 class T          = ValueTypeList,
 class TransType  = NewTransformTypeList,     // DFT, IDFT, RDFT, IRDFT
 class Parall     = ParallelizationList,
-class Decimation = DecimationList>        // INTIME, INFREQ
+class Decimation = INFREQ>        // INTIME, INFREQ
 class Generate {
    typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };

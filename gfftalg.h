@@ -187,7 +187,7 @@ public:
       next.apply(data+N);
    }
 };
-/*
+
 /// Specialization for N=4, decimation-in-frequency
 template<typename T, int S>
 class InFreq<4,T,S> {
@@ -220,7 +220,7 @@ public:
       data[5] += ti;
    }
 };
-*/
+
 /// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>
 class InFreq<2,T,S> {
@@ -275,7 +275,7 @@ public:
 template<unsigned P, typename T>
 class GFFTswap2<P,T,P> {
 public:
-   void apply(T* data, unsigned n, unsigned r) {
+   void apply(T* data, unsigned n=0, unsigned r=0) {
       if (n>r) {
         swap(data[n],data[r]);
         swap(data[n+1],data[r+1]);
@@ -323,7 +323,7 @@ public:
       data[0] = M*0.5*(h1r + data[1]);
       data[1] = M*0.5*(h1r - data[1]);
 
-      data[N+1] = -data[N+1];
+      if (N>1) data[N+1] = -data[N+1];
    }
 };
 

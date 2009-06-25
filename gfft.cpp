@@ -35,7 +35,7 @@ const unsigned Max = 7;
 int main(int argc, char *argv[])
 {
 
-    unsigned int i,p=3;
+    unsigned int i,p=2;
     unsigned int n= 1<<p;
 
 // There are three ways to create object to perform FFT of the length 2^p
@@ -51,11 +51,11 @@ int main(int argc, char *argv[])
 //     AbstFFT* fftobj  = gfft.CreateObject(p1);
 //     AbstFFT* ifftobj = gfft.CreateObject(p2);
 
-    typedef Generate<1,7,DOUBLE,DFT> List;
+    typedef Generate<1,3,DOUBLE> List;
     Loki::Factory<AbstFFT,unsigned int> gfft;
     FactoryInit<List::Result>::apply(gfft);
-    unsigned int id1[5] = {p-1,DOUBLE::ID,DFT::ID, OpenMP<2>::ID,INFREQ::ID};
-    unsigned int id2[5] = {p-1,DOUBLE::ID,IDFT::ID,OpenMP<2>::ID,INFREQ::ID};
+    unsigned int id1[5] = {p-1,DOUBLE::ID,RDFT::ID, Serial::ID,INFREQ::ID};
+    unsigned int id2[5] = {p-1,DOUBLE::ID,IRDFT::ID,Serial::ID,INFREQ::ID};
     unsigned int p1 = List::trans_id(id1);
     unsigned int p2 = List::trans_id(id2);
     cout<<p1<<" "<<p2<<endl;
