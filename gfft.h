@@ -36,6 +36,9 @@
 
 namespace GFFT {
 
+
+
+
 /// Direction of transform
 struct FORWARD {
    enum { ID = 0 };
@@ -351,6 +354,13 @@ public:
       FInit::apply(Base::Instance());
       return Base::Instance();
    }
+};
+
+//
+template<class VType>
+struct GFFTFactory {
+   typedef Loki::Factory<AbstractFFT<typename VType::ValueType>, unsigned int> _Factory;
+
 };
 
 

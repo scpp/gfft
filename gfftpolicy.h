@@ -87,6 +87,7 @@ public:
    virtual ~AbstractFFT() {}
 };
 
+
 /// Abstract empty base class
 /** This class is passed instead of AbstractFFT,
     if object factory is not needed

@@ -197,7 +197,7 @@ public:
 };
 
 template<unsigned Begin, unsigned End,
-class T          = ValueTypeList,
+class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
 class TransType  = NewTransformTypeList,     // DFT, IDFT, RDFT, IRDFT
 class Parall     = ParallelizationList,
 class Decimation = INFREQ>        // INTIME, INFREQ
@@ -218,12 +218,25 @@ class Generate {
    typedef TYPELIST_5(Decimation,Parall,TransType,T,NList) RevList;
 
    typedef TranslateID<LenList> Trans;
+
+   typedef AbstractFFT<typename T::ValueType> AbstrFFT;
+   Loki::Factory<AbstrFFT, unsigned int> gfft;
+  //  FactoryInit<List::Result>::apply(gfft);
+
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
 
-   static unsigned int trans_id(const unsigned int* n) {
-      return Trans::apply(n);
+   Generate() {
+      FactoryInit<Result>::apply(gfft);
    }
+
+   static unsigned int trans_id(const unsigned int* n) {
+      unsigned int nn[5];
+      for (int i=0; i<5; ++i) nn[i] = n[i];
+      nn[0]--;
+      return Trans::apply(nn);
+   }
+
 };
 
 }  //namespace

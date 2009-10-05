@@ -44,4 +44,5 @@ struct FactoryInit<Loki::NullType> {
    static void apply(Fact&) { }
 };
 
+
 #endif /*__finit_h*/
