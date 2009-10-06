@@ -1,0 +1,5 @@
+
+PROJECT(gfft)
+
+ADD_SUBDIRECTORY(src)
+
