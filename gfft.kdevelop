@@ -1,156 +1,66 @@
 <?xml version = '1.0'?>
 <kdevelop>
   <general>
-    <author>Volodymyr Myrnyy</author>
-    <email>vm@scientificcpp.com</email>
+    <author/>
+    <email/>
     <version>$VERSION$</version>
-    <projectmanagement>KDevAutoProject</projectmanagement>
+    <projectmanagement>KDevCustomProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <ignoreparts/>
-    <projectdirectory>.</projectdirectory>
-    <absoluteprojectpath>false</absoluteprojectpath>
-    <description/>
-    <versioncontrol>kdevsubversion</versioncontrol>
+    <projectdirectory>/home/vladimir/prog/gfft</projectdirectory>
+    <absoluteprojectpath>true</absoluteprojectpath>
+    <secondaryLanguages>
+      <language>C</language>
+    </secondaryLanguages>
     <projectname>gfft</projectname>
-    <defaultencoding/>
   </general>
-  <kdevautoproject>
-    <general>
-      <activetarget>gfft</activetarget>
-      <useconfiguration>debug</useconfiguration>
-    </general>
+  <kdevcustomproject>
+    <filelistdirectory>/home/vladimir/prog/gfft</filelistdirectory>
     <run>
-      <mainprogram>/home/vladimir/prog/gfft/debug/gfft</mainprogram>
-      <directoryradio>executable</directoryradio>
-      <customdirectory>/</customdirectory>
+      <mainprogram>/home/vladimir/prog/gfft/gfft</mainprogram>
+      <directoryradio>custom</directoryradio>
+      <customdirectory>/home/vladimir/prog/gfft</customdirectory>
       <programargs/>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
-      <runarguments>
-        <gfft/>
-        <check/>
-      </runarguments>
-      <globaldebugarguments/>
-      <globalcwd>/home/vladimir/prog/gfft/debug</globalcwd>
-      <useglobalprogram>true</useglobalprogram>
-      <autoinstall>false</autoinstall>
-      <autokdesu>false</autokdesu>
     </run>
-    <configurations>
-      <optimized>
-        <builddir>optimized</builddir>
-        <ccompiler>kdevgccoptions</ccompiler>
-        <cxxcompiler>kdevgppoptions</cxxcompiler>
-        <f77compiler>kdevpgf77options</f77compiler>
-        <cxxflags>-time -O7 -fopenmp -ffast-math -fomit-frame-pointer -fexpensive-optimizations</cxxflags>
-        <envvars/>
-        <configargs/>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags/>
-        <f77flags/>
-      </optimized>
-      <debug>
-        <configargs/>
-        <builddir>debug</builddir>
-        <ccompiler>kdevgccoptions</ccompiler>
-        <cxxcompiler>kdevgppoptions</cxxcompiler>
-        <f77compiler>kdevpgf77options</f77compiler>
-        <cxxflags>-fopenmp -O0 -g3 -DFFTW -Wall</cxxflags>
-        <envvars/>
-        <topsourcedir/>
-        <cppflags/>
-        <ldflags/>
-        <ccompilerbinary/>
-        <cxxcompilerbinary/>
-        <f77compilerbinary/>
-        <cflags>-O0 -g3</cflags>
-        <f77flags/>
-      </debug>
-    </configurations>
+    <build>
+      <buildtool>make</buildtool>
+      <builddir>/home/vladimir/prog/gfft</builddir>
+    </build>
     <make>
-      <envvars>
-        <envvar value="1" name="WANT_AUTOCONF_2_5" />
-        <envvar value="1" name="WANT_AUTOMAKE_1_6" />
-      </envvars>
-      <abortonerror>true</abortonerror>
-      <runmultiplejobs>true</runmultiplejobs>
-      <numberofjobs>2</numberofjobs>
+      <abortonerror>false</abortonerror>
+      <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
-      <makebin/>
-      <prio>0</prio>
+      <makebin>/usr/bin/gmake </makebin>
+      <selectedenvironment>default</selectedenvironment>
+      <environments>
+        <default>
+          <envvar value="1" name="VERBOSE" />
+        </default>
+      </environments>
     </make>
-  </kdevautoproject>
-  <kdevdebugger>
-    <general>
-      <dbgshell>libtool</dbgshell>
-      <programargs/>
-      <gdbpath/>
-      <configGdbScript/>
-      <runShellScript/>
-      <runGdbScript/>
-      <breakonloadinglibs>true</breakonloadinglibs>
-      <separatetty>true</separatetty>
-      <floatingtoolbar>false</floatingtoolbar>
-      <raiseGDBOnStart>true</raiseGDBOnStart>
-    </general>
-    <display>
-      <staticmembers>true</staticmembers>
-      <demanglenames>true</demanglenames>
-      <outputradix>10</outputradix>
-    </display>
-  </kdevdebugger>
-  <kdevdoctreeview>
-    <ignoretocs>
-      <toc>ada</toc>
-      <toc>ada_bugs_gcc</toc>
-      <toc>bash</toc>
-      <toc>bash_bugs</toc>
-      <toc>clanlib</toc>
-      <toc>fortran_bugs_gcc</toc>
-      <toc>gnome1</toc>
-      <toc>gnustep</toc>
-      <toc>gtk</toc>
-      <toc>gtk_bugs</toc>
-      <toc>haskell</toc>
-      <toc>haskell_bugs_ghc</toc>
-      <toc>java_bugs_gcc</toc>
-      <toc>java_bugs_sun</toc>
-      <toc>kde2book</toc>
-      <toc>opengl</toc>
-      <toc>pascal_bugs_fp</toc>
-      <toc>php</toc>
-      <toc>php_bugs</toc>
-      <toc>perl</toc>
-      <toc>perl_bugs</toc>
-      <toc>python</toc>
-      <toc>python_bugs</toc>
-      <toc>qt-kdev3</toc>
-      <toc>ruby</toc>
-      <toc>ruby_bugs</toc>
-      <toc>sdl</toc>
-      <toc>sw</toc>
-      <toc>w3c-dom-level2-html</toc>
-      <toc>w3c-svg</toc>
-      <toc>w3c-uaag10</toc>
-      <toc>wxwidgets_bugs</toc>
-    </ignoretocs>
-    <ignoreqt_xml>
-      <toc>Guide to the Qt Translation Tools</toc>
-      <toc>Qt Assistant Manual</toc>
-      <toc>Qt Designer Manual</toc>
-      <toc>Qt Reference Documentation</toc>
-      <toc>qmake User Guide</toc>
-    </ignoreqt_xml>
-    <ignoredoxygen>
-      <toc>KDE Libraries (Doxygen)</toc>
-    </ignoredoxygen>
-  </kdevdoctreeview>
+    <blacklist>
+      <path>CMakeFiles</path>
+    </blacklist>
+    <filetypes>
+      <filetype>*.java</filetype>
+      <filetype>*.h</filetype>
+      <filetype>*.H</filetype>
+      <filetype>*.hh</filetype>
+      <filetype>*.hxx</filetype>
+      <filetype>*.hpp</filetype>
+      <filetype>*.c</filetype>
+      <filetype>*.C</filetype>
+      <filetype>*.cc</filetype>
+      <filetype>*.cpp</filetype>
+      <filetype>*.c++</filetype>
+      <filetype>*.cxx</filetype>
+      <filetype>Makefile</filetype>
+      <filetype>CMakeLists.txt</filetype>
+    </filetypes>
+  </kdevcustomproject>
   <kdevfilecreate>
     <filetypes/>
     <useglobaltypes>
@@ -159,6 +69,17 @@
       <type ext="h" />
     </useglobaltypes>
   </kdevfilecreate>
+  <kdevdoctreeview>
+    <projectdoc>
+      <userdocDir>html/</userdocDir>
+      <apidocDir>html/</apidocDir>
+    </projectdoc>
+    <ignoreqt_xml/>
+    <ignoredoxygen/>
+    <ignorekdocs/>
+    <ignoretocs/>
+    <ignoredevhelp/>
+  </kdevdoctreeview>
   <cppsupportpart>
     <filetemplates>
       <interfacesuffix>.h</interfacesuffix>
@@ -166,16 +87,6 @@
     </filetemplates>
   </cppsupportpart>
   <kdevcppsupport>
-    <qt>
-      <used>false</used>
-      <version>3</version>
-      <root>/usr/lib/qt3</root>
-      <includestyle>3</includestyle>
-      <designerintegration>EmbeddedKDevDesigner</designerintegration>
-      <qmake>/usr/lib/qt3/bin/qmake</qmake>
-      <designer>/usr/lib/qt3/bin/designer</designer>
-      <designerpluginpaths/>
-    </qt>
     <codecompletion>
       <includeGlobalFunctions>true</includeGlobalFunctions>
       <includeTypes>true</includeTypes>
@@ -203,42 +114,44 @@
       <alwaysIncludeNamespaces>false</alwaysIncludeNamespaces>
       <includePaths>.;</includePaths>
     </codecompletion>
-    <creategettersetter>
-      <prefixGet/>
-      <prefixSet>set</prefixSet>
-      <prefixVariable>m_,_</prefixVariable>
-      <parameterName>theValue</parameterName>
-      <inlineGet>true</inlineGet>
-      <inlineSet>true</inlineSet>
-    </creategettersetter>
     <references/>
-    <splitheadersource>
-      <enabled>false</enabled>
-      <synchronize>true</synchronize>
-      <orientation>Vertical</orientation>
-    </splitheadersource>
+    <qt>
+      <used>false</used>
+      <version>3</version>
+      <includestyle>3</includestyle>
+      <root>/usr/lib/qt3</root>
+      <designerintegration>EmbeddedKDevDesigner</designerintegration>
+      <qmake>/usr/lib/qt3/bin/qmake</qmake>
+      <designer>/usr/lib/qt3/bin/designer</designer>
+      <designerpluginpaths/>
+    </qt>
   </kdevcppsupport>
-  <kdevdocumentation>
-    <projectdoc>
-      <docsystem/>
-      <docurl/>
-      <usermanualurl/>
-    </projectdoc>
-  </kdevdocumentation>
-  <ctagspart>
-    <customArguments/>
-    <customTagfilePath>/home/vladimir/prog/gfft/tags</customTagfilePath>
-    <activeTagsFiles/>
-  </ctagspart>
   <kdevfileview>
     <groups>
-      <hidenonprojectfiles>false</hidenonprojectfiles>
+      <group pattern="CMakeLists.txt;*.cmake;" name="CMake" />
+      <group pattern="*.h;*.hxx;*.hpp" name="Header" />
+      <group pattern="*.c" name="C Sources" />
+      <group pattern="*.cpp;*.C;*.cxx;*.cc" name="C++ Sources" />
+      <group pattern="*.ui" name="Qt Designer files" />
+      <hidenonprojectfiles>true</hidenonprojectfiles>
       <hidenonlocation>false</hidenonlocation>
     </groups>
     <tree>
-      <hidepatterns>*.o,*.lo,CVS</hidepatterns>
-      <hidenonprojectfiles>false</hidenonprojectfiles>
-      <showvcsfields>false</showvcsfields>
+      <hidepatterns>*.o,*.lo,CVS,*~,cmake*</hidepatterns>
+      <hidenonprojectfiles>true</hidenonprojectfiles>
     </tree>
   </kdevfileview>
+  <substmap>
+    <APPNAME>gfft</APPNAME>
+    <APPNAMELC>gfft</APPNAMELC>
+    <APPNAMESC>Gfft</APPNAMESC>
+    <APPNAMEUC>GFFT</APPNAMEUC>
+    <AUTHOR>Vladimir</AUTHOR>
+    <EMAIL>vladimir@acer</EMAIL>
+    <LICENSE>GPL</LICENSE>
+    <LICENSEFILE>COPYING</LICENSEFILE>
+    <VERSION>0.2</VERSION>
+    <YEAR>2009</YEAR>
+    <dest>/home/vladimir/prog/gfft</dest>
+  </substmap>
 </kdevelop>
