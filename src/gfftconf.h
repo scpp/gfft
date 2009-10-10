@@ -20,6 +20,8 @@
 
 #include "Numlist.h"
 
+#include <complex>
+
 namespace GFFT {
 
 template<class TList> struct Print;
@@ -39,6 +41,16 @@ struct DOUBLE {
 struct FLOAT {
    enum { ID = 1 };
    typedef float ValueType;
+};
+
+struct COMPLEX_DOUBLE {
+   enum { ID = 2 };
+   typedef std::complex<double> ValueType;
+};
+
+struct COMPLEX_FLOAT {
+   enum { ID = 3 };
+   typedef std::complex<float> ValueType;
 };
 
 template<unsigned int N>

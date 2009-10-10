@@ -189,37 +189,37 @@ public:
 };
 
 /// Specialization for N=4, decimation-in-frequency
-template<typename T, int S>
-class InFreq<4,T,S> {
-public:
-   void apply(T* data) {
-      T tr = data[4];
-      T ti = data[5];
-      data[4] = data[0]-tr;
-      data[5] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[6];
-      ti = data[7];
-      data[6] = S*(data[3]-ti);
-      data[7] = S*(tr-data[2]);
-      data[2] += tr;
-      data[3] += ti;
-
-      tr = data[2];
-      ti = data[3];
-      data[2] = data[0]-tr;
-      data[3] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[6];
-      ti = data[7];
-      data[6] = data[4]-tr;
-      data[7] = data[5]-ti;
-      data[4] += tr;
-      data[5] += ti;
-   }
-};
+// template<typename T, int S>
+// class InFreq<4,T,S> {
+// public:
+//    void apply(T* data) {
+//       T tr = data[4];
+//       T ti = data[5];
+//       data[4] = data[0]-tr;
+//       data[5] = data[1]-ti;
+//       data[0] += tr;
+//       data[1] += ti;
+//       tr = data[6];
+//       ti = data[7];
+//       data[6] = S*(data[3]-ti);
+//       data[7] = S*(tr-data[2]);
+//       data[2] += tr;
+//       data[3] += ti;
+// 
+//       tr = data[2];
+//       ti = data[3];
+//       data[2] = data[0]-tr;
+//       data[3] = data[1]-ti;
+//       data[0] += tr;
+//       data[1] += ti;
+//       tr = data[6];
+//       ti = data[7];
+//       data[6] = data[4]-tr;
+//       data[7] = data[5]-ti;
+//       data[4] += tr;
+//       data[5] += ti;
+//    }
+// };
 
 /// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>

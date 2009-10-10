@@ -64,26 +64,26 @@ public:
 };
 
 /// Specialization for N=4, decimation-in-time
-template<typename T, int S,
-template<typename> class Complex>
-class InTime<4,Complex<T>,S> {
-public:
-   void apply(Complex<T>* data) {
-      Complex<T> t(data[1]);
-      data[1] = data[0]-t;
-      data[0] += t;
-      t = data[3];
-      data[3] = Complex<T>(S*(data[2].imag()-t.imag()),S*(t.real()-data[2].real()));
-      data[2] += t;
-
-      t = data[2];
-      data[2] = data[0]-t;
-      data[0] += t;
-      t = data[3];
-      data[3] = data[1]-t;
-      data[1] += t;
-   }
-};
+// template<typename T, int S,
+// template<typename> class Complex>
+// class InTime<4,Complex<T>,S> {
+// public:
+//    void apply(Complex<T>* data) {
+//       Complex<T> t(data[1]);
+//       data[1] = data[0]-t;
+//       data[0] += t;
+//       t = data[3];
+//       data[3] = Complex<T>(S*(data[2].imag()-t.imag()),S*(t.real()-data[2].real()));
+//       data[2] += t;
+// 
+//       t = data[2];
+//       data[2] = data[0]-t;
+//       data[0] += t;
+//       t = data[3];
+//       data[3] = data[1]-t;
+//       data[1] += t;
+//    }
+// };
 
 /// Specialization for N=2, decimation-in-time
 template<typename T, int S,

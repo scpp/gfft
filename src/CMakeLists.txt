@@ -9,9 +9,11 @@ ADD_DEFINITIONS(-Wall -O2 -fopenmp)
 
 #list all source files here
 ADD_EXECUTABLE(gfft gfft.cpp)
+ADD_EXECUTABLE(cgfft cgfft.cpp)
 ADD_EXECUTABLE(bench bench.cpp)
 
 #need to link to some other libraries ? just add them here
 TARGET_LINK_LIBRARIES(gfft gomp)
+TARGET_LINK_LIBRARIES(cgfft gomp)
 TARGET_LINK_LIBRARIES(bench gomp)
 
