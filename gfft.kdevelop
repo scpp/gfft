@@ -1,8 +1,8 @@
 <?xml version = '1.0'?>
 <kdevelop>
   <general>
-    <author/>
-    <email/>
+    <author></author>
+    <email></email>
     <version>$VERSION$</version>
     <projectmanagement>KDevCustomProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
@@ -13,17 +13,25 @@
       <language>C</language>
     </secondaryLanguages>
     <projectname>gfft</projectname>
+    <description></description>
+    <defaultencoding></defaultencoding>
+    <versioncontrol/>
   </general>
   <kdevcustomproject>
     <filelistdirectory>/home/vladimir/prog/gfft</filelistdirectory>
     <run>
-      <mainprogram>/home/vladimir/prog/gfft/gfft</mainprogram>
+      <mainprogram>/home/vladimir/prog/gfft</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>/home/vladimir/prog/gfft</customdirectory>
-      <programargs/>
+      <programargs></programargs>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
       <envvars/>
+      <globaldebugarguments></globaldebugarguments>
+      <globalcwd>/home/vladimir/prog/gfft</globalcwd>
+      <useglobalprogram>false</useglobalprogram>
+      <autoinstall>false</autoinstall>
+      <autokdesu>false</autokdesu>
     </run>
     <build>
       <buildtool>make</buildtool>
@@ -40,6 +48,9 @@
           <envvar value="1" name="VERBOSE" />
         </default>
       </environments>
+      <prio>0</prio>
+      <defaulttarget></defaulttarget>
+      <makeoptions></makeoptions>
     </make>
     <blacklist>
       <path>CMakeFiles</path>
@@ -60,6 +71,16 @@
       <filetype>Makefile</filetype>
       <filetype>CMakeLists.txt</filetype>
     </filetypes>
+    <other>
+      <prio>0</prio>
+      <otherbin></otherbin>
+      <defaulttarget></defaulttarget>
+      <otheroptions></otheroptions>
+      <selectedenvironment>default</selectedenvironment>
+      <environments>
+        <default/>
+      </environments>
+    </other>
   </kdevcustomproject>
   <kdevfilecreate>
     <filetypes/>
@@ -125,6 +146,19 @@
       <designer>/usr/lib/qt3/bin/designer</designer>
       <designerpluginpaths/>
     </qt>
+    <creategettersetter>
+      <prefixGet></prefixGet>
+      <prefixSet>set</prefixSet>
+      <prefixVariable>m_,_</prefixVariable>
+      <parameterName>theValue</parameterName>
+      <inlineGet>true</inlineGet>
+      <inlineSet>true</inlineSet>
+    </creategettersetter>
+    <splitheadersource>
+      <enabled>false</enabled>
+      <synchronize>true</synchronize>
+      <orientation>Vertical</orientation>
+    </splitheadersource>
   </kdevcppsupport>
   <kdevfileview>
     <groups>
@@ -154,4 +188,22 @@
     <YEAR>2009</YEAR>
     <dest>/home/vladimir/prog/gfft</dest>
   </substmap>
+  <kdevdebugger>
+    <general>
+      <gdbpath></gdbpath>
+      <dbgshell></dbgshell>
+      <configGdbScript></configGdbScript>
+      <runShellScript></runShellScript>
+      <runGdbScript></runGdbScript>
+      <breakonloadinglibs>true</breakonloadinglibs>
+      <separatetty>false</separatetty>
+      <floatingtoolbar>false</floatingtoolbar>
+      <raiseGDBOnStart>false</raiseGDBOnStart>
+    </general>
+    <display>
+      <staticmembers>false</staticmembers>
+      <demanglenames>true</demanglenames>
+      <outputradix>10</outputradix>
+    </display>
+  </kdevdebugger>
 </kdevelop>

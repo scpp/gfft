@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
     typedef Generate<1,3,ValueType> List;
     Loki::Factory<AbstFFT,unsigned int> gfft;
     FactoryInit<List::Result>::apply(gfft);
-    unsigned int id1[5] = {p,ValueType::ID,RDFT::ID, Serial::ID,INFREQ::ID};
-    unsigned int id2[5] = {p,ValueType::ID,IRDFT::ID,Serial::ID,INFREQ::ID};
+    unsigned int id1[6] = {p,ValueType::ID,RDFT::ID, SIntID<1>::ID,Serial::ID,INFREQ::ID};
+    unsigned int id2[6] = {p,ValueType::ID,IRDFT::ID,SIntID<1>::ID,Serial::ID,INFREQ::ID};
     unsigned int p1 = List::trans_id(id1);
     unsigned int p2 = List::trans_id(id2);
     cout<<p1<<" "<<p2<<endl;

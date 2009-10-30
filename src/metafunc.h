@@ -16,12 +16,19 @@
 #define __metafunc_h
 
 /** \file
-    \brief Compile-time computing of sine and cosine functions
+    \brief Compile-time computing of trigonometric functions
 */
 
 #include <cmath>
 
-/// Common series to compile-time calculation of sine and cosine functions
+namespace MF {
+
+/*! Common series to compile-time calculation of sine and cosine functions
+\tparam M is the starting counter of members in the series (2 for Sin function and 1 for Cos function)
+\tparam N is the number of last member in the series
+\tparam A numerator
+\tparam B denominator
+*/
 template<unsigned M, unsigned N, unsigned B, unsigned A>
 struct SinCosSeries {
    static double value() {
@@ -81,5 +88,15 @@ struct Cos<B,A,double> {
       return SinCosSeries<1,33,B,A>::value();
    }
 };
+
+/// Compile-time calculation of sin(A*M_PI/B) function
+template<unsigned B, unsigned A>
+struct Cos<B,A,long double> {
+   static double value() {
+      return SinCosSeries<1,60,B,A>::value();
+   }
+};
+
+} // namespace MF
 
 #endif /*__metafunc_h*/

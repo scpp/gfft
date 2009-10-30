@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /** \file
-    \brief Definition of main template classes, object factory and singleton
+    \brief Definition of main template classes
 */
 
 
@@ -34,196 +34,24 @@
 #include "gfftstdalg.h"
 #include "gfftpolicy.h"
 
+#include "gfftcaller.h"
+
+/** \brief Main namespace of GFFT
+
+*/
 namespace GFFT {
 
 
-
-
-/// Direction of transform
-struct FORWARD {
-   enum { ID = 0 };
-   template<unsigned N, typename T>
-   struct Type : public Forward<N,T> {};
-
-   template<class List, class Separator>
-   struct AddSeparator {
-      typedef typename Loki::TL::Append<List,Separator>::Result Result;
-   };
-};
-
-struct BACKWARD {
-   enum { ID = 1 };
-   template<unsigned N, typename T>
-   struct Type : public Backward<N,T> {};
-
-   template<class List, class Separator>
-   struct AddSeparator {
-      typedef Loki::Typelist<Separator,List> Result;
-   };
-};
-
-/// Type of decimation used in transform: in-time or in-frequency
-struct INTIME {
-   enum { ID = 0 };
-   template<unsigned N, typename T,
-            class Swap,
-            class Direction, unsigned NT>
-   class List {
-//      typedef InTime<N,T,Direction::Sign> InT;
-      typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
-   public:
-      typedef TYPELIST_3(Swap,InT,Direction) Result;
-   };
-};
-
-struct INFREQ {
-   enum { ID = 1 };
-   template<unsigned N, typename T,
-            class Swap,
-            class Direction, unsigned NT>
-   class List {
-//      typedef InFreq<N,T,Direction::Sign> InF;
-      typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
-   public:
-      typedef TYPELIST_3(InF,Swap,Direction) Result;
-   };
-};
-
-/// Type of transform
-struct COMPLEX {
-   enum { ID = 0 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef List Result;
-   };
-};
-
-struct REAL {
-   enum { ID = 1 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef typename Direction::
-         template AddSeparator<List,Separator>::Result Result;
-   };
-};
-
-struct REAL2 {
-   enum { ID = 2 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef typename Direction::
-         template AddSeparator<List,Separator>::Result Result;
-   };
-};
-
-struct DFT {
-   enum { ID = 0 };
-
-   template<typename TPower>
-   struct Length {
-      enum { Value = TPower::Value };
-   };
-
-   template<unsigned N, typename T>
-   struct Direction : public Forward<N,T> {};
-
-   template<class List, class Separator>
-   struct Algorithm {
-      typedef List Result;
-   };
-};
-
-struct IDFT {
-   enum { ID = 1 };
-
-   template<typename TPower>
-   struct Length {
-      enum { Value = TPower::Value };
-   };
-
-   template<unsigned N, typename T>
-   struct Direction : public Backward<N,T> {};
-
-   template<class List, class Separator>
-   struct Algorithm {
-      typedef List Result;
-   };
-};
-
-struct RDFT {
-   enum { ID = 2 };
-
-   template<typename TPower>
-   struct Length {
-      static const unsigned int Value = TPower::Value-1;
-   };
-
-   template<unsigned N, typename T>
-   struct Direction : public Forward<N,T> {};
-
-   template<class List, class Separator>
-   struct Algorithm {
-      typedef typename Loki::TL::Append<List,Separator>::Result Result;
-   };
-};
-
-struct IRDFT {
-   enum { ID = 3 };
-
-   template<typename TPower>
-   struct Length {
-      enum { Value = TPower::Value-1 };
-   };
-
-   template<unsigned N, typename T>
-   struct Direction : public Backward<N,T> {};
-
-   template<class List, class Separator>
-   struct Algorithm {
-      typedef Loki::Typelist<Separator,List> Result;
-   };
-};
-
-
-struct Serial {
-   enum { ID = 0 };
-   static const unsigned NParProc = 1;
-
-   template<unsigned P, class T>
-   struct Swap {
-      enum { N = 1<<P };
-      typedef GFFTswap<N,T> Result;
-   };
-
-   template<typename T>
-   void apply(T*) { }
-};
-
-template<unsigned NT>
-struct OpenMP {
-   enum { ID = NT-1 };
-   static const unsigned NParProc = NT;
-
-   template<unsigned P, class T>
-   struct Swap {
-      typedef GFFTswap2OMP<NT,P,T> Result;
-   };
-
-   template<typename T>
-   void apply(T*) {
-      omp_set_num_threads(NT);
-      omp_set_nested(true);
-   }
-};
-
-/// Generic Fast Fourier transform in-place
-/**
-\param P defines transform length, which is 2^P
-\param T type of data element
-\param Type type of transform: COMPLEX, REAL
-\param Decimation in-time or in-frequency: INTIME, INFREQ
-\param Direction transform direction: FORWARD, BACKWARD
-\param FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
+/** \class GFFT
+\brief Generic Fast Fourier transform in-place (deprecated)
+\tparam P defines transform length, which is 2^P
+\tparam VType type of data element
+\tparam Type type of transform: COMPLEX, REAL
+\tparam Direction transform direction: FORWARD, BACKWARD
+\tparam Parall parallelization
+\tparam Decimation in-time or in-frequency: INTIME, INFREQ
+\tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
+\deprecated
 */
 template<unsigned P,
 class VType,
@@ -245,7 +73,7 @@ class GFFT:public FactoryPolicy {
    typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
    typedef typename Type::template Algorithm<Direction,TList,Sep>::Result Alg;
 
-   PoliciesHandler<Loki::Typelist<Parall,Alg> > run;
+   Caller<Loki::Typelist<Parall,Alg> > run;
 public:
    typedef VType ValueType;
    typedef Type TransformType;
@@ -264,13 +92,24 @@ public:
 };
 
 
+/** 
+\brief Generic Fast Fourier transform in-place
+\tparam Power2 defines transform length, which is 2^Power2
+\tparam VType type of data element
+\tparam Type type of transform: DFT, IDFT, RDFT, IRDFT
+\tparam Dim dimension of transform, defined as SIntID<N>, N=1,2,...
+\tparam Parall parallelization
+\tparam Decimation in-time or in-frequency: INTIME, INFREQ
+\tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
+*/
 template<class Power2,
 class VType,
 class Type,                    ///< DFT, IDFT, RDFT, IRDFT
+class Dim,
 class Parall,
 class Decimation,              // INTIME, INFREQ
 class FactoryPolicy=Empty,
-unsigned IDN = Power2::ID>
+uint IDN = Power2::ID>
 class Transform:public FactoryPolicy {
    enum { P = Type::template Length<Power2>::Value };
    enum { N = 1<<P };
@@ -281,7 +120,7 @@ class Transform:public FactoryPolicy {
    typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
 
-   PoliciesHandler<Loki::Typelist<Parall,Alg> > run;
+   Caller<Loki::Typelist<Parall,Alg> > run;
 public:
    typedef VType ValueType;
    typedef Type TransformType;
@@ -291,7 +130,7 @@ public:
    enum { ID = IDN, Len = N, PLen = P };
 
    static FactoryPolicy* Create() {
-      return new Transform<Power2,VType,Type,Parall,Decimation,FactoryPolicy>();
+      return new Transform<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
    }
 
    void fft(T* data) {
@@ -300,7 +139,7 @@ public:
 };
 
 
-/// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
+// Generator of a Typelist of GFFTs classes for data lengths from 2^Begin to 2^End
 template<unsigned Begin, unsigned End, 
 typename ValueType,
 class TransformType,                 // COMPLEX, REAL
@@ -332,7 +171,11 @@ class Parall=Serial,
 class Decimation=INFREQ>
 class GFFT_Options { };
 
-/// Singleton for GFFT object factory
+/** \class GFFT_Singleton
+\brief Singleton for GFFT object factory
+\param Min minimum power of two 
+\param Max maximum power of two
+*/
 template<unsigned Min, unsigned Max, 
 typename ValueType,
 class TransformType,                          // COMPLEX, REAL
@@ -364,6 +207,6 @@ struct GFFTFactory {
 };
 
 
-}  // namespace DFT
+}  // namespace GFFT
 
 #endif /*__gfft_h*/

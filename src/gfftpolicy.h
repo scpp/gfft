@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -15,70 +15,23 @@
 #ifndef __gfftpolicy_h
 #define __gfftpolicy_h
 
-#include "loki/Typelist.h"
-
 /** \file
     \brief Policy classes
 */
+
+#include "loki/Typelist.h"
+#include <complex>
 
 
 namespace GFFT {
 
 
-template<class TList>
-struct PoliciesHandler;
+/** \class AbstractFFT
+\brief Abstract interface class to build GFFT object factory
 
-template<class TList>
-struct SPoliciesHandler;
-
-/// Instantiates each type of the typelist and calls function apply
-/**
-    All the classes in TList must include function apply(T*) with one parameter
-    as a pointer of type T*.
-*/
-
-template<class Head, class Tail>
-struct PoliciesHandler<Loki::Typelist<Head,Tail> > {
-   template<typename T>
-   void apply(T* data) {
-      obj_.apply(data);
-      next_.apply(data);
-   }
-private:
-   Head obj_;
-   PoliciesHandler<Tail> next_;
-};
-
-template<>
-struct PoliciesHandler<Loki::NullType> {
-   template<typename T>
-   void apply(T*) { }
-};
-
-/// Calls static function apply in each type of the typelist
-/**
-    All the classes in TList must include static function apply(T*) with one parameter
-    as a pointer of type T*.
-*/
-
-template<class Head, class Tail>
-struct SPoliciesHandler<Loki::Typelist<Head,Tail> > {
-   template<typename T>
-   static void apply(T* data) {
-      Head::apply(data);
-      SPoliciesHandler<Tail>::apply(data);
-   }
-};
-
-template<>
-struct SPoliciesHandler<Loki::NullType> {
-   template<typename T>
-   static void apply(T*) { }
-};
-
-/// Abstract base class to build an object factory
-/** It shares the function fft(T*) between
-    classes that represent FFT of different length.
+This class represents basic interface for GFFT classes.
+In other words, it shares the function fft(T*) between
+classes that represent FFT of different lengths and types.
 */
 template<typename T>
 class AbstractFFT {
@@ -88,49 +41,245 @@ public:
 };
 
 
-/// Abstract empty base class
-/** This class is passed instead of AbstractFFT,
-    if object factory is not needed
-    to avoid a virtual function call penalty
+/** \class Empty
+\brief Abstract empty base class
+
+This class is passed instead of AbstractFFT,
+if object factory is not needed
+to avoid a virtual function call penalty.
 */
 class Empty { };
 
 
-/// Policy for a definition of forward FFT
-template<unsigned N, typename T>
-struct Forward {
-   enum { Sign = 1 };
+
+
+/*!
+\defgroup gr_params GFFT parameters
+\brief Classes substituted as template parameters to define transform 
+*/
+
+/*! \brief Double precision type representation
+\ingroup gr_params
+*/
+struct DOUBLE {
+   enum { ID = 0 };
+   typedef double ValueType;
+};
+
+/*! \brief Single precision type representation
+\ingroup gr_params
+*/
+struct FLOAT {
+   enum { ID = 1 };
+   typedef float ValueType;
+};
+
+/*! \brief Complex number of double precision type representation
+\ingroup gr_params
+*/
+struct COMPLEX_DOUBLE {
+   enum { ID = 2 };
+   typedef std::complex<double> ValueType;
+};
+
+/*! \brief Complex number of single precision type representation
+\ingroup gr_params
+*/
+struct COMPLEX_FLOAT {
+   enum { ID = 3 };
+   typedef std::complex<float> ValueType;
+};
+
+/*! \brief Forward direction of transform (deprecated)
+\deprecated
+*/
+struct FORWARD {
+   enum { ID = 0 };
+   template<unsigned N, typename T>
+   struct Type : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct AddSeparator {
+      typedef typename Loki::TL::Append<List,Separator>::Result Result;
+   };
+};
+
+/*! \brief Backward direction of transform (deprecated)
+\deprecated
+*/
+struct BACKWARD {
+   enum { ID = 1 };
+   template<unsigned N, typename T>
+   struct Type : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct AddSeparator {
+      typedef Loki::Typelist<Separator,List> Result;
+   };
+};
+
+/*! Decimation in-time
+*/
+struct INTIME {
+   enum { ID = 0 };
+   template<unsigned N, typename T,
+            class Swap,
+            class Direction, unsigned NT>
+   class List {
+//      typedef InTime<N,T,Direction::Sign> InT;
+      typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
+   public:
+      typedef TYPELIST_3(Swap,InT,Direction) Result;
+   };
+};
+
+/*! Decimation in-frequency
+*/
+struct INFREQ {
+   enum { ID = 1 };
+   template<unsigned N, typename T,
+            class Swap,
+            class Direction, unsigned NT>
+   class List {
+//      typedef InFreq<N,T,Direction::Sign> InF;
+      typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
+   public:
+      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   };
+};
+
+/*! Complex valued transform
+\deprecated
+*/
+struct COMPLEX {
+   enum { ID = 0 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+/*! Real valued transform
+\deprecated
+*/
+struct REAL {
+   enum { ID = 1 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef typename Direction::
+         template AddSeparator<List,Separator>::Result Result;
+   };
+};
+
+struct REAL2 {
+   enum { ID = 2 };
+   template<class Direction, class List, class Separator>
+   struct Algorithm {
+      typedef typename Direction::
+         template AddSeparator<List,Separator>::Result Result;
+   };
+};
+
+struct DFT {
+   enum { ID = 0 };
+
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::value };
+   };
+
+   template<unsigned N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+struct IDFT {
+   enum { ID = 1 };
+
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::value };
+   };
+
+   template<unsigned N, typename T>
+   struct Direction : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef List Result;
+   };
+};
+
+struct RDFT {
+   enum { ID = 2 };
+
+   template<typename TPower>
+   struct Length {
+      static const unsigned int Value = TPower::value-1;
+   };
+
+   template<unsigned N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef typename Loki::TL::Append<List,Separator>::Result Result;
+   };
+};
+
+struct IRDFT {
+   enum { ID = 3 };
+
+   template<typename TPower>
+   struct Length {
+      enum { Value = TPower::value-1 };
+   };
+
+   template<unsigned N, typename T>
+   struct Direction : public Backward<N,T> {};
+
+   template<class List, class Separator>
+   struct Algorithm {
+      typedef Loki::Typelist<Separator,List> Result;
+   };
+};
+
+
+struct Serial {
+   enum { ID = 0 };
+   static const unsigned NParProc = 1;
+
+   template<unsigned P, class T>
+   struct Swap {
+      enum { N = 1<<P };
+      typedef GFFTswap<N,T> Result;
+   };
+
+   template<typename T>
    void apply(T*) { }
 };
 
-template<unsigned N, typename T,
-template<typename> class Complex>
-struct Forward<N,Complex<T> > {
-   enum { Sign = 1 };
-   void apply(Complex<T>*) { }
-};
+template<unsigned NT>
+struct OpenMP {
+   enum { ID = NT-1 };
+   static const unsigned NParProc = NT;
 
-/// Policy for a definition of backward FFT
-template<unsigned N, typename T>
-struct Backward {
-   enum { Sign = -1 };
-   void apply(T* data) {
-      for (T* i=data; i<data+2*N; ++i) *i/=N;
+   template<unsigned P, class T>
+   struct Swap {
+      typedef GFFTswap2OMP<NT,P,T> Result;
+   };
+
+   template<typename T>
+   void apply(T*) {
+      omp_set_num_threads(NT);
+      omp_set_nested(true);
    }
 };
 
-template<unsigned N, typename T,
-template<typename> class Complex>
-struct Backward<N,Complex<T> > {
-   enum { Sign = -1 };
-   void apply(Complex<T>* data) {
-      for (unsigned int i=0; i<N; ++i) {
-        data[i].real()/=N;
-        data[i].imag()/=N;
-      }
-   }
-};
-
-}  //namespace DFT
+}  //namespace GFFT
 
 #endif /*__gfftpolicy_h*/

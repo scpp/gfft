@@ -12,16 +12,19 @@
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
 
+/** \file
+    \brief Definition of holders for static integer types
+*/
+
 #ifndef __sint_h
 #define __sint_h
 
-/// \brief Integer number metacontainer.
-///        Integer N is wrapped into container class to handle integers and other
-///        compile-time number-classes using the same operation classes specializing
-///        them for particular number-container.
-/// \param N an integer number
-/////////////////////////////////////////////////////////////////////////
-
+/// Integer number metacontainer.
+/**     Integer N is wrapped into container class to handle integers and other
+        compile-time number-classes using the same operation classes specializing
+        them for particular number-container.
+ \param N an integer number
+*/
 template<int N>
 struct SInt {
    enum { Value = N };

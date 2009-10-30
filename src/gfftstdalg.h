@@ -17,12 +17,13 @@
 
 /** \file
     \brief General algorithms and short-radix FFT specializations
-           using standard classes complex<> and vector<>
+           using STL class complex<>
 */
 
 
 namespace GFFT {
 
+using namespace MF;
 
 template<typename T,
 template<typename> class Complex>
@@ -63,7 +64,7 @@ public:
    }
 };
 
-/// Specialization for N=4, decimation-in-time
+// Specialization for N=4, decimation-in-time
 // template<typename T, int S,
 // template<typename> class Complex>
 // class InTime<4,Complex<T>,S> {

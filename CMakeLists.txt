@@ -1,5 +1,6 @@
+cmake_minimum_required(VERSION 2.6)
 
-PROJECT(gfft)
+project(gfft)
 
-ADD_SUBDIRECTORY(src)
+add_subdirectory(src)
 

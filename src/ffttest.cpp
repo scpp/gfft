@@ -41,8 +41,10 @@ T norm2(const T* data, const unsigned int n) {
    return sqrt(s);
 }
 
+using namespace GFFT;
 
-typedef float VType;
+typedef DOUBLE ValueType;
+
 
 int main(int argc, char *argv[])
 {
@@ -56,13 +58,13 @@ int main(int argc, char *argv[])
     unsigned n;
 
     VType *data, *data1;
-//     Loki::Factory<DFT::AbstractFFT<Tp>,unsigned int> fft;
-//     FactoryInit<DFT::GFFTList<DFT::GFFTf,Min,Max>::Result>::apply(fft);
-//     DFT::AbstractFFT<Tp>* mf = fft.CreateObject(k);
+//     Loki::Factory<AbstractFFT<Tp>,unsigned int> fft;
+//     FactoryInit<GFFTList<GFFTf,Min,Max>::Result>::apply(fft);
+//     AbstractFFT<Tp>* mf = fft.CreateObject(k);
 
 //    gfft_init();
-//FactoryInit<DFT::GFFTList<DFT::GFFTf,Min,Max>::Result>::apply(DFT::gfft);
-    DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INFREQ,DFT::FORWARD>* gfft;
+//FactoryInit<GFFTList<GFFTf,Min,Max>::Result>::apply(gfft);
+    GFFT_Singleton<Min,Max,VType,COMPLEX,INFREQ,FORWARD>* gfft;
 
    fftw_complex* in;
 //   fftw_plan plan;
@@ -70,7 +72,7 @@ int main(int argc, char *argv[])
     for (p=1; p<Max; ++p) {
     n=1<<p;
 
-    DFT::AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
+    AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
 
 // sample data
     data = new VType [2*n];

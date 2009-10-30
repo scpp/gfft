@@ -24,6 +24,7 @@
 
 namespace GFFT {
 
+using namespace MF;
 
 template<typename T>
 inline void _spec2(T* data) {
@@ -67,8 +68,16 @@ struct TempTypeTrait<Complex<T,A> > {
 //    typedef T Result;
 // };
 
+/** \class InTime
+\brief Danielson-Lanczos section of the decimation-in-time FFT version
+\param N current transform length
+\param T value type of the data array
+\param S sign of the transform: 1 - forward, -1 - backward
 
-/// Danielson-Lanczos section of the decimation-in-time FFT version
+This template class implements resursive metaprogram, which 
+runs funciton apply() twice with the half of the transform length N
+until the simplest case N=2
+*/
 template<unsigned N, typename T, int S>
 class InTime {
    typedef typename TempTypeTrait<T>::Result LocalVType;
@@ -188,7 +197,7 @@ public:
    }
 };
 
-/// Specialization for N=4, decimation-in-frequency
+// Specialization for N=4, decimation-in-frequency
 // template<typename T, int S>
 // class InFreq<4,T,S> {
 // public:
@@ -324,6 +333,41 @@ public:
       data[1] = M*0.5*(h1r - data[1]);
 
       if (N>1) data[N+1] = -data[N+1];
+   }
+};
+
+// Policy for a definition of forward FFT
+template<unsigned N, typename T>
+struct Forward {
+   enum { Sign = 1 };
+   void apply(T*) { }
+};
+
+template<unsigned N, typename T,
+template<typename> class Complex>
+struct Forward<N,Complex<T> > {
+   enum { Sign = 1 };
+   void apply(Complex<T>*) { }
+};
+
+// Policy for a definition of backward FFT
+template<unsigned N, typename T>
+struct Backward {
+   enum { Sign = -1 };
+   void apply(T* data) {
+      for (T* i=data; i<data+2*N; ++i) *i/=N;
+   }
+};
+
+template<unsigned N, typename T,
+template<typename> class Complex>
+struct Backward<N,Complex<T> > {
+   enum { Sign = -1 };
+   void apply(Complex<T>* data) {
+      for (unsigned int i=0; i<N; ++i) {
+        data[i].real()/=N;
+        data[i].imag()/=N;
+      }
    }
 };
 

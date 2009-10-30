@@ -48,7 +48,7 @@ T norm2(const T* data, const unsigned int n) {
 
 //==============================================================
 
-typedef double VType;
+typedef DOUBLE VType;
 
 const unsigned Min = 1;
 const unsigned Max = 21;
@@ -60,7 +60,7 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
     double d,nr2,nrinf;
     unsigned n;
 
-    VType *data, *nrdata;
+    VType::ValueType *data, *nrdata;
 
 #ifdef FFTW
     fftw_complex* in;

@@ -1,19 +1,24 @@
+cmake_minimum_required(VERSION 2.6)
 
-PROJECT(gfft)
+project(gfft)
 
 #if you don't want the full compiler output, remove the following line
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+#include_directories()
 
 #add definitions, compiler switches, etc.
-ADD_DEFINITIONS(-Wall -O2 -fopenmp)
+add_definitions(-time -Wall -O2 -fopenmp -DGFFTDOC -DFFTW)
 
 #list all source files here
-ADD_EXECUTABLE(gfft gfft.cpp)
-ADD_EXECUTABLE(cgfft cgfft.cpp)
-ADD_EXECUTABLE(bench bench.cpp)
+add_executable(gfft gfft.cpp)
+#add_executable(cgfft cgfft.cpp)
+#add_executable(bench bench.cpp)
+#add_executable(ffttest ffttest.cpp)
+#add_executable(check check.cpp)
 
 #need to link to some other libraries ? just add them here
-TARGET_LINK_LIBRARIES(gfft gomp)
-TARGET_LINK_LIBRARIES(cgfft gomp)
-TARGET_LINK_LIBRARIES(bench gomp)
+target_link_libraries(gfft gomp)
+#target_link_libraries(cgfft gomp)
+#target_link_libraries(bench gomp)
 
