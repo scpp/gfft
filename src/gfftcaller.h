@@ -25,7 +25,7 @@
 namespace GFFT {
 
 
-/** \class {GFFT::Caller<TList>}
+/** \class {GFFT::Caller}
 \brief Calls member function apply() in every type of the typelist
 
 This metaprogram goes through all types in TList and call
@@ -56,7 +56,7 @@ struct Caller<Loki::NullType> {
 };
 
 
-/** \class {GFFT::StaticCaller<TList>}
+/** \class {GFFT::StaticCaller}
 \brief Calls static member function apply() in every type of the typelist
 
 This metaprogram goes through all types in TList and call

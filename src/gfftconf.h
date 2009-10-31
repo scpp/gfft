@@ -27,6 +27,38 @@ namespace GFFT {
 
 typedef unsigned int uint;
 
+struct ValueTypeGroup
+{
+  typedef TYPELIST_4(DOUBLE,FLOAT,COMPLEX_DOUBLE,COMPLEX_FLOAT) FullList;
+  static const uint Length = 4;
+  typedef DOUBLE Default;
+  static const uint default_id = DOUBLE::ID;
+};
+
+struct TransformTypeGroup
+{
+  typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) FullList;
+  static const uint Length = 4;
+  typedef TYPELIST_2(DFT,IDFT) Default;
+  static const uint default_id = DFT::ID;
+};
+
+struct ParallelizationGroup
+{
+  typedef TYPELIST_2(Serial,OpenMP<2>) FullList;
+  static const uint Length = 2;
+  typedef Serial Default;
+  static const uint default_id = Serial::ID;
+};
+
+struct DecimationGroup
+{
+  typedef TYPELIST_2(INTIME,INFREQ) FullList;
+  static const uint Length = 2;
+  typedef INFREQ Default;
+  static const uint default_id = INFREQ::ID;
+};
+
 typedef TYPELIST_2(DOUBLE,FLOAT) ValueTypeList;
 
 typedef TYPELIST_2(COMPLEX,REAL) TransformTypeList;
@@ -184,18 +216,18 @@ public:
 
 template<unsigned Begin, unsigned End,
 class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
-class TransType  = NewTransformTypeList,     // DFT, IDFT, RDFT, IRDFT
+class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
 class Dim        = SIntID<1>,
-class Parall     = ParallelizationList,
-class Decimation = INFREQ>        // INTIME, INFREQ
-class Generate {
+class Parall     = ParallelizationGroup::Default,
+class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
+class GenerateTransform {
    typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
-   enum { L2 = Loki::TL::Length<ValueTypeList>::value };
-   enum { L3 = Loki::TL::Length<NewTransformTypeList>::value };
+   enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
+   enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
    enum { L4 = 1 };
-   enum { L5 = Loki::TL::Length<ParallelizationList>::value };
-   enum { L6 = Loki::TL::Length<DecimationList>::value };
+   enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
+   enum { L6 = Loki::TL::Length<DecimationGroup::FullList>::value };
    typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
 //   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
 
@@ -205,25 +237,37 @@ class Generate {
 //    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
    typedef TYPELIST_6(Decimation,Parall,Dim,TransType,T,NList) RevList;
 
-   typedef TranslateID<LenList> Trans;
+   typedef TranslateID<LenList> Translate;
 
-   typedef AbstractFFT<typename T::ValueType> AbstrFFT;
-   Loki::Factory<AbstrFFT, unsigned int> gfft;
   //  FactoryInit<List::Result>::apply(gfft);
 
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
+   typedef AbstractFFT<typename T::ValueType> Abstract;
+   Loki::Factory<Abstract, unsigned int> factory;
 
-   Generate() {
-      FactoryInit<Result>::apply(gfft);
+   GenerateTransform() {
+      FactoryInit<Result>::apply(factory);
    }
 
-   static unsigned int trans_id(const unsigned int* n) {
-      unsigned int nn[6];
-      for (int i=0; i<6; ++i) nn[i] = n[i];
-      nn[0]--;
-      return Trans::apply(nn);
+   Abstract* CreateTransformObject(uint p, uint vtype_id, 
+                                   uint trans_id = TransformTypeGroup::default_id, 
+                                   uint dim = 1, 
+                                   uint parall_id = ParallelizationGroup::default_id, 
+                                   uint decim_id = DecimationGroup::default_id) 
+   {
+      uint n[] = {p-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
+      uint obj_id = Translate::apply(n);
+std::cout<<obj_id<<std::endl;
+      return factory.CreateObject(obj_id);
    }
+
+//    static unsigned int trans_id(const unsigned int* n) {
+//       unsigned int nn[6];
+//       for (int i=0; i<6; ++i) nn[i] = n[i];
+//       nn[0]--;
+//       return Translate::apply(nn);
+//    }
 
 };
 

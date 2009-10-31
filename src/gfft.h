@@ -36,14 +36,14 @@
 
 #include "gfftcaller.h"
 
-/** \brief Main namespace of GFFT
+/** \brief Main namespace of %GFFT
 
 */
 namespace GFFT {
 
 
-/** \class GFFT
-\brief Generic Fast Fourier transform in-place (deprecated)
+/// Generic Fast Fourier transform in-place (deprecated)
+/**
 \tparam P defines transform length, which is 2^P
 \tparam VType type of data element
 \tparam Type type of transform: COMPLEX, REAL
@@ -92,7 +92,7 @@ public:
 };
 
 
-/** 
+/**
 \brief Generic Fast Fourier transform in-place
 \tparam Power2 defines transform length, which is 2^Power2
 \tparam VType type of data element

@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /** \file
-    \brief Sample program to represent GFFT usage
+    \brief Sample program to represent %GFFT usage
 */
 
 #include <iostream>
@@ -51,16 +51,21 @@ int main(int argc, char *argv[])
 //     AbstFFT* fftobj  = gfft.CreateObject(p1);
 //     AbstFFT* ifftobj = gfft.CreateObject(p2);
 
-    typedef Generate<1,3,ValueType> List;
-    Loki::Factory<AbstFFT,unsigned int> gfft;
-    FactoryInit<List::Result>::apply(gfft);
-    unsigned int id1[6] = {p,ValueType::ID,RDFT::ID, SIntID<1>::ID,Serial::ID,INFREQ::ID};
-    unsigned int id2[6] = {p,ValueType::ID,IRDFT::ID,SIntID<1>::ID,Serial::ID,INFREQ::ID};
-    unsigned int p1 = List::trans_id(id1);
-    unsigned int p2 = List::trans_id(id2);
+    typedef GenerateTransform<1,3,ValueType> Trans;
+
+/*    Loki::Factory<AbstFFT,unsigned int> gfft;
+    FactoryInit<Trans::Result>::apply(gfft);
+    unsigned int id1[6] = {p,ValueType::ID,DFT::ID, SIntID<1>::ID,Serial::ID,INFREQ::ID};
+    unsigned int id2[6] = {p,ValueType::ID,IDFT::ID,SIntID<1>::ID,Serial::ID,INFREQ::ID};
+    unsigned int p1 = Trans::trans_id(id1);
+    unsigned int p2 = Trans::trans_id(id2);
     cout<<p1<<" "<<p2<<endl;
     AbstFFT* fftobj  = gfft.CreateObject(p1);
-    AbstFFT* ifftobj = gfft.CreateObject(p2);
+    AbstFFT* ifftobj = gfft.CreateObject(p2);*/
+
+    Trans gfft;
+    Trans::Abstract* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
+    Trans::Abstract* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);
 
  // 1) Singleton holds the object factory for GFFT
 //    GFFT_Singleton<Min,Max,ValueType,COMPLEX,FORWARD,OpenMP<2>,INTIME>* gfft;

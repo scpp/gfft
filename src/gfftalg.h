@@ -16,7 +16,7 @@
 #define __gfftalg_h
 
 /** \file
-    \brief General algorithms and short-radix FFT specifications
+    \brief Recursive algorithms and short-radix FFT specifications
 */
 
 #include "metafunc.h"
@@ -26,6 +26,9 @@ namespace GFFT {
 
 using namespace MF;
 
+/// Specialization for complex-valued radix 2 FFT in-place
+/// \tparam T is value type
+/// \param data is the array of length 4, containing two complex numbers (real,imag,real,imag).
 template<typename T>
 inline void _spec2(T* data) {
       T tr = data[2];
@@ -68,15 +71,18 @@ struct TempTypeTrait<Complex<T,A> > {
 //    typedef T Result;
 // };
 
-/** \class InTime
-\brief Danielson-Lanczos section of the decimation-in-time FFT version
-\param N current transform length
-\param T value type of the data array
-\param S sign of the transform: 1 - forward, -1 - backward
 
-This template class implements resursive metaprogram, which 
-runs funciton apply() twice with the half of the transform length N
-until the simplest case N=2
+/// Danielson-Lanczos section of the decimation-in-time FFT version
+/**
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+
+This template class implements resursive metaprogram, which
+runs funciton apply() twice recursively at the beginning of the function apply()
+with the half of the transform length N
+until the simplest case N=2 has been reached. Then function \a _spec2 is called.
+Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 */
 template<unsigned N, typename T, int S>
 class InTime {
@@ -148,14 +154,14 @@ public:
 };
 */
 
-/// Specialization for N=2, decimation-in-time
+// Specialization for N=2, decimation-in-time
 template<typename T, int S>
 class InTime<2,T,S> {
 public:
    void apply(T* data) { _spec2(data); }
 };
 
-/// Specialization for N=1, decimation-in-time
+// Specialization for N=1, decimation-in-time
 template<typename T, int S>
 class InTime<1,T,S> {
 public:
@@ -163,6 +169,17 @@ public:
 };
 
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
+/**
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+
+This template class implements resursive metaprogram, which
+runs funciton apply() twice recursively at the end of the function apply()
+with the half of the transform length N
+until the simplest case N=2 has been reached. Then function \a _spec2 is called.
+Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
+*/
 template<unsigned N, typename T, int S>
 class InFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
@@ -230,14 +247,14 @@ public:
 //    }
 // };
 
-/// Specialization for N=2, decimation-in-frequency
+// Specialization for N=2, decimation-in-frequency
 template<typename T, int S>
 class InFreq<2,T,S> {
 public:
    void apply(T* data) { _spec2(data); }
 };
 
-/// Specialization for N=1, decimation-in-frequency
+// Specialization for N=1, decimation-in-frequency
 template<typename T, int S>
 class InFreq<1,T,S> {
 public:
@@ -246,6 +263,10 @@ public:
 
 
 /// Binary reordering of array elements
+/*!
+\tparam N length of the data
+\tparam T value type
+*/
 template<unsigned N, typename T>
 class GFFTswap {
 public:
@@ -294,6 +315,11 @@ public:
 
 
 /// Reordering of data for real-valued transforms
+/*!
+\tparam N length of the data
+\tparam T value type
+\tparam S sign of the transform: 1 - forward, -1 - backward
+*/
 template<unsigned N, typename T, int S>
 class Separate {
    typedef typename TempTypeTrait<T>::Result LocalVType;

@@ -20,11 +20,16 @@
            using STL class complex<>
 */
 
+#include "metafunc.h"
 
 namespace GFFT {
 
 using namespace MF;
 
+/// Specialization for complex-valued radix 2 FFT in-place
+/// \tparam T is value type
+/// \tparam Complex<T> is a generic type representing complex numbers (like std::complex)
+/// \param data is the array containing two complex numbers of type Complex<T>.
 template<typename T,
 template<typename> class Complex>
 inline void _spec2(Complex<T>* data) {
@@ -34,7 +39,18 @@ inline void _spec2(Complex<T>* data) {
 }
 
 /// Danielson-Lanczos section of the decimation-in-time FFT version
-/// if data is given as array of complex<>
+/**
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam Complex<T> is a generic type representing complex numbers (like std::complex)
+
+This template class implements resursive metaprogram, which
+runs funciton apply() twice recursively at the beginning of the function apply()
+with the half of the transform length N
+until the simplest case N=2 has been reached. Then function \a _spec2 is called.
+Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
+*/
 template<unsigned N, typename T, int S,
 template<typename> class Complex>
 class InTime<N,Complex<T>,S> {
@@ -86,7 +102,7 @@ public:
 //    }
 // };
 
-/// Specialization for N=2, decimation-in-time
+// Specialization for N=2, decimation-in-time
 template<typename T, int S,
 template<typename> class Complex>
 class InTime<2,Complex<T>,S> {
@@ -94,7 +110,7 @@ public:
    void apply(Complex<T>* data) { _spec2(data); }
 };
 
-/// Specialization for N=1, decimation-in-time
+// Specialization for N=1, decimation-in-time
 template<typename T, int S,
 template<typename> class Complex>
 class InTime<1,Complex<T>,S> {
@@ -103,6 +119,18 @@ public:
 };
 
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
+/**
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam Complex<T> is a generic type representing complex numbers (like std::complex)
+
+This template class implements resursive metaprogram, which
+runs funciton apply() twice recursively at the end of the function apply()
+with the half of the transform length N
+until the simplest case N=2 has been reached. Then function \a _spec2 is called.
+Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
+*/
 template<unsigned N, typename T, int S,
 template<typename> class Complex>
 class InFreq<N,Complex<T>,S> {
@@ -133,7 +161,7 @@ public:
    }
 };
 
-/// Specialization for N=4, decimation-in-frequency
+// Specialization for N=4, decimation-in-frequency
 template<typename T, int S,
 template<typename> class Complex>
 class InFreq<2,Complex<T>,S> {
@@ -141,7 +169,7 @@ public:
    void apply(Complex<T>* data) { _spec2(data); }
 };
 
-/// Specialization for N=1, decimation-in-frequency
+// Specialization for N=1, decimation-in-frequency
 template<typename T, int S,
 template<typename> class Complex>
 class InFreq<1,Complex<T>,S> {
@@ -150,6 +178,10 @@ public:
 };
 
 /// Binary reordering of array elements
+/*!
+\tparam N length of the data
+\tparam T value type
+*/
 template<unsigned N, typename T,
 template<typename> class Complex>
 class GFFTswap<N,Complex<T> > {
@@ -171,6 +203,11 @@ public:
 };
 
 /// Reordering of data for real-valued transforms
+/*!
+\tparam N length of the data
+\tparam T value type
+\tparam S sign of the transform: 1 - forward, -1 - backward
+*/
 template<unsigned N, typename T, int S,
 template<typename> class Complex>
 class Separate<N,Complex<T>,S> {

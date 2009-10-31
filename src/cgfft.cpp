@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /** \file
-    \brief Sample program to represent GFFT usage with std::complex
+    \brief Sample program to represent %GFFT usage with std::complex
 */
 
 #include <iostream>

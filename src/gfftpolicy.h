@@ -29,7 +29,7 @@ namespace GFFT {
 /** \class AbstractFFT
 \brief Abstract interface class to build GFFT object factory
 
-This class represents basic interface for GFFT classes.
+This class represents basic interface for %GFFT classes.
 In other words, it shares the function fft(T*) between
 classes that represent FFT of different lengths and types.
 */
@@ -54,7 +54,7 @@ class Empty { };
 
 
 /*!
-\defgroup gr_params GFFT parameters
+\defgroup gr_params %GFFT parameters
 \brief Classes substituted as template parameters to define transform 
 */
 
@@ -118,7 +118,8 @@ struct BACKWARD {
    };
 };
 
-/*! Decimation in-time
+/*! \brief Decimation in-time
+\ingroup gr_params
 */
 struct INTIME {
    enum { ID = 0 };
@@ -133,7 +134,8 @@ struct INTIME {
    };
 };
 
-/*! Decimation in-frequency
+/*! \brief Decimation in-frequency
+\ingroup gr_params
 */
 struct INFREQ {
    enum { ID = 1 };
@@ -148,7 +150,7 @@ struct INFREQ {
    };
 };
 
-/*! Complex valued transform
+/*! \brief Complex valued transform
 \deprecated
 */
 struct COMPLEX {
@@ -159,7 +161,7 @@ struct COMPLEX {
    };
 };
 
-/*! Real valued transform
+/*! \brief Real valued transform
 \deprecated
 */
 struct REAL {
@@ -180,6 +182,9 @@ struct REAL2 {
    };
 };
 
+/*! \brief Forward compex-valued discrete Fourier transform
+\ingroup gr_params
+*/
 struct DFT {
    enum { ID = 0 };
 
@@ -197,6 +202,9 @@ struct DFT {
    };
 };
 
+/*! \brief Inverse compex-valued discrete Fourier transform
+\ingroup gr_params
+*/
 struct IDFT {
    enum { ID = 1 };
 
@@ -214,6 +222,9 @@ struct IDFT {
    };
 };
 
+/*! \brief Forward real-valued discrete Fourier transform
+\ingroup gr_params
+*/
 struct RDFT {
    enum { ID = 2 };
 
@@ -231,6 +242,9 @@ struct RDFT {
    };
 };
 
+/*! \brief Inverse real-valued discrete Fourier transform
+\ingroup gr_params
+*/
 struct IRDFT {
    enum { ID = 3 };
 
@@ -249,6 +263,10 @@ struct IRDFT {
 };
 
 
+/*! \brief %Serial (single-core) implementation of transform
+\sa OpenMP
+\ingroup gr_params
+*/
 struct Serial {
    enum { ID = 0 };
    static const unsigned NParProc = 1;
@@ -263,6 +281,11 @@ struct Serial {
    void apply(T*) { }
 };
 
+/*! \brief %Transform is parallelized using %OpenMP standard
+\tparam NT number of parallel threads
+\sa Serial
+\ingroup gr_params
+*/
 template<unsigned NT>
 struct OpenMP {
    enum { ID = NT-1 };
