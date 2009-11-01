@@ -15,6 +15,10 @@
 #ifndef __gfft_h
 #define __gfft_h
 
+/** \file
+    \brief Main include file, which just include all other headers
+*/
+
 // General Doxygen documentation
 #ifdef GFFTDOC
 #include "gfftdoc.h"

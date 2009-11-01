@@ -15,6 +15,10 @@
 #ifndef __gfftomp_h
 #define __gfftomp_h
 
+/** \file
+    \brief Parallelization template classes using %OpenMP standard
+*/
+
 #include "gfftalg.h"
 
 #include <omp.h>
@@ -22,6 +26,12 @@
 namespace GFFT {
 
 /// OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
+/**
+\tparam NThreads is number of threads
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+*/
 template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>4))>
 class InTimeOMP;
 

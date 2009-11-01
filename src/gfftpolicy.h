@@ -90,34 +90,6 @@ struct COMPLEX_FLOAT {
    typedef std::complex<float> ValueType;
 };
 
-/*! \brief Forward direction of transform (deprecated)
-\deprecated
-*/
-struct FORWARD {
-   enum { ID = 0 };
-   template<unsigned N, typename T>
-   struct Type : public Forward<N,T> {};
-
-   template<class List, class Separator>
-   struct AddSeparator {
-      typedef typename Loki::TL::Append<List,Separator>::Result Result;
-   };
-};
-
-/*! \brief Backward direction of transform (deprecated)
-\deprecated
-*/
-struct BACKWARD {
-   enum { ID = 1 };
-   template<unsigned N, typename T>
-   struct Type : public Backward<N,T> {};
-
-   template<class List, class Separator>
-   struct AddSeparator {
-      typedef Loki::Typelist<Separator,List> Result;
-   };
-};
-
 /*! \brief Decimation in-time
 \ingroup gr_params
 */
@@ -147,38 +119,6 @@ struct INFREQ {
       typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
    public:
       typedef TYPELIST_3(InF,Swap,Direction) Result;
-   };
-};
-
-/*! \brief Complex valued transform
-\deprecated
-*/
-struct COMPLEX {
-   enum { ID = 0 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef List Result;
-   };
-};
-
-/*! \brief Real valued transform
-\deprecated
-*/
-struct REAL {
-   enum { ID = 1 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef typename Direction::
-         template AddSeparator<List,Separator>::Result Result;
-   };
-};
-
-struct REAL2 {
-   enum { ID = 2 };
-   template<class Direction, class List, class Separator>
-   struct Algorithm {
-      typedef typename Direction::
-         template AddSeparator<List,Separator>::Result Result;
    };
 };
 

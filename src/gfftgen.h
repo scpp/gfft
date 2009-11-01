@@ -28,7 +28,7 @@ namespace GFFT {
 
 typedef unsigned int uint;
 
-/**
+/** \class {GFFT::Transform}
 \brief Generic Fast Fourier transform in-place
 \tparam Power2 defines transform length, which is 2^Power2
 \tparam VType type of data element
@@ -74,6 +74,13 @@ public:
    }
 };
 
+/*!
+\defgroup gr_groups GFFT parameter groups
+\brief Classes that represent groups of parameters to define transform
+*/
+
+/// \brief Lists all acceptable and default value types
+/// \ingroup gr_groups
 struct ValueTypeGroup
 {
   typedef TYPELIST_4(DOUBLE,FLOAT,COMPLEX_DOUBLE,COMPLEX_FLOAT) FullList;
@@ -82,6 +89,8 @@ struct ValueTypeGroup
   static const uint default_id = DOUBLE::ID;
 };
 
+/// \brief Lists all acceptable and default types of Fast Fourier transform
+/// \ingroup gr_groups
 struct TransformTypeGroup
 {
   typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) FullList;
@@ -90,6 +99,8 @@ struct TransformTypeGroup
   static const uint default_id = DFT::ID;
 };
 
+/// \brief Lists all acceptable and default parallelization methods
+/// \ingroup gr_groups
 struct ParallelizationGroup
 {
   typedef TYPELIST_2(Serial,OpenMP<2>) FullList;
@@ -98,6 +109,8 @@ struct ParallelizationGroup
   static const uint default_id = Serial::ID;
 };
 
+/// \brief Lists all acceptable and default decimation versions
+/// \ingroup gr_groups
 struct DecimationGroup
 {
   typedef TYPELIST_2(INTIME,INFREQ) FullList;
@@ -106,12 +119,13 @@ struct DecimationGroup
   static const uint default_id = INFREQ::ID;
 };
 
-
+/// Static unsigned integer class holder with additional definition of ID
 template<unsigned int N>
 struct SIntID : public s_uint<N> {
    static const unsigned int ID = N-1;
 };
 
+/// Generates Typelist with types SIntID<N>, N = Begin,...,End
 template<unsigned int Begin, unsigned int End>
 struct GenNumList {
    typedef Loki::Typelist<SIntID<Begin>,
@@ -120,10 +134,18 @@ struct GenNumList {
 
 template<unsigned End>
 struct GenNumList<End,End> {
-   typedef Loki::NullType Result;
+   typedef Loki::Typelist<SIntID<End>,Loki::NullType> Result;
 };
 
-// Takes types from TList to define Transform class
+/// Takes types from TList as parameters to define Transform class
+/**
+\tparam TList is Typelist containing template parameters to define Transform class
+\tparam ID is a unique id passed to Transform class as well
+
+This template class extracts all the parameters from TList directly without 
+iterations and substitutes them into Transform class. Obviously,
+all the types of substituted template parameters must be correct.
+*/
 template<class TList, uint ID>
 struct DefineTransform {
    typedef typename TList::Tail::Head VType;
@@ -137,12 +159,22 @@ struct DefineTransform {
 
 /** \class {GFFT::ListGenerator}
     \brief Generates all different combinations of given parameters.
-\tparam TList is one- or two-dimensional (an entry can be a Typelist too) TypeList 
-\tparam TLenList is Typelist of \a s_uint<N>, where N defines the lengths of every Typelist in TList.
-        In other words, it is the array of sizes of columns TList.
+\tparam TList is one- or two-dimensional (an entry can be a Typelist too) TypeList.
+\tparam TLenList is Typelist of \a s_uint<N>, where N is maximum possible 
+        lengths of every Typelist in TList. This array of numbers is used 
+        to comute unique ID for each generated unique set of parameters.
+\tparam DefTrans is transform definition class. 
+        DefineTransform class is substituted here, but also definitions of 
+        other template classes with suited parameters are potentially possible.
+\tparam WorkingList is the working Typelist, which accumulates a unique set of
+        parameters. It is being passed as parameter to the class DefineTransform,
+        when the set is complete. This parameter must not be set explicitely.
+\tparam ID unique id for each set of parameters. This static constant is generated 
+        at compile-time and must not be set explicitely.
 
 The parameters are given in the two-dimensional compile-time array.
-This metaprogram takes one parameter from every TList's entry. 
+This metaprogram takes one parameter from every TList's entry
+and generates Typelist of unique sets of parameters to define Transform.
 The entry may be either a type or a Typelist.
 */
 template<class TList, class TLenList, 
