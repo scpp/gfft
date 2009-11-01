@@ -22,6 +22,8 @@
 
 #include "sint.h"
 
+
+/// Main namespace
 namespace GFFT {
 
 typedef unsigned int uint;

@@ -54,7 +54,7 @@ class Empty { };
 
 
 /*!
-\defgroup gr_params %GFFT parameters
+\defgroup gr_params GFFT parameters
 \brief Classes substituted as template parameters to define transform 
 */
 

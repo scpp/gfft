@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /** \file
-    \brief General GFFT documentation
+    \brief General %GFFT documentation
 */
 
 /**
@@ -39,18 +39,18 @@
 
 \section start Getting started
 
-GFFT consists now from only a few headers, two sample programs (gfft.cpp and cgfft.cpp)
+%GFFT consists now from only a few headers, two sample programs (gfft.cpp and cgfft.cpp)
 and some files from Loki-lib library by Andrei Alexandrescu.
 It doesn't need any installation or additional packages.
 
 \section license Licensing
 
-  GFFT is open source software distributed under terms of GPL.
+%GFFT is open source software distributed under terms of GPL.
 
 \section download Download
 
-  Download the source code from project web site at SourceForge \n
-  http://sourceforge.net/projects/gfft/download
+Download the source code from project web site at SourceForge \n
+http://sourceforge.net/projects/gfft/download
 
 \section refs References
 
