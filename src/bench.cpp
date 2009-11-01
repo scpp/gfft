@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -84,7 +84,7 @@ public:
           <<H::TransformType::ID<<space
           <<H::ValueType::ID<<space
           <<H::DecimationType::ID<<space
-          <<H::DirectionType::ID<<space
+          //<<H::DirectionType::ID<<space
           <<0<<space
           <<H::PLen-9<<space<<mt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
@@ -127,7 +127,8 @@ int main(int argc, char *argv[])
 // 2) Create the object factory without singleton
 
 //    typedef GenList<17,25,DOUBLE,COMPLEX,FORWARD,OpenMP<2>,INFREQ> List;
-    typedef GenList<10,15> List;
+    //typedef GenList<10,15> List;
+    typedef GenerateTransform<10,15,DOUBLE> List;
 
 //   typedef Print<List::Result>::Result deb;
 //    Loki::Factory<AbstractFFT<ValueType>,unsigned int> gfft;

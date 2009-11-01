@@ -258,7 +258,7 @@ public:
    {
       uint n[] = {p-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
       uint obj_id = Translate::apply(n);
-std::cout<<obj_id<<std::endl;
+//std::cout<<obj_id<<std::endl;
       return factory.CreateObject(obj_id);
    }
 

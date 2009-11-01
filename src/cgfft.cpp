@@ -29,46 +29,16 @@ using namespace GFFT;
 typedef COMPLEX_DOUBLE ValueType;
 typedef AbstractFFT<ValueType::ValueType> AbstFFT;
 
-const unsigned Min = 1;
-const unsigned Max = 27;
-
 int main(int argc, char *argv[])
 {
 
     unsigned int i,p=2;
     unsigned int n= 1<<p;
 
-    typedef Generate<1,3,ValueType> List;
-    Loki::Factory<AbstFFT,unsigned int> gfft;
-    FactoryInit<List::Result>::apply(gfft);
-    unsigned int id1[5] = {p,ValueType::ID,RDFT::ID, Serial::ID,INFREQ::ID};
-    unsigned int id2[5] = {p,ValueType::ID,IRDFT::ID,Serial::ID,INFREQ::ID};
-    unsigned int p1 = List::trans_id(id1);
-    unsigned int p2 = List::trans_id(id2);
-    cout<<p1<<" "<<p2<<endl;
-    AbstFFT* fftobj  = gfft.CreateObject(p1);
-    AbstFFT* ifftobj = gfft.CreateObject(p2);
-
-// There are three ways to create object to perform FFT of the length 2^p
-// 1) Singleton holds the object factory for GFFT
-//     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD>* gfft;
-//     DFT::AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
-//
-//     DFT::GFFT_Singleton<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>* igfft;
-//     DFT::AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
-
-// 2) Create the object factory without singleton
-//    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> gfft;
-//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::FORWARD>::Result>::apply(gfft);
-//    DFT::AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p);
-// 
-//    Loki::Factory<DFT::AbstractFFT<ValueType>,unsigned int> igfft;
-//    FactoryInit<DFT::GFFTList<Min,Max,ValueType,DFT::COMPLEX,DFT::INTIME,DFT::BACKWARD>::Result>::apply(igfft);
-//    DFT::AbstractFFT<ValueType>* ifftobj = igfft.CreateObject(p);
-
-// 3) create FFT object of specific length, if the length is known at compile-time
-//     typedef DFT::GFFT<2,ValueType,DFT::REAL,DFT::INTIME,DFT::FORWARD> MyGFFT;
-//     MyGFFT* fftobj = new MyGFFT;
+    typedef GenerateTransform<1,3,ValueType> Trans;
+    Trans gfft;
+    Trans::Abstract* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
+    Trans::Abstract* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

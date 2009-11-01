@@ -127,13 +127,12 @@ FILE_PATTERNS          = *.c \
                          *.xpm \
                          *.dox
 RECURSIVE              = NO
-EXCLUDE                = src/Numlist.h \
-                         src/nrfft.h \
+EXCLUDE                = src/nrfft.h \
                          src/timer.h \
                          src/sbigint.h \
                          src/check.cpp \
                          src/sfraction.h \
-                         src/numtypelist.h
+                         src/sfraction.cpp
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
 EXCLUDE_SYMBOLS        = 
@@ -270,7 +269,7 @@ HAVE_DOT               = YES
 DOT_FONTNAME           = FreeSans
 DOT_FONTPATH           = 
 CLASS_GRAPH            = YES
-COLLABORATION_GRAPH    = YES
+COLLABORATION_GRAPH    = NO
 GROUP_GRAPHS           = YES
 UML_LOOK               = YES
 TEMPLATE_RELATIONS     = YES

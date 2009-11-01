@@ -20,7 +20,7 @@
   <kdevcustomproject>
     <filelistdirectory>/home/vladimir/prog/gfft</filelistdirectory>
     <run>
-      <mainprogram>/home/vladimir/prog/gfft</mainprogram>
+      <mainprogram>/home/vladimir/prog/gfft/src/check</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>/home/vladimir/prog/gfft</customdirectory>
       <programargs></programargs>

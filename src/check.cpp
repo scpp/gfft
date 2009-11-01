@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,10 +22,12 @@
 #include <fftw3.h>
 #endif
 
-#include "gfft.h"
+#include "gfftconf.h"
 #include "nrfft.h"
 
 using namespace std;
+
+using namespace GFFT;
 
 template<typename T>
 T norm_inf(const T* data, const unsigned int n) {
@@ -53,9 +55,12 @@ typedef DOUBLE VType;
 const unsigned Min = 1;
 const unsigned Max = 21;
 
-template<class GFFTSingleton>
-void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
+typedef GenerateTransform<Min,Max,VType> Trans;
+static Trans gfft;
 
+
+void check_complex_gfft(const int sign) 
+{
     unsigned int i,p;
     double d,nr2,nrinf;
     unsigned n;
@@ -72,11 +77,16 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
 //    for (p=1; p<2; ++p) {
     n=1<<p;
 
-    DFT::AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
+    //AbstractFFT<VType>* fftobj = gfft->Instance().CreateObject(p);
+    Trans::Abstract* fftobj;
+    if (sign == 1)
+      fftobj = gfft.CreateTransformObject(p, VType::ID, DFT::ID);
+    else
+      fftobj = gfft.CreateTransformObject(p, VType::ID, IDFT::ID);
 
 // sample data
-    data = new VType [2*n];
-    nrdata = new VType [2*n];
+    data = new VType::ValueType [2*n];
+    nrdata = new VType::ValueType [2*n];
 #ifdef FFTW
     in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*n);
 #endif
@@ -95,7 +105,7 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
     fftobj->fft(data);
     four1(nrdata,n,sign);
     if (sign==-1) {
-       for (i=0; i < 2*n; ++i) nrdata[i]/=(VType)n;
+       for (i=0; i < 2*n; ++i) nrdata[i]/=(VType::ValueType)n;
     }
 //     cout<<"Result of transform:"<<endl;
 //     for (i=0; i < n; ++i)
@@ -143,11 +153,8 @@ void check_complex_gfft(GFFTSingleton* gfft, const int sign) {
 int main(int argc, char *argv[])
 {
 
-    static DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INFREQ,DFT::FORWARD>* gfft;
-    static DFT::GFFT_Singleton<Min,Max,VType,DFT::COMPLEX,DFT::INFREQ,DFT::BACKWARD>* gfftback;
-
-    check_complex_gfft(gfft,1);
-    check_complex_gfft(gfftback,-1);
+    check_complex_gfft(1);
+    check_complex_gfft(-1);
 
     return 0;
 }
