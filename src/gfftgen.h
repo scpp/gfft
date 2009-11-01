@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -13,19 +13,64 @@
  ***************************************************************************/
 
 
-#ifndef __gfftconf_h
-#define __gfftconf_h
+#ifndef __gfftgen_h
+#define __gfftgen_h
 
 /** \file
     \brief Configuration and generation classes
 */
 
-#include "gfft.h"
 #include "sint.h"
 
 namespace GFFT {
 
 typedef unsigned int uint;
+
+/**
+\brief Generic Fast Fourier transform in-place
+\tparam Power2 defines transform length, which is 2^Power2
+\tparam VType type of data element
+\tparam Type type of transform: DFT, IDFT, RDFT, IRDFT
+\tparam Dim dimension of transform, defined as SIntID<N>, N=1,2,...
+\tparam Parall parallelization
+\tparam Decimation in-time or in-frequency: INTIME, INFREQ
+\tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
+*/
+template<class Power2,
+class VType,
+class Type,                    // DFT, IDFT, RDFT, IRDFT
+class Dim,
+class Parall,
+class Decimation,              // INTIME, INFREQ
+class FactoryPolicy=Empty,
+uint IDN = Power2::ID>
+class Transform:public FactoryPolicy {
+   enum { P = Type::template Length<Power2>::Value };
+   enum { N = 1<<P };
+   typedef typename VType::ValueType T;
+   typedef typename Parall::template Swap<P,T>::Result Swap;
+   typedef typename Type::template Direction<N,T> Dir;
+   typedef Separate<N,T,Dir::Sign> Sep;
+   typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
+
+   Caller<Loki::Typelist<Parall,Alg> > run;
+public:
+   typedef VType ValueType;
+   typedef Type TransformType;
+   typedef Decimation DecimationType;
+//   typedef Direction DirectionType;
+
+   enum { ID = IDN, Len = N, PLen = P };
+
+   static FactoryPolicy* Create() {
+      return new Transform<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
+   }
+
+   void fft(T* data) {
+      run.apply(data);
+   }
+};
 
 struct ValueTypeGroup
 {
@@ -59,18 +104,6 @@ struct DecimationGroup
   static const uint default_id = INFREQ::ID;
 };
 
-typedef TYPELIST_2(DOUBLE,FLOAT) ValueTypeList;
-
-typedef TYPELIST_2(COMPLEX,REAL) TransformTypeList;
-
-typedef TYPELIST_2(FORWARD,BACKWARD) DirectionList;
-
-typedef TYPELIST_2(Serial,OpenMP<2>) ParallelizationList;
-
-typedef TYPELIST_2(INTIME,INFREQ) DecimationList;
-
-typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) NewTransformTypeList;
-
 
 template<unsigned int N>
 struct SIntID : public s_uint<N> {
@@ -86,18 +119,6 @@ struct GenNumList {
 template<unsigned End>
 struct GenNumList<End,End> {
    typedef Loki::NullType Result;
-};
-
-// Takes types from TList to define GFFT class
-template<class TList, uint ID>
-struct DefineGFFT {
-   typedef typename TList::Tail::Head VType;
-   typedef GFFT<TList::Head::value, VType,
-                typename TList::Tail::Tail::Head,
-                typename TList::Tail::Tail::Tail::Head,
-                typename TList::Tail::Tail::Tail::Tail::Head,
-                typename TList::Tail::Tail::Tail::Tail::Tail::Head,
-                AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
 // Takes types from TList to define Transform class
@@ -179,40 +200,6 @@ struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
 
 
 
-template<unsigned Begin, unsigned End,
-class T          = ValueTypeList,
-class TransType  = TransformTypeList,     // COMPLEX, REAL
-class Direction  = DirectionList,
-class Parall     = ParallelizationList,
-class Decimation = INFREQ>        // INTIME, INFREQ
-class GenList {
-   typedef typename GenNumList<Begin,End>::Result NList;
-   enum { L1 = Loki::TL::Length<NList>::value };
-   enum { L2 = Loki::TL::Length<ValueTypeList>::value };
-   enum { L3 = Loki::TL::Length<TransformTypeList>::value };
-   enum { L4 = Loki::TL::Length<DirectionList>::value };
-   enum { L5 = Loki::TL::Length<ParallelizationList>::value };
-   enum { L6 = Loki::TL::Length<DecimationList>::value };
-   //typedef NUMLIST_6(L1,L2,L3,L4,L5,L6) LenList;
-   typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
-//   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
-
-//   typedef typename Loki::TL::Reverse<List>::Result RevList;  // ? fails
-   //typedef typename NL::Reverse<LenList>::Result RevLenList;
-   typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
-
-//    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
-   typedef TYPELIST_6(Decimation,Parall,Direction,TransType,T,NList) RevList;
-
-   typedef TranslateID<LenList> Trans;
-
-public:
-   typedef typename ListGenerator<RevList,RevLenList,DefineGFFT>::Result Result;
-
-   static unsigned int trans_id(const unsigned int* n) {
-      return Trans::apply(n);
-   }
-};
 
 template<unsigned Begin, unsigned End,
 class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
@@ -229,17 +216,12 @@ class GenerateTransform {
    enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
    enum { L6 = Loki::TL::Length<DecimationGroup::FullList>::value };
    typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
-//   typedef TYPELIST_5(NList,T,TransType,Decimation,Direction) List;
 
-//   typedef typename Loki::TL::Reverse<List>::Result RevList;  // ? fails
    typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
 
-//    typedef NUMLIST_5(L5,L4,L3,L2,L1) RevLenList;
    typedef TYPELIST_6(Decimation,Parall,Dim,TransType,T,NList) RevList;
 
    typedef TranslateID<LenList> Translate;
-
-  //  FactoryInit<List::Result>::apply(gfft);
 
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;

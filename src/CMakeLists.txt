@@ -11,14 +11,14 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 add_definitions(-time -Wall -O2 -fopenmp -DGFFTDOC -DFFTW)
 
 #list all source files here
-#add_executable(gfft gfft.cpp)
-#add_executable(cgfft cgfft.cpp)
-#add_executable(bench bench.cpp)
+add_executable(gfft gfft.cpp)
+add_executable(cgfft cgfft.cpp)
+add_executable(bench bench.cpp)
 add_executable(check check.cpp)
 
 #need to link to some other libraries ? just add them here
-#target_link_libraries(gfft gomp)
-#target_link_libraries(cgfft gomp)
-#target_link_libraries(bench gomp)
+target_link_libraries(gfft gomp)
+target_link_libraries(cgfft gomp)
+target_link_libraries(bench gomp)
 target_link_libraries(check gomp fftw3)
 

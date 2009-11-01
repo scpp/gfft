@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "gfftconf.h"
+#include "gfft.h"
 
 #include <omp.h>
 

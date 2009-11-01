@@ -27,7 +27,7 @@ namespace GFFT {
 
 
 /** \class AbstractFFT
-\brief Abstract interface class to build GFFT object factory
+\brief Abstract interface class to build %GFFT object factory
 
 This class represents basic interface for %GFFT classes.
 In other words, it shares the function fft(T*) between

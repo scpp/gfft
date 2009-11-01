@@ -22,7 +22,7 @@
 #include <fftw3.h>
 #endif
 
-#include "gfftconf.h"
+#include "gfft.h"
 #include "nrfft.h"
 
 using namespace std;

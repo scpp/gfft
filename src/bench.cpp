@@ -20,7 +20,7 @@
 #include <iomanip>
 
 //#include "gfft.h"
-#include "gfftconf.h"
+#include "gfft.h"
 
 #include "timer.h"
 
