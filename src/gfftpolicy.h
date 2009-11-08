@@ -233,6 +233,7 @@ struct OpenMP {
 
    template<unsigned P, class T>
    struct Swap {
+      //typedef GFFTswap<(1<<P),T> Result;
       typedef GFFTswap2OMP<NT,P,T> Result;
    };
 

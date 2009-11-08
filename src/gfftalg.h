@@ -83,6 +83,7 @@ runs funciton apply() twice recursively at the beginning of the function apply()
 with the half of the transform length N
 until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
+\sa InFreq
 */
 template<unsigned N, typename T, int S>
 class InTime {
@@ -179,6 +180,7 @@ runs funciton apply() twice recursively at the end of the function apply()
 with the half of the transform length N
 until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
+\sa InTime
 */
 template<unsigned N, typename T, int S>
 class InFreq {
@@ -266,6 +268,11 @@ public:
 /*!
 \tparam N length of the data
 \tparam T value type
+
+This is C-like implementation. It has been written very 
+similar to the one presented in the book 
+"Numerical recipes in C++".
+\sa GFFTswap2
 */
 template<unsigned N, typename T>
 class GFFTswap {
@@ -288,8 +295,23 @@ public:
 };
 
 
-//-------------------------------------------------
+/// Binary reordering of array elements
+/*!
+\tparam N length of the data
+\tparam T value type
 
+This is second version of binary reordering.
+It is based on template class recursion
+similar to InTime and InFreq template classes,
+where member function apply() is called twice recursively
+building the parameters n and r, which are at last the
+indexes of exchanged data values.
+
+This version is slightly slower than GFFTswap, but 
+allows parallelization of this algorithm, which is
+implemented in template class GFFTswap2OMP.
+\sa GFFTswap, GFFTswap2OMP
+*/
 template<unsigned P, typename T=double,
 unsigned I=0>
 class GFFTswap2 {

@@ -19,9 +19,7 @@
 #include <iostream>
 #include <iomanip>
 
-//#include "gfft.h"
 #include "gfft.h"
-
 #include "timer.h"
 
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -30,7 +28,9 @@ using namespace std;
 
 using namespace GFFT;
 
-//typedef double ValueType;
+using namespace boost::posix_time;
+using namespace boost::gregorian;
+
 
 
 template<class GenListResult>
@@ -43,16 +43,16 @@ class GFFTbench<Loki::Typelist<H,T> > {
   H gfft;
 public:
   void apply(const int hardware_id, const int system_id,
-             const int compiler_id, const int release_id)
+             const int compiler_id, const int software_id)
   {
-     next.apply(hardware_id,system_id,compiler_id,release_id);
+     next.apply(hardware_id,system_id,compiler_id,software_id);
 
      size_t i,it;
      double t,mt;
      char space = '\t';
      progClock* cl=new progClock();
 
-     it = size_t(1000000./(double)H::Len)+1;
+     it = size_t(5000000./(double)H::Len)+1;
 
      Tp* data = new Tp [2*H::Len*it];
 
@@ -66,10 +66,17 @@ public:
           data[2*(n*j+i)+1] = (2*i+j+1)/(double)n;
         }
       }*/
+      time_duration td;
+      ptime t1,t2;
+      // real time
+      td = seconds(0);
+      t1 = microsec_clock::universal_time();
+
       Tp* d=data;
       mt = 1e+100;
       for (i=0; i<3; ++i) {
         d=data;
+        // CPU-time
         cl->start();
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d);
@@ -78,15 +85,22 @@ public:
         t = cl->GetTime();
         if (t<mt) mt=t;
       }
+      t2 = microsec_clock::universal_time();
+      td = t2 - t1;
+      double rt = (td.total_seconds()*1000000+td.fractional_seconds())/(3.*it*1e+6);
       mt /= (double)it;
-      cout<<hardware_id<<space<<system_id<<space
-          <<compiler_id<<space<<release_id<<space
+      cout<<hardware_id<<space
+          <<system_id<<space
+          <<compiler_id<<space
+          <<software_id<<space
           <<H::TransformType::ID<<space
           <<H::ValueType::ID<<space
           <<H::DecimationType::ID<<space
-          //<<H::DirectionType::ID<<space
-          <<0<<space
-          <<H::PLen-9<<space<<mt<<endl;
+          <<H::ParallType::ID+1<<space
+          <<1<<space    // array type
+          <<1<<space    // dim
+          <<H::PLen<<space
+          <</*mt<<space<<*/rt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
       delete [] data;
@@ -105,42 +119,20 @@ public:
 int main(int argc, char *argv[])
 {
 
-//     omp_set_num_threads(4);
-//     omp_set_nested(true);
-
-//     unsigned int i,p=2;
-//     unsigned int n= 1<<p;
-
     if (argc<4) {
       cout<<"usage: bench <hardware_id> <system_id> <compiler_id> <release_id>"<<endl;
       exit(1);
     }
 
-// There are three ways to create object to perform FFT of the length 2^p
-// 1) Singleton holds the object factory for GFFT
-//     GFFT_Singleton<Min,Max,ValueType,COMPLEX,INTIME,FORWARD>* gfft;
-//     AbstractFFT<ValueType>* fftobj = gfft->Instance().CreateObject(p);
-//
-//     GFFT_Singleton<Min,Max,ValueType,COMPLEX,INTIME,BACKWARD>* igfft;
-//     AbstractFFT<ValueType>* ifftobj = igfft->Instance().CreateObject(p);
-
-// 2) Create the object factory without singleton
-
-//    typedef GenList<17,25,DOUBLE,COMPLEX,FORWARD,OpenMP<2>,INFREQ> List;
-    //typedef GenList<10,15> List;
-    typedef GenerateTransform<10,15,DOUBLE> List;
-
-//   typedef Print<List::Result>::Result deb;
-//    Loki::Factory<AbstractFFT<ValueType>,unsigned int> gfft;
-//    FactoryInit<List::Result>::apply(gfft);
-
-//    unsigned int id1[5] = {p-1,0,1,1,0};
-//    unsigned int id2[5] = {p-1,0,1,1,1};
-//    unsigned int p1 = List::trans_id(id1);
-//    unsigned int p2 = List::trans_id(id2);
-//    cout<<p1<<" "<<p2<<endl;
-//    AbstractFFT<ValueType>* fftobj = gfft.CreateObject(p1);
-//    AbstractFFT<ValueType>* ifftobj = gfft.CreateObject(p2);
+    typedef GenerateTransform<1, 25, DOUBLE
+            ,TransformTypeGroup::Default, SIntID<1>
+            ,ParallelizationGroup::FullList
+            //,OpenMP<2>
+             > List1;
+    typedef GenerateTransform<1, 25, FLOAT
+            ,TransformTypeGroup::Default, SIntID<1>
+            ,ParallelizationGroup::FullList
+             > List2;
 
    int hardware_id = atoi(argv[1]);
    int system_id = atoi(argv[2]);
@@ -149,22 +141,11 @@ int main(int argc, char *argv[])
 
    cout<<setprecision(12);
 
-   GFFTbench<List::Result> bench;
+   GFFTbench<List1::Result> bench1;
+   GFFTbench<List2::Result> bench2;
 
-   using namespace boost::posix_time;
-   using namespace boost::gregorian;
-
-   time_duration td;
-   ptime t1,t2;
-   td = seconds(0);
-   t1 = microsec_clock::universal_time();
-
-   bench.apply(hardware_id,system_id,compiler_id,release_id);
-
-   t2 = microsec_clock::universal_time();
-   td = t2 - t1;
-   double rt = (td.total_seconds()*1000000+td.fractional_seconds());
-   cout<<rt<<"ms"<<endl;
+   bench1.apply(hardware_id,system_id,compiler_id,release_id);
+   bench2.apply(hardware_id,system_id,compiler_id,release_id);
 
    return 0;
 }

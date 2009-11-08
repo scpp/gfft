@@ -25,14 +25,30 @@
 
 namespace GFFT {
 
-/// OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
 /**
+This static constant defines FFT length for that 
+OpenMP parallelization is switched on. The overhead is
+too large for transforms with smaller sizes.
+*/
+static const unsigned int SwitchToOMP = (1<<12);
+
+/** \class {GFFT::InTimeOMP}
+\brief %OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
 \tparam NThreads is number of threads
 \tparam N current transform length
 \tparam T value type of the data array
 \tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam C condition to ensure that (N>NThreads) and (N>4), otherwise 
+        parallelization is meaningless and sequential implementation InTime
+        is inherited.
+
+Comparing to sequential implementation in template class InTime, this class
+runs apply() function of both instances of the half length (N/2) in the separated
+threads and so on until NThreads has become equal 1. Then the sequential version
+in template class InTime is inherited.
+\sa InFreqOMP, InTime, InFreq
 */
-template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>4))>
+template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InTimeOMP;
 
 template<unsigned NThreads, unsigned N, typename T, int S>
@@ -87,8 +103,23 @@ template<unsigned NThreads, unsigned N, typename T, int S>
 class InTimeOMP<NThreads,N,T,S,false> : public InTime<N,T,S> { };
 
 
-/// Danielson-Lanczos section of the decimation-in-frequency FFT version
-template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>4))>
+/** \class {GFFT::InFreqOMP}
+\brief %OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
+\tparam NThreads is number of threads
+\tparam N current transform length
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam C condition to ensure that (N>NThreads) and (N>4), otherwise 
+        parallelization is meaningless and sequential implementation InFreq
+        is inherited.
+
+Comparing to sequential implementation in template class InFreq, this class
+runs apply() function of both instances of the half length (N/2) in the separated
+threads and so on until NThreads has become equal 1. Then the sequential version
+in template class InTime is inherited.
+\sa InFreqOMP, InTime, InFreq
+*/
+template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
 
 template<unsigned NThreads, unsigned N, typename T, int S>
@@ -172,7 +203,7 @@ public:
 //-------------------------------------------------
 
 template<unsigned NThreads, unsigned P, typename T,
-unsigned I=0, bool C=(NThreads<(1<<P))>
+unsigned I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
 class GFFTswap2OMP;
 
 template<unsigned NThreads, unsigned P, typename T,

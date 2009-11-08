@@ -60,8 +60,8 @@ class Transform:public FactoryPolicy {
 public:
    typedef VType ValueType;
    typedef Type TransformType;
+   typedef Parall ParallType;
    typedef Decimation DecimationType;
-//   typedef Direction DirectionType;
 
    enum { ID = IDN, Len = N, PLen = P };
 
