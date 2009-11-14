@@ -29,7 +29,7 @@ namespace GFFT {
 typedef unsigned int uint;
 
 /** \class {GFFT::Transform}
-\brief Generic Fast Fourier transform in-place
+\brief Generic Fast Fourier transform in-place class
 \tparam Power2 defines transform length, which is 2^Power2
 \tparam VType type of data element
 \tparam Type type of transform: DFT, IDFT, RDFT, IRDFT
@@ -37,6 +37,9 @@ typedef unsigned int uint;
 \tparam Parall parallelization
 \tparam Decimation in-time or in-frequency: INTIME, INFREQ
 \tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
+
+Use this class only, if you need transform of a single fixed type and length.
+Otherwise, rely to template class GenerateTransform
 */
 template<class Power2,
 class VType,
@@ -234,7 +237,46 @@ struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
 
 
 
+/// MAIN CLASS TO USE! Generates a set of transform classes
+/**
+\tparam Begin defines minimum transform length as a power of two (2^Begin)
+\tparam End defines maximum transform length as a power of two (2^End)
+\tparam T type of data element
+\tparam TransType type of transform: DFT, IDFT, RDFT, IRDFT
+\tparam Dim dimension of transform, defined as SIntID<N>, N=1,2,...
+        By now, only one-dimensional transforms are implemented.
+\tparam Parall parallelization method
+\tparam Decimation in-time or in-frequency: INTIME, INFREQ
+\tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
 
+This generator class makes possible to generate a set of necessary transforms.
+The first three template parameters: minimum and maximum power of two and value type
+must be defined. Further parameters have default values and may be omitted.
+Default values for template parameters are taken from the corresponding group-classes
+(see \ref gr_groups ), from returned type Default. To specify another set 
+of transforms than the default one, you have to specify every template parameter either as
+a Typelist or a single parameter class (see \ref gr_params ).
+
+In the following example we define forward complex-valued set of transforms
+of the length from 2^10 to 2^15 using double precision:
+\code
+typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::DFT> TransformSet;
+\endcode
+
+The next example defines set of forward and backward real-valued transforms of single recision,
+where code for single and parallelized for two threads is generated:
+\code
+typedef TYPELIST_2(GFFT::RDFT, GFFT::IRDFT) ParallSet;
+typedef TYPELIST_2(GFFT::Serial, GFFT::OpenMP<2>) ParallSet;
+typedef GenerateTransform<10, 15, GFFT::FLOAT, RealTransforms, SIntID<1>, ParallSet> TransformSet;
+\endcode
+
+You may use return type FullList of the group-classes to specify all types of a parameter. 
+The next example returns forward and backward, complex- and real-valued transforms using double precision:
+\code
+typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::TransformTypeGroup::FullList> TransformSet;
+\endcode
+*/
 template<unsigned Begin, unsigned End,
 class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
 class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
@@ -259,14 +301,15 @@ class GenerateTransform {
 
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
-   typedef AbstractFFT<typename T::ValueType> Abstract;
-   Loki::Factory<Abstract, unsigned int> factory;
+   typedef AbstractFFT<typename T::ValueType> ObjectType;
+
+   Loki::Factory<ObjectType, uint> factory;
 
    GenerateTransform() {
       FactoryInit<Result>::apply(factory);
    }
 
-   Abstract* CreateTransformObject(uint p, uint vtype_id, 
+   ObjectType* CreateTransformObject(uint p, uint vtype_id, 
                                    uint trans_id = TransformTypeGroup::default_id, 
                                    uint dim = 1, 
                                    uint parall_id = ParallelizationGroup::default_id, 

@@ -49,7 +49,7 @@ It doesn't need any installation or additional packages.
 
 \section download Download
 
-Download the source code from project web site at SourceForge \n
+Download the source code from the project web site at SourceForge \n
 http://sourceforge.net/projects/gfft/download
 
 \section refs References

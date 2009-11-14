@@ -42,10 +42,10 @@ class GFFTbench<Loki::Typelist<H,T> > {
   GFFTbench<T> next;
   H gfft;
 public:
-  void apply(const int hardware_id, const int system_id,
+  void cputime(const int hardware_id, const int system_id,
              const int compiler_id, const int software_id)
   {
-     next.apply(hardware_id,system_id,compiler_id,software_id);
+     next.cputime(hardware_id,system_id,compiler_id,software_id);
 
      size_t i,it;
      double t,mt;
@@ -66,11 +66,6 @@ public:
           data[2*(n*j+i)+1] = (2*i+j+1)/(double)n;
         }
       }*/
-      time_duration td;
-      ptime t1,t2;
-      // real time
-      td = seconds(0);
-      t1 = microsec_clock::universal_time();
 
       Tp* d=data;
       mt = 1e+100;
@@ -85,9 +80,6 @@ public:
         t = cl->GetTime();
         if (t<mt) mt=t;
       }
-      t2 = microsec_clock::universal_time();
-      td = t2 - t1;
-      double rt = (td.total_seconds()*1000000+td.fractional_seconds())/(3.*it*1e+6);
       mt /= (double)it;
       cout<<hardware_id<<space
           <<system_id<<space
@@ -97,22 +89,74 @@ public:
           <<H::ValueType::ID<<space
           <<H::DecimationType::ID<<space
           <<H::ParallType::ID+1<<space
-          <<1<<space    // array type
+          <<0<<space    // array type
           <<1<<space    // dim
+          <<3<<space    // CPU-time
           <<H::PLen<<space
-          <</*mt<<space<<*/rt<<endl;
+          <<mt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
       delete [] data;
       delete cl;
 
+  }
+  void realtime(const int hardware_id, const int system_id,
+             const int compiler_id, const int software_id)
+  {
+     next.realtime(hardware_id,system_id,compiler_id,software_id);
+
+     size_t i,it;
+     char space = '\t';
+
+     it = size_t(5000000./(double)H::Len)+1;
+
+     Tp* data = new Tp [2*H::Len*it];
+
+      // initial data
+     for (i=0; i<2*H::Len*it; ++i)
+       data[i] = 0;
+
+      time_duration td;
+      ptime t1,t2;
+      // real time
+      td = seconds(0);
+      t1 = microsec_clock::universal_time();
+
+      Tp* d=data;
+      for (i=0; i<3; ++i) {
+        d=data;
+        for (size_t j=0; j<it; ++j) {
+          gfft.fft(d);
+          d+=2*H::Len;
+        }
+      }
+      t2 = microsec_clock::universal_time();
+      td = t2 - t1;
+      double rt = (td.total_seconds()*1000000+td.fractional_seconds())/(3.*it*1e+6);
+      cout<<hardware_id<<space
+          <<system_id<<space
+          <<compiler_id<<space
+          <<software_id<<space
+          <<H::TransformType::ID<<space
+          <<H::ValueType::ID<<space
+          <<H::DecimationType::ID<<space
+          <<H::ParallType::ID+1<<space
+          <<0<<space    // array type
+          <<1<<space    // dim
+          <<2<<space    // real time
+          <<H::PLen<<space
+          <<rt<<endl;
+      //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
+
+      delete [] data;
    }
 };
 
 template<>
 class GFFTbench<Loki::NullType> {
 public:
-  void apply(const int, const int, const int, const int) { }
+  void cputime(const int, const int, const int, const int) { }
+  void realtime(const int, const int, const int, const int) { }
 };
 
 
@@ -144,8 +188,10 @@ int main(int argc, char *argv[])
    GFFTbench<List1::Result> bench1;
    GFFTbench<List2::Result> bench2;
 
-   bench1.apply(hardware_id,system_id,compiler_id,release_id);
-   bench2.apply(hardware_id,system_id,compiler_id,release_id);
+   bench1.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench1.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench2.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench2.realtime(hardware_id,system_id,compiler_id,release_id);
 
    return 0;
 }

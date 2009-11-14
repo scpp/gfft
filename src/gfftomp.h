@@ -25,12 +25,12 @@
 
 namespace GFFT {
 
-/**
+/** \var static const uint SwitchToOMP
 This static constant defines FFT length for that 
 OpenMP parallelization is switched on. The overhead is
 too large for transforms with smaller sizes.
 */
-static const unsigned int SwitchToOMP = (1<<12);
+static const uint SwitchToOMP = (1<<10);
 
 /** \class {GFFT::InTimeOMP}
 \brief %OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
@@ -38,7 +38,7 @@ static const unsigned int SwitchToOMP = (1<<12);
 \tparam N current transform length
 \tparam T value type of the data array
 \tparam S sign of the transform: 1 - forward, -1 - backward
-\tparam C condition to ensure that (N>NThreads) and (N>4), otherwise 
+\tparam C condition to ensure that (N>NThreads) and (N>=SwitchToOMP), otherwise 
         parallelization is meaningless and sequential implementation InTime
         is inherited.
 
@@ -109,7 +109,7 @@ class InTimeOMP<NThreads,N,T,S,false> : public InTime<N,T,S> { };
 \tparam N current transform length
 \tparam T value type of the data array
 \tparam S sign of the transform: 1 - forward, -1 - backward
-\tparam C condition to ensure that (N>NThreads) and (N>4), otherwise 
+\tparam C condition to ensure that (N>NThreads) and (N>=SwitchToOMP), otherwise 
         parallelization is meaningless and sequential implementation InFreq
         is inherited.
 
@@ -200,8 +200,16 @@ public:
    }
 };
 
-//-------------------------------------------------
-
+/** \class {GFFT::GFFTswap2OMP}
+\brief Binary reordering paralelized by %OpenMP
+\tparam NThreads is number of threads
+\tparam P current transform length as power of two
+\tparam T value type of the data array
+\tparam I is internal counter
+\tparam C condition to ensure that (N>NThreads) and (N>=SwitchToOMP), otherwise 
+        parallelization is meaningless and the sequential implementation GFFTswap2
+        is inherited.
+*/
 template<unsigned NThreads, unsigned P, typename T,
 unsigned I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
 class GFFTswap2OMP;

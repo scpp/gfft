@@ -27,7 +27,6 @@ using namespace std;
 using namespace GFFT;
 
 typedef COMPLEX_DOUBLE ValueType;
-typedef AbstractFFT<ValueType::ValueType> AbstFFT;
 
 int main(int argc, char *argv[])
 {
@@ -35,10 +34,10 @@ int main(int argc, char *argv[])
     unsigned int i,p=2;
     unsigned int n= 1<<p;
 
-    typedef GenerateTransform<1,3,ValueType> Trans;
-    Trans gfft;
-    Trans::Abstract* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
-    Trans::Abstract* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);
+    typedef GenerateTransform<1,3,ValueType> TransformSet;
+    TransformSet gfft;
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

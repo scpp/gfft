@@ -20,13 +20,15 @@
   <kdevcustomproject>
     <filelistdirectory>/home/vladimir/prog/gfft</filelistdirectory>
     <run>
-      <mainprogram>/home/vladimir/prog/gfft/src/check</mainprogram>
+      <mainprogram>/home/vladimir/prog/gfft</mainprogram>
       <directoryradio>custom</directoryradio>
       <customdirectory>/home/vladimir/prog/gfft</customdirectory>
       <programargs/>
       <terminal>false</terminal>
       <autocompile>true</autocompile>
-      <envvars/>
+      <envvars>
+        <envvar value="icpc" name="CMAKE_CXX_COMPILER" />
+      </envvars>
       <globaldebugarguments/>
       <globalcwd>/home/vladimir/prog/gfft</globalcwd>
       <useglobalprogram>false</useglobalprogram>
@@ -206,4 +208,11 @@
       <outputradix>10</outputradix>
     </display>
   </kdevdebugger>
+  <kdevdocumentation>
+    <projectdoc>
+      <docsystem/>
+      <docurl/>
+      <usermanualurl/>
+    </projectdoc>
+  </kdevdocumentation>
 </kdevelop>
