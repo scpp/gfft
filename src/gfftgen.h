@@ -235,6 +235,19 @@ struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
    }
 };
 
+template <typename IdentifierType, class AbstractProduct>
+struct TransformFactoryError
+{
+   struct Exception : public std::exception 
+   {
+      const char* what() const throw() { 
+        return "Requested transform is not compiled! Check your instantiation of GenerateTransform class!"; 
+      }
+   };
+   static AbstractProduct* OnUnknownType(IdentifierType) {
+      throw Exception();
+   }
+};
 
 
 /// MAIN CLASS TO USE! Generates a set of transform classes
@@ -266,7 +279,7 @@ typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::DFT> TransformSet;
 The next example defines set of forward and backward real-valued transforms of single recision,
 where code for single and parallelized for two threads is generated:
 \code
-typedef TYPELIST_2(GFFT::RDFT, GFFT::IRDFT) ParallSet;
+typedef TYPELIST_2(GFFT::RDFT, GFFT::IRDFT) RealTransforms;
 typedef TYPELIST_2(GFFT::Serial, GFFT::OpenMP<2>) ParallSet;
 typedef GenerateTransform<10, 15, GFFT::FLOAT, RealTransforms, SIntID<1>, ParallSet> TransformSet;
 \endcode
@@ -276,6 +289,8 @@ The next example returns forward and backward, complex- and real-valued transfor
 \code
 typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::TransformTypeGroup::FullList> TransformSet;
 \endcode
+
+\sa Transform, ListGenerator
 */
 template<unsigned Begin, unsigned End,
 class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
@@ -303,7 +318,7 @@ public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
    typedef AbstractFFT<typename T::ValueType> ObjectType;
 
-   Loki::Factory<ObjectType, uint> factory;
+   Loki::Factory<ObjectType,uint,ObjectType*(*)(),TransformFactoryError> factory;
 
    GenerateTransform() {
       FactoryInit<Result>::apply(factory);

@@ -18,45 +18,62 @@
 
 /**
 \mainpage
-    Generic simple and efficient Fast Fourier Transforms (FFT) implementation
-    using policy-based design and template metaprogramming. \n
-    Features:
-    - Transforms in-place
-    - Complex FFT of power-of-two length. \n
-      See Numerical recipes in C, Chap. 12.2 for theory \n
-      http://www.nrbook.com/a/bookcpdf/c12-2.pdf
-    - Single real function FFT of power-of-two length \n
-      See Numerical recipes in C, Chap. 12.3 for theory and data format \n
-      http://www.nrbook.com/a/bookcpdf/c12-3.pdf
-    - High and cache-independent performance
-    - No additional data is stored. \n
-      You can use all available RAM for your transformed data
-    - One-step transform. \n
-      Many known FFT implementation perform to steps: initialization and transform.
-      Initialization for a given length is usually computationally expensive,
-      while transform is fast. GFFT needs only to create an object instance that
-      includes FFT-algorithm, but no additional data or computation.
 
-\section start Getting started
 
-%GFFT consists now from only a few headers, two sample programs (gfft.cpp and cgfft.cpp)
+%GFFT consists from only a few headers, two sample programs (gfft.cpp and cgfft.cpp)
 and some files from Loki-lib library by Andrei Alexandrescu.
 It doesn't need any installation or additional packages.
 
-\section license Licensing
+\section compilation Compilation
 
-%GFFT is open source software distributed under terms of GPL.
+Starting with version 0.2 %GFFT has 
+<a href="http://www.cmake.org/" target="_blank">cmake</a>-based build management. 
+That means, you can take a look and made changes in CMakeList.txt file,
+where all the compiler options and targets are listed.\n
+To compile the project, run cmake in %GFFT directory with the compiler definition,
+than run make:
+\verbatim
+cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CC_COMPILER=gcc
+cmake .
+make
+\endverbatim
 
-\section download Download
+Compilation of %GFFT is compiler-challenging process, because it intensively applies
+template class recursion, which must be completely resolved during compilation.
+For instance, it is known that gcc 3.x hangs up, when trying to compile %GFFT in optimized mode.
+Newer compilers can handle template classes much better and faster.
+The tested compilers are:
+- GNU gcc 2.96 and 4.x
+- Intel C++ 11.x
+- MS Visual Studio 8 and 9
 
-Download the source code from the project web site at SourceForge \n
-http://sourceforge.net/projects/gfft/download
+The compilation should take from a few seconds to a few minutes depending on
+amount of transforms you would like to compile within you code.
 
-\section refs References
 
-- Myrnyy, V. A Simple and Efficient FFT Implementation in C++\n
-  http://www.ddj.com/cpp/199500857
-- Press, W. H.; Flannery, B. P.; Teukolsky, S. A.; and Vetterling, W. T.
-  Numerical recipes in C, 2th edition, 1992
-- Alexandrescu, A. Modern C++ Design. Addison-Wesley, 2001
+\section usage Basic usage
+
+To start using %GFFT please take a look into very simple example programs (gfft.cpp and cgfft.cpp).
+The first one defines the data as a C-like array, where every pair represents real and
+imaginary part of a complex number. The second one uses array of std::complex type.
+
+Since all the parameters of %GFFT are static constants and defined as template parameters,
+you have to deside before compilation, which kind of transforms of which length you might need
+and declare them in instantiation of template class GFFT::GenerateTransform (see its documentation for details).
+Its template parameters may be given as a single type or as a typelist of certain options of necessary transforms.
+
+An object of this instantiated template class contains then object factory of all the needed transforms.
+Each of them can be obtained from the object factory on demand. Following example declares 
+forward and backward complex transform of double precision in single-threaded mode and creates 
+a transform object for forward transform of length 2^10:
+\code
+using namespace GFFT;
+typedef TYPELIST_2(DFT, IDFT) ComplexTransforms;
+typedef GenerateTransform<5, 15, DOUBLE, ComplexTransforms, SIntID<1>, Serial> TransformSet;
+TransformSet gfft;
+TransformSet::ObjectType* fftobj = gfft.CreateTransformObject(10, DOUBLE::ID, DFT::ID);
+\endcode
+
+If you need only single transform type of fixed length, then you cen use directly template class 
+GFFT::Transform without object factory.
 */
