@@ -69,8 +69,8 @@ public:
 
       for (unsigned i=0; i<N2; ++i) {
         // rewritten componentwise because of the different types of the components
-        temp.real() = data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag();
-        temp.imag() = data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real();
+        temp = Complex<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag(),
+                          data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real());
         //temp = data[i+N2]*Complex<T>(w);
         data[i+N2] = data[i]-temp;
         data[i] += temp;
@@ -151,6 +151,8 @@ public:
         // rewritten componentwise because of the different types of the components
         data[i+N2].real() = temp.real()*w.real() - temp.imag()*w.imag();
         data[i+N2].imag() = temp.imag()*w.real() + temp.real()*w.imag();
+	//data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(),
+	//                        temp.imag()*w.real() + temp.real()*w.imag());
         //data[i+N2] = temp*w;
 
         w += w*wp;
@@ -202,6 +204,72 @@ public:
    }
 };
 
+template<unsigned P, typename T,
+template<typename> class Complex,
+unsigned I>
+class GFFTswap2<P,Complex<T>,I> {
+   enum { BN = 1<<I, BR = 1<<(P-I-1) };
+   GFFTswap2<P,Complex<T>,I+1> next;
+public:
+   void apply(Complex<T>* data, unsigned n=0, unsigned r=0) {
+      next.apply(data,n,r);
+      next.apply(data,n|BN,r|BR);
+   }
+};
+
+template<unsigned P, typename T,
+template<typename> class Complex>
+class GFFTswap2<P,Complex<T>,P> {
+public:
+   void apply(Complex<T>* data, unsigned n=0, unsigned r=0) {
+      if (n>r)
+        swap(data[n],data[r]);
+   }
+};
+
+template<unsigned NThreads, unsigned P, typename T,
+template<typename> class Complex, unsigned I>
+class GFFTswap2OMP<NThreads,P,Complex<T>,I,true> {
+   enum { BN = 1<<I, BR = 1<<(P-I-1) };
+   GFFTswap2OMP<NThreads/2,P,Complex<T>,I+1> next;
+public:
+   void apply(Complex<T>* data, const unsigned n=0, const unsigned r=0) {
+     #pragma omp parallel shared(data)
+     {
+       #pragma omp sections
+       {
+         #pragma omp section
+         next.apply(data,n,r);
+
+         #pragma omp section
+         next.apply(data,n|BN,r|BR);
+       }
+     }
+   }
+};
+
+template<unsigned NThreads, unsigned P, typename T,
+template<typename> class Complex>
+class GFFTswap2OMP<NThreads,P,Complex<T>,P,true> {
+public:
+   void apply(Complex<T>* data, const unsigned n, const unsigned r) {
+      if (n>r)
+        swap(data[n],data[r]);
+   }
+};
+
+template<unsigned P, typename T, unsigned I,
+template<typename> class Complex>
+class GFFTswap2OMP<1,P,Complex<T>,I,true> : public GFFTswap2<P,Complex<T>,I> { };
+
+template<unsigned P, typename T,
+template<typename> class Complex>
+class GFFTswap2OMP<1,P,Complex<T>,P,true> : public GFFTswap2<P,Complex<T>,P> { };
+
+template<unsigned NThreads, unsigned P, typename T, unsigned I,
+template<typename> class Complex>
+class GFFTswap2OMP<NThreads,P,Complex<T>,I,false> : public GFFTswap2<P,Complex<T>,I> { };
+
 /// Reordering of data for real-valued transforms
 /*!
 \tparam N length of the data
@@ -242,6 +310,113 @@ public:
       data[N/2].imag() = -data[N/2].imag();
    }
 };
+
+template<unsigned NThreads, unsigned N, typename T, int S,
+template<typename> class Complex>
+class InTimeOMP<NThreads,N,Complex<T>,S,true> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const unsigned N2 = N/2;
+   InTimeOMP<NThreads/2,N2,Complex<T>,S> next;
+public:
+   void apply(Complex<T>* data) {
+
+      Complex<T> temp;
+      //Complex<LocalVType> w, wp;
+      LocalVType wtemp,tempr,tempi;
+      Complex<LocalVType> w(1.,0.);
+      Complex<LocalVType> wp(-2.0*wtemp*wtemp, -S*Sin<N,2,LocalVType>::value());
+
+      #pragma omp parallel shared(data,wp) private(wtemp,temp,w)
+      {
+        #pragma omp sections
+        {
+          #pragma omp section
+          next.apply(data);
+
+          #pragma omp section
+          next.apply(data+N2);
+        }
+
+      wtemp = Sin<N,1,LocalVType>::value();
+
+      int i,chunk = N2/2;
+
+      #pragma omp for schedule(static,chunk)
+      for (i=0; i<N2; ++i) {
+        // rewritten componentwise because of the different types of the components
+        temp = Complex<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag(),
+                          data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real());
+        //temp = data[i+N2]*Complex<T>(w);
+        data[i+N2] = data[i]-temp;
+        data[i] += temp;
+
+        w += w*wp;
+      }
+      }
+   }
+};
+
+template<unsigned N, typename T, int S,
+template<typename> class Complex>
+class InTimeOMP<1,N,Complex<T>,S,true> : public InTime<N,Complex<T>,S> { };
+
+template<unsigned NThreads, unsigned N, typename T, int S,
+template<typename> class Complex>
+class InTimeOMP<NThreads,N,Complex<T>,S,false> : public InTime<N,Complex<T>,S> { };
+
+
+
+template<unsigned NThreads, unsigned N, typename T, int S,
+template<typename> class Complex>
+class InFreqOMP<NThreads,N,Complex<T>,S,true> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const unsigned N2 = N/2;
+   static const int IN2 = N2;
+   InFreqOMP<NThreads/2,N2,Complex<T>,S> next;
+public:
+   void apply(Complex<T>* data) {
+
+      LocalVType wtemp;
+      Complex<T> temp;
+      Complex<LocalVType> w, wp;
+
+      wtemp = Sin<N,1,LocalVType>::value();
+      w = Complex<LocalVType>(1.,0.);
+      wp = Complex<LocalVType>(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
+      int i,chunk = N2/2;
+//       #pragma omp for schedule(static,chunk)
+      for (i=0; i<IN2; ++i) {
+        temp = data[i]-data[i+N2];
+        data[i] += data[i+N2];
+        // rewritten componentwise because of the different types of the components
+	data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(), 
+	                        temp.imag()*w.real() + temp.real()*w.imag());
+        //data[i+N2] = temp*w;
+
+        w += w*wp;
+      }
+
+      #pragma omp parallel shared(data,wp) private(wtemp,temp,w)
+      {
+      #pragma omp sections
+      {
+        #pragma omp section
+        next.apply(data);
+        #pragma omp section
+        next.apply(data+N2);
+      }
+      } // parallel
+   }
+};
+
+template<unsigned N, typename T, int S,
+template<typename> class Complex>
+class InFreqOMP<1,N,Complex<T>,S,true> : public InFreq<N,Complex<T>,S> { };
+
+template<unsigned NThreads, unsigned N, typename T, int S,
+template<typename> class Complex>
+class InFreqOMP<NThreads,N,Complex<T>,S,false> : public InFreq<N,Complex<T>,S> { };
+
 
 } //namespace
 

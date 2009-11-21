@@ -160,6 +160,10 @@ public:
 };
 
 
+static const unsigned int MinP = 1;
+static const unsigned int MaxP = 25;
+
+
 int main(int argc, char *argv[])
 {
 
@@ -168,15 +172,16 @@ int main(int argc, char *argv[])
       exit(1);
     }
 
-    typedef GenerateTransform<1, 25, DOUBLE
-            ,TransformTypeGroup::Default, SIntID<1>
-            ,ParallelizationGroup::FullList
-            //,OpenMP<2>
-             > List1;
-    typedef GenerateTransform<1, 25, FLOAT
-            ,TransformTypeGroup::Default, SIntID<1>
-            ,ParallelizationGroup::FullList
-             > List2;
+    typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default> List_ds;
+    typedef GenerateTransform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
+    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
+    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;
+
+    typedef TYPELIST_1(OpenMP<2>) ParallList;
+    typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_dp;
+    typedef GenerateTransform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_fp;
+    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_cdp;
+    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_cfp;
 
    int hardware_id = atoi(argv[1]);
    int system_id = atoi(argv[2]);
@@ -185,13 +190,30 @@ int main(int argc, char *argv[])
 
    cout<<setprecision(12);
 
-   GFFTbench<List1::Result> bench1;
-   GFFTbench<List2::Result> bench2;
+   GFFTbench<List_ds::Result> bench_ds;
+   GFFTbench<List_fs::Result> bench_fs;
+   GFFTbench<List_cds::Result> bench_cds;
+   GFFTbench<List_cfs::Result> bench_cfs;
 
-   bench1.cputime(hardware_id,system_id,compiler_id,release_id);
-   bench1.realtime(hardware_id,system_id,compiler_id,release_id);
-   bench2.cputime(hardware_id,system_id,compiler_id,release_id);
-   bench2.realtime(hardware_id,system_id,compiler_id,release_id);
+   GFFTbench<List_dp::Result> bench_dp;
+   GFFTbench<List_fp::Result> bench_fp;
+   GFFTbench<List_cdp::Result> bench_cdp;
+   GFFTbench<List_cfp::Result> bench_cfp;
+
+   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench_cds.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench_cfs.cputime(hardware_id,system_id,compiler_id,release_id);
+
+   bench_ds.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_fs.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_cds.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_cfs.realtime(hardware_id,system_id,compiler_id,release_id);
+
+   bench_dp.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_fp.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_cdp.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_cfp.realtime(hardware_id,system_id,compiler_id,release_id);
 
    return 0;
 }

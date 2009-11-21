@@ -312,7 +312,7 @@ allows parallelization of this algorithm, which is
 implemented in template class GFFTswap2OMP.
 \sa GFFTswap, GFFTswap2OMP
 */
-template<unsigned P, typename T=double,
+template<unsigned P, typename T,
 unsigned I=0>
 class GFFTswap2 {
    enum { BN = 1<<(I+1), BR = 1<<(P-I) };
@@ -413,8 +413,7 @@ struct Backward<N,Complex<T> > {
    enum { Sign = -1 };
    void apply(Complex<T>* data) {
       for (unsigned int i=0; i<N; ++i) {
-        data[i].real()/=N;
-        data[i].imag()/=N;
+        data[i]/=N;
       }
    }
 };

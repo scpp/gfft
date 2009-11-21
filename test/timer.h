@@ -2,7 +2,7 @@
 #define TIMER_H
 
 //#include "standard.h"
-#include <unistd.h>
+//#include <unistd.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -18,6 +18,7 @@
 
 using namespace std;
 
+typedef unsigned long ulong;
 
 void ConvertTime(const double msec, int &hour, short &min, float &sec)
 {

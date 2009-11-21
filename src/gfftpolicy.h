@@ -244,6 +244,9 @@ struct OpenMP {
    }
 };
 
+template<>
+struct OpenMP<0>:public Serial { };
+
 }  //namespace GFFT
 
 #endif /*__gfftpolicy_h*/

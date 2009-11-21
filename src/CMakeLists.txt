@@ -2,14 +2,12 @@ cmake_minimum_required(VERSION 2.6)
 
 project(gfft)
 
-#if you don't want the full compiler output, remove the following line
-set(CMAKE_VERBOSE_MAKEFILE ON)
 
 #include_directories()
 
 #add definitions, compiler switches, etc.
-#add_definitions(-time -Wall -O3 -fopenmp -DGFFTDOC)
-add_definitions(-O3 -openmp -DGFFTDOC)
+add_definitions(-time -Wall -g3 -O0 -fopenmp -DGFFTDOC)
+#add_definitions(-O3 -openmp -DGFFTDOC)
 
 #list all source files here
 add_executable(gfft gfft.cpp)

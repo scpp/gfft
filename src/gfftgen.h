@@ -125,7 +125,7 @@ struct DecimationGroup
 /// Static unsigned integer class holder with additional definition of ID
 template<unsigned int N>
 struct SIntID : public s_uint<N> {
-   static const unsigned int ID = N-1;
+   static const uint ID = N-1;
 };
 
 /// Generates Typelist with types SIntID<N>, N = Begin,...,End

@@ -36,8 +36,10 @@ int main(int argc, char *argv[])
     unsigned int n= 1<<p;
 
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);
+/*    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);*/
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID, 1, OpenMP<2>::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID, 1, OpenMP<2>::ID);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
