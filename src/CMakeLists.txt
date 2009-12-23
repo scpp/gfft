@@ -6,7 +6,7 @@ project(gfft)
 #include_directories()
 
 #add definitions, compiler switches, etc.
-add_definitions(-time -Wall -g3 -O0 -fopenmp -DGFFTDOC)
+add_definitions(-time -Wall -O3 -fopenmp -DGFFTDOC)
 #add_definitions(-O3 -openmp -DGFFTDOC)
 
 #list all source files here

@@ -320,13 +320,7 @@ class InTimeOMP<NThreads,N,Complex<T>,S,true> {
 public:
    void apply(Complex<T>* data) {
 
-      Complex<T> temp;
-      //Complex<LocalVType> w, wp;
-      LocalVType wtemp,tempr,tempi;
-      Complex<LocalVType> w(1.,0.);
-      Complex<LocalVType> wp(-2.0*wtemp*wtemp, -S*Sin<N,2,LocalVType>::value());
-
-      #pragma omp parallel shared(data,wp) private(wtemp,temp,w)
+      #pragma omp parallel shared(data)
       {
         #pragma omp sections
         {
@@ -336,13 +330,15 @@ public:
           #pragma omp section
           next.apply(data+N2);
         }
+      }
 
-      wtemp = Sin<N,1,LocalVType>::value();
+      Complex<T> temp;
+      //Complex<LocalVType> w, wp;
+      LocalVType wtemp = Sin<N,1,LocalVType>::value();
+      Complex<LocalVType> w(1.,0.);
+      Complex<LocalVType> wp(-2.0*wtemp*wtemp, -S*Sin<N,2,LocalVType>::value());
 
-      int i,chunk = N2/2;
-
-      #pragma omp for schedule(static,chunk)
-      for (i=0; i<N2; ++i) {
+      for (uint i=0; i<N2; ++i) {
         // rewritten componentwise because of the different types of the components
         temp = Complex<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag(),
                           data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real());
@@ -351,7 +347,6 @@ public:
         data[i] += temp;
 
         w += w*wp;
-      }
       }
    }
 };
@@ -371,21 +366,17 @@ template<typename> class Complex>
 class InFreqOMP<NThreads,N,Complex<T>,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const unsigned N2 = N/2;
-   static const int IN2 = N2;
    InFreqOMP<NThreads/2,N2,Complex<T>,S> next;
 public:
    void apply(Complex<T>* data) {
 
       LocalVType wtemp;
       Complex<T> temp;
-      Complex<LocalVType> w, wp;
 
       wtemp = Sin<N,1,LocalVType>::value();
-      w = Complex<LocalVType>(1.,0.);
-      wp = Complex<LocalVType>(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
-      int i,chunk = N2/2;
-//       #pragma omp for schedule(static,chunk)
-      for (i=0; i<IN2; ++i) {
+      Complex<LocalVType> w(1.,0.);
+      Complex<LocalVType> wp(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
+      for (uint i=0; i<N2; ++i) {
         temp = data[i]-data[i+N2];
         data[i] += data[i+N2];
         // rewritten componentwise because of the different types of the components
@@ -396,7 +387,7 @@ public:
         w += w*wp;
       }
 
-      #pragma omp parallel shared(data,wp) private(wtemp,temp,w)
+      #pragma omp parallel shared(data)
       {
       #pragma omp sections
       {

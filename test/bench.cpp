@@ -200,18 +200,18 @@ int main(int argc, char *argv[])
    GFFTbench<List_cdp::Result> bench_cdp;
    GFFTbench<List_cfp::Result> bench_cfp;
 
-   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
-   bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);
+/*   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
+   bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);*/
    bench_cds.cputime(hardware_id,system_id,compiler_id,release_id);
    bench_cfs.cputime(hardware_id,system_id,compiler_id,release_id);
 
-   bench_ds.realtime(hardware_id,system_id,compiler_id,release_id);
-   bench_fs.realtime(hardware_id,system_id,compiler_id,release_id);
+/*   bench_ds.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_fs.realtime(hardware_id,system_id,compiler_id,release_id);*/
    bench_cds.realtime(hardware_id,system_id,compiler_id,release_id);
    bench_cfs.realtime(hardware_id,system_id,compiler_id,release_id);
 
-   bench_dp.realtime(hardware_id,system_id,compiler_id,release_id);
-   bench_fp.realtime(hardware_id,system_id,compiler_id,release_id);
+/*   bench_dp.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_fp.realtime(hardware_id,system_id,compiler_id,release_id);*/
    bench_cdp.realtime(hardware_id,system_id,compiler_id,release_id);
    bench_cfp.realtime(hardware_id,system_id,compiler_id,release_id);
 

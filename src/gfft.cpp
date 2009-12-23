@@ -20,14 +20,12 @@
 
 #include "gfft.h"
 
-#include <omp.h>
-
 using namespace std;
 
 using namespace GFFT;
 
 typedef DOUBLE ValueType;
-typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::Default, SIntID<1>, OpenMP<2> > TransformSet;
+typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::Default, SIntID<1> > TransformSet;
 
 
 int main(int argc, char *argv[])
@@ -36,10 +34,8 @@ int main(int argc, char *argv[])
     unsigned int n= 1<<p;
 
     TransformSet gfft;
-/*    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID);*/
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID, 1, OpenMP<2>::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID, 1, OpenMP<2>::ID);
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID, 1);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID, 1);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

@@ -30,7 +30,7 @@ This static constant defines FFT length for that
 OpenMP parallelization is switched on. The overhead is
 too large for transforms with smaller sizes.
 */
-static const unsigned int SwitchToOMP = 2; //(1<<10);
+static const unsigned int SwitchToOMP = (1<<12);
 
 /** \class {GFFT::InTimeOMP}
 \brief %OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
@@ -119,7 +119,8 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>=SwitchToOMP))>
+template<unsigned NThreads, unsigned N, typename T, int S, 
+bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
 
 template<unsigned NThreads, unsigned N, typename T, int S>

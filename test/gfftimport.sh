@@ -48,6 +48,7 @@ $mysql_run "INSERT INTO gfft.config ($fields) ${config_insert}"
 else
 echo -n "Config: "
 $mysql_run "SELECT COUNT(*) FROM (${config_insert}) AS t"
+#$mysql_run "${config_insert}"
 fi
 
 config_query4result="SELECT gfft.config."\*",hardware_id,system_id,output_type_id FROM gfft.config RIGHT JOIN $import_select4result ON ($on_cond)"
@@ -91,6 +92,7 @@ $mysql_run "INSERT INTO gfft.result ($fields) ${result_query} AND (tr.config_id>
 else
 echo -n "Result: "
 $mysql_run "SELECT COUNT(*) FROM (${result_query}) AS t"
+#$mysql_run "${result_query}"
 fi
 
 ## query of records to be inserted into gfft.output_value

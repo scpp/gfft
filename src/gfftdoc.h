@@ -30,10 +30,9 @@ Starting with version 0.2 %GFFT has
 <a href="http://www.cmake.org/" target="_blank">cmake</a>-based build management. 
 That means, you can take a look and made changes in CMakeList.txt file,
 where all the compiler options and targets are listed.\n
-To compile the project, run cmake in %GFFT directory with the compiler definition,
-than run make:
+To compile the project, run cmake in %GFFT directory,
+then run make:
 \verbatim
-cmake -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CC_COMPILER=gcc
 cmake .
 make
 \endverbatim
@@ -42,8 +41,8 @@ Compilation of %GFFT is compiler-challenging process, because it intensively app
 template class recursion, which must be completely resolved during compilation.
 For instance, it is known that gcc 3.x hangs up, when trying to compile %GFFT in optimized mode.
 Newer compilers can handle template classes much better and faster.
-The tested compilers are:
-- GNU gcc 2.96 and 4.x
+Succesfully tested compilers are:
+- GNU gcc 4.x
 - Intel C++ 11.x
 - MS Visual Studio 8 and 9
 
@@ -74,6 +73,6 @@ TransformSet gfft;
 TransformSet::ObjectType* fftobj = gfft.CreateTransformObject(10, DOUBLE::ID, DFT::ID);
 \endcode
 
-If you need only single transform type of fixed length, then you cen use directly template class 
+If you need only single transform type of fixed length, then you can use directly template class 
 GFFT::Transform without object factory.
 */
