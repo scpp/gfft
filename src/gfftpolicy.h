@@ -95,9 +95,9 @@ struct COMPLEX_FLOAT {
 */
 struct INTIME {
    enum { ID = 0 };
-   template<unsigned N, typename T,
+   template<unsigned long N, typename T,
             class Swap,
-            class Direction, unsigned NT>
+            class Direction, unsigned int NT>
    class List {
 //      typedef InTime<N,T,Direction::Sign> InT;
       typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
@@ -111,9 +111,9 @@ struct INTIME {
 */
 struct INFREQ {
    enum { ID = 1 };
-   template<unsigned N, typename T,
+   template<unsigned long N, typename T,
             class Swap,
-            class Direction, unsigned NT>
+            class Direction, unsigned int NT>
    class List {
 //      typedef InFreq<N,T,Direction::Sign> InF;
       typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
@@ -133,7 +133,7 @@ struct DFT {
       enum { Value = TPower::value };
    };
 
-   template<unsigned N, typename T>
+   template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
    template<class List, class Separator>
@@ -153,7 +153,7 @@ struct IDFT {
       enum { Value = TPower::value };
    };
 
-   template<unsigned N, typename T>
+   template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
    template<class List, class Separator>
@@ -173,7 +173,7 @@ struct RDFT {
       static const unsigned int Value = TPower::value-1;
    };
 
-   template<unsigned N, typename T>
+   template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
    template<class List, class Separator>
@@ -193,7 +193,7 @@ struct IRDFT {
       enum { Value = TPower::value-1 };
    };
 
-   template<unsigned N, typename T>
+   template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
    template<class List, class Separator>
@@ -209,9 +209,9 @@ struct IRDFT {
 */
 struct Serial {
    enum { ID = 0 };
-   static const unsigned NParProc = 1;
+   static const unsigned int NParProc = 1;
 
-   template<unsigned P, class T>
+   template<unsigned int P, class T>
    struct Swap {
       enum { N = 1<<P };
       typedef GFFTswap<N,T> Result;
@@ -226,12 +226,12 @@ struct Serial {
 \sa Serial
 \ingroup gr_params
 */
-template<unsigned NT>
+template<unsigned int NT>
 struct OpenMP {
    enum { ID = NT-1 };
-   static const unsigned NParProc = NT;
+   static const unsigned int NParProc = NT;
 
-   template<unsigned P, class T>
+   template<unsigned int P, class T>
    struct Swap {
       //typedef GFFTswap<(1<<P),T> Result;
       typedef GFFTswap2OMP<NT,P,T> Result;

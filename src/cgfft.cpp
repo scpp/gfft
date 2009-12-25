@@ -37,8 +37,8 @@ int main(int argc, char *argv[])
     typedef TYPELIST_1(OpenMP<2>) ParallList;
     typedef GenerateTransform<1,3,ValueType, TransformTypeGroup::FullList, SIntID<1>, OpenMP<2>, INTIME> TransformSet;
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, DFT::ID, 1, OpenMP<2>::ID, INTIME::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IDFT::ID, 1, OpenMP<2>::ID, INTIME::ID);
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, RDFT::ID, 1, OpenMP<2>::ID, INTIME::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IRDFT::ID, 1, OpenMP<2>::ID, INTIME::ID);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

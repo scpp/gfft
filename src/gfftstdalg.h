@@ -51,11 +51,11 @@ with the half of the transform length N
 until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 */
-template<unsigned N, typename T, int S,
+template<unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InTime<N,Complex<T>,S> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const unsigned N2 = N/2;
+   static const unsigned long N2 = N/2;
    InTime<N2,Complex<T>,S> next;
 public:
    void apply(Complex<T>* data) {
@@ -67,10 +67,10 @@ public:
       Complex<LocalVType> w(1.,0.);
       Complex<LocalVType> wp(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
 
-      for (unsigned i=0; i<N2; ++i) {
+      for (unsigned long i=0; i<N2; ++i) {
         // rewritten componentwise because of the different types of the components
-        temp = Complex<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag(),
-                          data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real());
+        temp = Complex<T>(static_cast<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag()),
+                          static_cast<T>(data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real()));
         //temp = data[i+N2]*Complex<T>(w);
         data[i+N2] = data[i]-temp;
         data[i] += temp;
@@ -131,11 +131,11 @@ with the half of the transform length N
 until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 */
-template<unsigned N, typename T, int S,
+template<unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InFreq<N,Complex<T>,S> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const unsigned N2 = N/2;
+   static const unsigned long N2 = N/2;
    InFreq<N2,Complex<T>,S> next;
 public:
    void apply(Complex<T>* data) {
@@ -145,14 +145,12 @@ public:
       Complex<LocalVType> w(1.,0.);
       Complex<LocalVType> wp(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
 
-      for (unsigned i=0; i<N2; ++i) {
+      for (unsigned long i=0; i<N2; ++i) {
         temp = data[i]-data[i+N2];
         data[i] += data[i+N2];
         // rewritten componentwise because of the different types of the components
-        data[i+N2].real() = temp.real()*w.real() - temp.imag()*w.imag();
-        data[i+N2].imag() = temp.imag()*w.real() + temp.real()*w.imag();
-	//data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(),
-	//                        temp.imag()*w.real() + temp.real()*w.imag());
+	data[i+N2] = Complex<T>(static_cast<T>(temp.real()*w.real() - temp.imag()*w.imag()),
+	                        static_cast<T>(temp.imag()*w.real() + temp.real()*w.imag()));
         //data[i+N2] = temp*w;
 
         w += w*wp;
@@ -184,13 +182,13 @@ public:
 \tparam N length of the data
 \tparam T value type
 */
-template<unsigned N, typename T,
+template<unsigned long N, typename T,
 template<typename> class Complex>
 class GFFTswap<N,Complex<T> > {
 public:
    void apply(Complex<T>* data) {
-     unsigned int m,j=0;
-     for (unsigned int i=0; i<N; ++i) {
+     unsigned long m,j=0;
+     for (unsigned long i=0; i<N; ++i) {
         if (j>i) {
             std::swap(data[j], data[i]);
         }
@@ -204,36 +202,38 @@ public:
    }
 };
 
-template<unsigned P, typename T,
+template<unsigned int P, typename T,
 template<typename> class Complex,
-unsigned I>
+unsigned int I>
 class GFFTswap2<P,Complex<T>,I> {
-   enum { BN = 1<<I, BR = 1<<(P-I-1) };
+   static const unsigned long BN = 1<<I;
+   static const unsigned long BR = 1<<(P-I-1);
    GFFTswap2<P,Complex<T>,I+1> next;
 public:
-   void apply(Complex<T>* data, unsigned n=0, unsigned r=0) {
+   void apply(Complex<T>* data, unsigned long n=0, unsigned long r=0) {
       next.apply(data,n,r);
       next.apply(data,n|BN,r|BR);
    }
 };
 
-template<unsigned P, typename T,
+template<unsigned int P, typename T,
 template<typename> class Complex>
 class GFFTswap2<P,Complex<T>,P> {
 public:
-   void apply(Complex<T>* data, unsigned n=0, unsigned r=0) {
+   void apply(Complex<T>* data, unsigned long n=0, unsigned long r=0) {
       if (n>r)
         swap(data[n],data[r]);
    }
 };
 
-template<unsigned NThreads, unsigned P, typename T,
-template<typename> class Complex, unsigned I>
+template<unsigned int NThreads, unsigned int P, typename T,
+template<typename> class Complex, unsigned int I>
 class GFFTswap2OMP<NThreads,P,Complex<T>,I,true> {
-   enum { BN = 1<<I, BR = 1<<(P-I-1) };
+   static const unsigned long BN = 1<<I;
+   static const unsigned long BR = 1<<(P-I-1);
    GFFTswap2OMP<NThreads/2,P,Complex<T>,I+1> next;
 public:
-   void apply(Complex<T>* data, const unsigned n=0, const unsigned r=0) {
+   void apply(Complex<T>* data, const unsigned long n=0, const unsigned long r=0) {
      #pragma omp parallel shared(data)
      {
        #pragma omp sections
@@ -248,25 +248,25 @@ public:
    }
 };
 
-template<unsigned NThreads, unsigned P, typename T,
+template<unsigned int NThreads, unsigned int P, typename T,
 template<typename> class Complex>
 class GFFTswap2OMP<NThreads,P,Complex<T>,P,true> {
 public:
-   void apply(Complex<T>* data, const unsigned n, const unsigned r) {
+   void apply(Complex<T>* data, const unsigned long n, const unsigned long r) {
       if (n>r)
         swap(data[n],data[r]);
    }
 };
 
-template<unsigned P, typename T, unsigned I,
+template<unsigned int P, typename T, unsigned int I,
 template<typename> class Complex>
 class GFFTswap2OMP<1,P,Complex<T>,I,true> : public GFFTswap2<P,Complex<T>,I> { };
 
-template<unsigned P, typename T,
+template<unsigned int P, typename T,
 template<typename> class Complex>
 class GFFTswap2OMP<1,P,Complex<T>,P,true> : public GFFTswap2<P,Complex<T>,P> { };
 
-template<unsigned NThreads, unsigned P, typename T, unsigned I,
+template<unsigned int NThreads, unsigned int P, typename T, unsigned int I,
 template<typename> class Complex>
 class GFFTswap2OMP<NThreads,P,Complex<T>,I,false> : public GFFTswap2<P,Complex<T>,I> { };
 
@@ -276,7 +276,7 @@ class GFFTswap2OMP<NThreads,P,Complex<T>,I,false> : public GFFTswap2<P,Complex<T
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<unsigned N, typename T, int S,
+template<unsigned long N, typename T, int S,
 template<typename> class Complex>
 class Separate<N,Complex<T>,S> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
@@ -284,7 +284,7 @@ class Separate<N,Complex<T>,S> {
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(Complex<T>* data) {
-      unsigned int i,i1;
+      unsigned long i,i1;
       LocalComplex h1,h2,h3;
       LocalVType wtemp = Sin<2*N,1,LocalVType>::value();
       LocalComplex wp(-2.*wtemp*wtemp,-S*Sin<N,1,LocalVType>::value());
@@ -292,30 +292,29 @@ public:
 
       for (i=1; i<N/2; ++i) {
         i1 = N-i;
-        h1.real() = 0.5*(data[i].real()+data[i1].real());
-        h1.imag() = 0.5*(data[i].imag()-data[i1].imag());
-        h2.real() = S*0.5*(data[i].imag()+data[i1].imag());
-        h2.imag() =-S*0.5*(data[i].real()-data[i1].real());
+        h1 = Complex<LocalVType>(static_cast<LocalVType>(0.5*(data[i].real()+data[i1].real())),
+                                 static_cast<LocalVType>(0.5*(data[i].imag()-data[i1].imag())));
+        h2 = Complex<LocalVType>(static_cast<LocalVType>( S*0.5*(data[i].imag()+data[i1].imag())),
+                                 static_cast<LocalVType>(-S*0.5*(data[i].real()-data[i1].real())));
         h3 = w*h2;
         data[i] = h1 + h3;
         data[i1]= h1 - h3;
-        data[i1].imag() = -data[i1].imag();
+        data[i1] = Complex<T>(data[i1].real(), -data[i1].imag());
 
         w += w*wp;
       }
       wtemp = data[0].real();
-      data[0].real() = M*0.5*(wtemp + data[0].imag());
-      data[0].imag() = M*0.5*(wtemp - data[0].imag());
+      data[0] = Complex<T>(M*0.5*(wtemp + data[0].imag()), M*0.5*(wtemp - data[0].imag()));
 
-      data[N/2].imag() = -data[N/2].imag();
+      data[N/2] = Complex<T>(data[N/2].real(), -data[N/2].imag());
    }
 };
 
-template<unsigned NThreads, unsigned N, typename T, int S,
+template<unsigned int NThreads, unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InTimeOMP<NThreads,N,Complex<T>,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const unsigned N2 = N/2;
+   static const unsigned long N2 = N/2;
    InTimeOMP<NThreads/2,N2,Complex<T>,S> next;
 public:
    void apply(Complex<T>* data) {
@@ -338,7 +337,7 @@ public:
       Complex<LocalVType> w(1.,0.);
       Complex<LocalVType> wp(-2.0*wtemp*wtemp, -S*Sin<N,2,LocalVType>::value());
 
-      for (uint i=0; i<N2; ++i) {
+      for (unsigned long i=0; i<N2; ++i) {
         // rewritten componentwise because of the different types of the components
         temp = Complex<T>(data[i+N2].real()*w.real() - data[i+N2].imag()*w.imag(),
                           data[i+N2].real()*w.imag() + data[i+N2].imag()*w.real());
@@ -351,21 +350,21 @@ public:
    }
 };
 
-template<unsigned N, typename T, int S,
+template<unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InTimeOMP<1,N,Complex<T>,S,true> : public InTime<N,Complex<T>,S> { };
 
-template<unsigned NThreads, unsigned N, typename T, int S,
+template<unsigned int NThreads, unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InTimeOMP<NThreads,N,Complex<T>,S,false> : public InTime<N,Complex<T>,S> { };
 
 
 
-template<unsigned NThreads, unsigned N, typename T, int S,
+template<unsigned int NThreads, unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InFreqOMP<NThreads,N,Complex<T>,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const unsigned N2 = N/2;
+   static const unsigned long N2 = N/2;
    InFreqOMP<NThreads/2,N2,Complex<T>,S> next;
 public:
    void apply(Complex<T>* data) {
@@ -376,11 +375,11 @@ public:
       wtemp = Sin<N,1,LocalVType>::value();
       Complex<LocalVType> w(1.,0.);
       Complex<LocalVType> wp(-2.0*wtemp*wtemp,-S*Sin<N,2,LocalVType>::value());
-      for (uint i=0; i<N2; ++i) {
+      for (unsigned long i=0; i<N2; ++i) {
         temp = data[i]-data[i+N2];
         data[i] += data[i+N2];
         // rewritten componentwise because of the different types of the components
-	data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(), 
+	data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(),
 	                        temp.imag()*w.real() + temp.real()*w.imag());
         //data[i+N2] = temp*w;
 
@@ -400,11 +399,11 @@ public:
    }
 };
 
-template<unsigned N, typename T, int S,
+template<unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InFreqOMP<1,N,Complex<T>,S,true> : public InFreq<N,Complex<T>,S> { };
 
-template<unsigned NThreads, unsigned N, typename T, int S,
+template<unsigned int NThreads, unsigned long N, typename T, int S,
 template<typename> class Complex>
 class InFreqOMP<NThreads,N,Complex<T>,S,false> : public InFreq<N,Complex<T>,S> { };
 

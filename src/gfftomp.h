@@ -48,14 +48,14 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<unsigned NThreads, unsigned N, typename T, int S, bool C=((N>NThreads) && (N>=SwitchToOMP))>
+template<unsigned int NThreads, unsigned long N, typename T, int S, bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InTimeOMP;
 
-template<unsigned NThreads, unsigned N, typename T, int S>
+template<unsigned int NThreads, unsigned long N, typename T, int S>
 class InTimeOMP<NThreads,N,T,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InTimeOMP<NThreads/2,N/2,T,S> next;
-   static const int IN = N;
+   static const long IN = N;
 public:
    void apply(T* data) {
 
@@ -77,7 +77,7 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      int i,chunk = N/2;
+      long i,chunk = N/2;
 
       #pragma omp for schedule(static,chunk)
       for (i=0; i<IN; i+=2) {
@@ -96,10 +96,10 @@ public:
    }
 };
 
-template<unsigned N, typename T, int S>
+template<unsigned long N, typename T, int S>
 class InTimeOMP<1,N,T,S,true> : public InTime<N,T,S> { };
 
-template<unsigned NThreads, unsigned N, typename T, int S>
+template<unsigned int NThreads, unsigned long N, typename T, int S>
 class InTimeOMP<NThreads,N,T,S,false> : public InTime<N,T,S> { };
 
 
@@ -119,15 +119,15 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<unsigned NThreads, unsigned N, typename T, int S, 
+template<unsigned int NThreads, unsigned long N, typename T, int S, 
 bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
 
-template<unsigned NThreads, unsigned N, typename T, int S>
+template<unsigned int NThreads, unsigned long N, typename T, int S>
 class InFreqOMP<NThreads,N,T,S,true> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InFreqOMP<NThreads/2,N/2,T,S> next;
-   static const int IN = N;
+   static const long IN = N;
 public:
    void apply(T* data) {
 
@@ -141,7 +141,7 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      int i,chunk = N/2;
+      long i,chunk = N/2;
 
       #pragma omp for schedule(static,chunk)
       for (i=0; i<IN; i+=2) {
@@ -168,22 +168,22 @@ public:
    }
 };
 
-template<unsigned N, typename T, int S>
+template<unsigned long N, typename T, int S>
 class InFreqOMP<1,N,T,S,true> : public InFreq<N,T,S> { };
 
-template<unsigned NThreads, unsigned N, typename T, int S>
+template<unsigned int NThreads, unsigned long N, typename T, int S>
 class InFreqOMP<NThreads,N,T,S,false> : public InFreq<N,T,S> { };
 
 
 
 
 // doesn't work
-template<unsigned NThreads, unsigned N, typename T>
+template<unsigned int NThreads, unsigned long N, typename T>
 class GFFTswapOMP {
 public:
    void apply(T* data) {
-     unsigned int i,m,j=0;
-     unsigned int n = N;
+     unsigned long i,m,j=0;
+     unsigned long n = N;
      #pragma omp parallel firstprivate(data) private(i,j,m)
      {
        #pragma omp for ordered
@@ -213,17 +213,17 @@ public:
         parallelization is meaningless and the sequential implementation GFFTswap2
         is inherited.
 */
-template<unsigned NThreads, unsigned P, typename T,
-unsigned I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
+template<unsigned int NThreads, unsigned int P, typename T,
+unsigned int I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
 class GFFTswap2OMP;
 
-template<unsigned NThreads, unsigned P, typename T,
-unsigned I>
+template<unsigned int NThreads, unsigned int P, typename T, unsigned int I>
 class GFFTswap2OMP<NThreads,P,T,I,true> {
-   enum { BN = 1<<(I+1), BR = 1<<(P-I) };
+   static const unsigned long BN = 1<<(I+1);
+   static const unsigned long BR = 1<<(P-I);
    GFFTswap2OMP<NThreads/2,P,T,I+1> next;
 public:
-   void apply(T* data, const unsigned n=0, const unsigned r=0) {
+   void apply(T* data, const unsigned long n=0, const unsigned long r=0) {
      #pragma omp parallel shared(data)
      {
        #pragma omp sections
@@ -238,10 +238,10 @@ public:
    }
 };
 
-template<unsigned NThreads, unsigned P, typename T>
+template<unsigned int NThreads, unsigned int P, typename T>
 class GFFTswap2OMP<NThreads,P,T,P,true> {
 public:
-   void apply(T* data, const unsigned n, const unsigned r) {
+   void apply(T* data, const unsigned long n, const unsigned long r) {
       if (n>r) {
         swap(data[n],data[r]);
         swap(data[n+1],data[r+1]);
@@ -249,13 +249,13 @@ public:
    }
 };
 
-template<unsigned P, typename T, unsigned I>
+template<unsigned int P, typename T, unsigned int I>
 class GFFTswap2OMP<1,P,T,I,true> : public GFFTswap2<P,T,I> { };
 
-template<unsigned P, typename T>
+template<unsigned int P, typename T>
 class GFFTswap2OMP<1,P,T,P,true> : public GFFTswap2<P,T,P> { };
 
-template<unsigned NThreads, unsigned P, typename T, unsigned I>
+template<unsigned int NThreads, unsigned int P, typename T, unsigned int I>
 class GFFTswap2OMP<NThreads,P,T,I,false> : public GFFTswap2<P,T,I> { };
 
 

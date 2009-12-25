@@ -85,7 +85,7 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InFreq
 */
-template<unsigned N, typename T, int S>
+template<unsigned long N, typename T, int S>
 class InTime {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InTime<N/2,T,S> next;
@@ -105,7 +105,7 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned int i=0; i<N; i+=2) {
+      for (unsigned long i=0; i<N; i+=2) {
         tempr = data[i+N]*wr - data[i+N+1]*wi;
         tempi = data[i+N]*wi + data[i+N+1]*wr;
         data[i+N] = data[i]-tempr;
@@ -182,7 +182,7 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InTime
 */
-template<unsigned N, typename T, int S>
+template<unsigned long N, typename T, int S>
 class InFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InFreq<N/2,T,S> next;
@@ -198,7 +198,7 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned i=0; i<N; i+=2) {
+      for (unsigned long i=0; i<N; i+=2) {
         tempr = data[i] - data[i+N];
         tempi = data[i+1] - data[i+N+1];
         data[i] += data[i+N];
@@ -274,12 +274,12 @@ similar to the one presented in the book
 "Numerical recipes in C++".
 \sa GFFTswap2
 */
-template<unsigned N, typename T>
+template<unsigned long N, typename T>
 class GFFTswap {
 public:
    void apply(T* data) {
-     unsigned int m,j=0;
-     for (unsigned int i=0; i<2*N-1; i+=2) {
+     unsigned long m,j=0;
+     for (unsigned long i=0; i<2*N-1; i+=2) {
         if (j>i) {
             std::swap(data[j], data[i]);
             std::swap(data[j+1], data[i+1]);
@@ -312,22 +312,23 @@ allows parallelization of this algorithm, which is
 implemented in template class GFFTswap2OMP.
 \sa GFFTswap, GFFTswap2OMP
 */
-template<unsigned P, typename T,
-unsigned I=0>
+template<unsigned int P, typename T,
+unsigned int I=0>
 class GFFTswap2 {
-   enum { BN = 1<<(I+1), BR = 1<<(P-I) };
+   static const unsigned long BN = 1<<(I+1);
+   static const unsigned long BR = 1<<(P-I);
    GFFTswap2<P,T,I+1> next;
 public:
-   void apply(T* data, unsigned n=0, unsigned r=0) {
+   void apply(T* data, unsigned long n=0, unsigned long r=0) {
       next.apply(data,n,r);
       next.apply(data,n|BN,r|BR);
    }
 };
 
-template<unsigned P, typename T>
+template<unsigned int P, typename T>
 class GFFTswap2<P,T,P> {
 public:
-   void apply(T* data, unsigned n=0, unsigned r=0) {
+   void apply(T* data, unsigned long n=0, unsigned long r=0) {
       if (n>r) {
         swap(data[n],data[r]);
         swap(data[n+1],data[r+1]);
@@ -342,13 +343,13 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<unsigned N, typename T, int S>
+template<unsigned long N, typename T, int S>
 class Separate {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(T* data) {
-      unsigned int i,i1,i2,i3,i4;
+      unsigned long i,i1,i2,i3,i4;
       LocalVType wtemp,wr,wi,wpr,wpi;
       LocalVType h1r,h1i,h2r,h2i,h3r,h3i;
       wtemp = Sin<2*N,1,LocalVType>::value();
@@ -385,13 +386,13 @@ public:
 };
 
 // Policy for a definition of forward FFT
-template<unsigned N, typename T>
+template<unsigned long N, typename T>
 struct Forward {
    enum { Sign = 1 };
    void apply(T*) { }
 };
 
-template<unsigned N, typename T,
+template<unsigned long N, typename T,
 template<typename> class Complex>
 struct Forward<N,Complex<T> > {
    enum { Sign = 1 };
@@ -399,7 +400,7 @@ struct Forward<N,Complex<T> > {
 };
 
 // Policy for a definition of backward FFT
-template<unsigned N, typename T>
+template<unsigned long N, typename T>
 struct Backward {
    enum { Sign = -1 };
    void apply(T* data) {
@@ -407,12 +408,12 @@ struct Backward {
    }
 };
 
-template<unsigned N, typename T,
+template<unsigned long N, typename T,
 template<typename> class Complex>
 struct Backward<N,Complex<T> > {
    enum { Sign = -1 };
    void apply(Complex<T>* data) {
-      for (unsigned int i=0; i<N; ++i) {
+      for (unsigned long i=0; i<N; ++i) {
         data[i]/=N;
       }
    }
