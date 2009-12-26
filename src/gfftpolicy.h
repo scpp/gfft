@@ -25,6 +25,7 @@
 
 namespace GFFT {
 
+typedef unsigned int id_t;
 
 /** \class AbstractFFT
 \brief Abstract interface class to build %GFFT object factory
@@ -62,7 +63,7 @@ class Empty { };
 \ingroup gr_params
 */
 struct DOUBLE {
-   enum { ID = 0 };
+   static const id_t ID = 0;
    typedef double ValueType;
 };
 
@@ -70,7 +71,7 @@ struct DOUBLE {
 \ingroup gr_params
 */
 struct FLOAT {
-   enum { ID = 1 };
+   static const id_t ID = 1;
    typedef float ValueType;
 };
 
@@ -78,7 +79,7 @@ struct FLOAT {
 \ingroup gr_params
 */
 struct COMPLEX_DOUBLE {
-   enum { ID = 2 };
+   static const id_t ID = 2;
    typedef std::complex<double> ValueType;
 };
 
@@ -86,7 +87,7 @@ struct COMPLEX_DOUBLE {
 \ingroup gr_params
 */
 struct COMPLEX_FLOAT {
-   enum { ID = 3 };
+   static const id_t ID = 3;
    typedef std::complex<float> ValueType;
 };
 
@@ -94,7 +95,7 @@ struct COMPLEX_FLOAT {
 \ingroup gr_params
 */
 struct INTIME {
-   enum { ID = 0 };
+   static const id_t ID = 0;
    template<unsigned long N, typename T,
             class Swap,
             class Direction, unsigned int NT>
@@ -110,7 +111,7 @@ struct INTIME {
 \ingroup gr_params
 */
 struct INFREQ {
-   enum { ID = 1 };
+   static const id_t ID = 1;
    template<unsigned long N, typename T,
             class Swap,
             class Direction, unsigned int NT>
@@ -122,11 +123,15 @@ struct INFREQ {
    };
 };
 
+struct IDFT;
+struct IRDFT;
+
 /*! \brief Forward compex-valued discrete Fourier transform
 \ingroup gr_params
 */
 struct DFT {
-   enum { ID = 0 };
+   static const id_t ID = 0;
+   typedef IDFT Inverse;
 
    template<typename TPower>
    struct Length {
@@ -146,7 +151,8 @@ struct DFT {
 \ingroup gr_params
 */
 struct IDFT {
-   enum { ID = 1 };
+   static const id_t ID = 1;
+   typedef DFT Inverse;
 
    template<typename TPower>
    struct Length {
@@ -166,7 +172,8 @@ struct IDFT {
 \ingroup gr_params
 */
 struct RDFT {
-   enum { ID = 2 };
+   static const id_t ID = 2;
+   typedef IRDFT Inverse;
 
    template<typename TPower>
    struct Length {
@@ -186,7 +193,8 @@ struct RDFT {
 \ingroup gr_params
 */
 struct IRDFT {
-   enum { ID = 3 };
+   static const id_t ID = 3;
+   typedef RDFT Inverse;
 
    template<typename TPower>
    struct Length {
@@ -208,7 +216,7 @@ struct IRDFT {
 \ingroup gr_params
 */
 struct Serial {
-   enum { ID = 0 };
+   static const id_t ID = 0;
    static const unsigned int NParProc = 1;
 
    template<unsigned int P, class T>
@@ -228,7 +236,7 @@ struct Serial {
 */
 template<unsigned int NT>
 struct OpenMP {
-   enum { ID = NT-1 };
+   static const id_t ID = NT-1;
    static const unsigned int NParProc = NT;
 
    template<unsigned int P, class T>

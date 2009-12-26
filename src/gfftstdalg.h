@@ -379,8 +379,8 @@ public:
         temp = data[i]-data[i+N2];
         data[i] += data[i+N2];
         // rewritten componentwise because of the different types of the components
-	data[i+N2] = Complex<T>(temp.real()*w.real() - temp.imag()*w.imag(),
-	                        temp.imag()*w.real() + temp.real()*w.imag());
+	data[i+N2] = Complex<T>(static_cast<T>(temp.real()*w.real() - temp.imag()*w.imag()),
+	                        static_cast<T>(temp.imag()*w.real() + temp.real()*w.imag()));
         //data[i+N2] = temp*w;
 
         w += w*wp;

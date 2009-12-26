@@ -30,12 +30,14 @@ typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::FullList, SIntID<
 
 int main(int argc, char *argv[])
 {
-    unsigned int i,p=2;
-    unsigned int n= 1<<p;
+    unsigned int p = 2;
+    typedef DFT TransformType;
 
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, RDFT::ID, 1);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, IRDFT::ID, 1);
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, TransformType::ID, 1);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, TransformType::Inverse::ID, 1);
+
+    unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

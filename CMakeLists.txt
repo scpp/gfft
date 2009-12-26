@@ -16,4 +16,4 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #set(CMAKE_CC_COMPILER icc)
 
 add_subdirectory(src)
-#add_subdirectory(test)
+add_subdirectory(test)
