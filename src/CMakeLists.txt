@@ -11,6 +11,9 @@ add_definitions(-time -Wall -O3 -fopenmp -DGFFTDOC)
 ### Intel compiler
 #add_definitions(-O3 -openmp -DGFFTDOC)
 
+### MSVC compiler
+#add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
+
 #list all source files here
 add_executable(gfft gfft.cpp)
 add_executable(cgfft cgfft.cpp)
