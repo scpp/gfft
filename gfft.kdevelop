@@ -54,6 +54,36 @@
     </make>
     <blacklist>
       <path>CMakeFiles</path>
+      <path>doc/latex</path>
+      <path>doc/latex/Makefile</path>
+      <path>tmp</path>
+      <path>tmp/src</path>
+      <path>tmp/src/cgfft.cpp</path>
+      <path>tmp/src/CMakeLists.txt</path>
+      <path>tmp/src/finit.h</path>
+      <path>tmp/src/gfftalg.h</path>
+      <path>tmp/src/gfftcaller.h</path>
+      <path>tmp/src/gfft.cpp</path>
+      <path>tmp/src/gfftdoc.h</path>
+      <path>tmp/src/gfftgen.h</path>
+      <path>tmp/src/gfft.h</path>
+      <path>tmp/src/gfftomp.h</path>
+      <path>tmp/src/gfftpolicy.h</path>
+      <path>tmp/src/gfftstdalg.h</path>
+      <path>tmp/src/loki</path>
+      <path>tmp/src/loki/AssocVector.h</path>
+      <path>tmp/src/loki/Factory.h</path>
+      <path>tmp/src/loki/LokiTypeInfo.h</path>
+      <path>tmp/src/loki/NullType.h</path>
+      <path>tmp/src/loki/Singleton.cpp</path>
+      <path>tmp/src/loki/Singleton.h</path>
+      <path>tmp/src/loki/Threads.h</path>
+      <path>tmp/src/loki/Typelist.h</path>
+      <path>tmp/src/loki/TypeManip.h</path>
+      <path>tmp/src/loki/TypeTraits.h</path>
+      <path>tmp/src/Makefile</path>
+      <path>tmp/src/metafunc.h</path>
+      <path>tmp/src/sint.h</path>
     </blacklist>
     <filetypes>
       <filetype>*.java</filetype>

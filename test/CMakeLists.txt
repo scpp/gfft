@@ -8,6 +8,7 @@ include_directories(../src)
 #add definitions, compiler switches, etc.
 add_definitions(-time -Wall -O3 -fopenmp -DFFTW)
 #add_definitions(-O3 -openmp -DGFFTDOC)
+#add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
 #list all source files here
 add_executable(bench bench.cpp)
