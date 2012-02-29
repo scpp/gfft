@@ -255,6 +255,10 @@ struct OpenMP {
 template<>
 struct OpenMP<0>:public Serial { };
 
+template<>
+struct OpenMP<1>:public Serial { };
+
+  
 }  //namespace GFFT
 
 #endif /*__gfftpolicy_h*/

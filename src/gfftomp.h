@@ -61,7 +61,7 @@ public:
 
       LocalVType wpr,wpi,t,wtemp,tempr,tempi,wr,wi;
 
-      #pragma omp parallel shared(data,wpr,wpi,t) private(wtemp,tempr,tempi,wr,wi)
+      #pragma omp parallel shared(data) private(wtemp,tempr,tempi,wr,wi,wpr,wpi,t)
       {
         #pragma omp sections
         {
@@ -92,7 +92,7 @@ public:
         wr += wr*wpr - wi*wpi;
         wi += wi*wpr + wtemp*wpi;
       }
-      } // parallel*/
+      } // parallel
    }
 };
 
@@ -133,7 +133,7 @@ public:
 
       LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
 
-      #pragma omp parallel shared(data,wpr,wpi) private(wtemp,tempr,tempi,wr,wi)
+      #pragma omp parallel shared(data) private(wtemp,tempr,tempi,wr,wi,wpr,wpi)
       {
 
       wtemp = Sin<N,1,LocalVType>::value();
@@ -141,9 +141,9 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      long i,chunk = N/2;
+      long i;//,chunk = N/2;
 
-      #pragma omp for schedule(static,chunk)
+      #pragma omp for schedule(static, N/2)
       for (i=0; i<IN; i+=2) {
         tempr = data[i] - data[i+N];
         tempi = data[i+1] - data[i+N+1];
@@ -161,6 +161,7 @@ public:
       {
         #pragma omp section
         next.apply(data);
+	
         #pragma omp section
         next.apply(data+N);
       }
@@ -204,7 +205,7 @@ public:
 };
 
 /** \class {GFFT::GFFTswap2OMP}
-\brief Binary reordering paralelized by %OpenMP
+\brief Binary reordering parallelized by %OpenMP
 \tparam NThreads is number of threads
 \tparam P current transform length as power of two
 \tparam T value type of the data array
@@ -229,10 +230,10 @@ public:
        #pragma omp sections
        {
          #pragma omp section
-         next.apply(data,n,r);
+         next.apply(data, n, r);
 
          #pragma omp section
-         next.apply(data,n|BN,r|BR);
+         next.apply(data, n|BN, r|BR);
        }
      }
    }

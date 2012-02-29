@@ -27,6 +27,27 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::FullList, SIntID<1> > TransformSet;
 
+void dft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
+{
+  double pi2 = (inverse) ? 2.0 * M_PI : -2.0 * M_PI;
+  double a, ca, sa;
+  double invs = 1.0 / size;
+  for(unsigned int y = 0; y < size; y++) {
+    output_data[2*y] = 0;
+    output_data[2*y+1] = 0;
+    for(unsigned int x = 0; x < size; x++) {
+      a = pi2 * y * x * invs;
+      ca = cos(a);
+      sa = sin(a);
+      output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
+      output_data[2*y+1] += input_data[2*x] * sa + input_data[2*x+1] * ca;
+    }
+    if(inverse) {
+      output_data[2*y]   *= invs;
+      output_data[2*y+1] *= invs;
+    }
+  }
+}
 
 int main(int argc, char *argv[])
 {
@@ -41,6 +62,7 @@ int main(int argc, char *argv[])
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
+    ValueType::ValueType* dataout = new ValueType::ValueType [2*n];
     for (i=0; i < n; ++i) {
        data[2*i] = 2*i;
        data[2*i+1] = 2*i+1; //2*i+1;
@@ -52,14 +74,18 @@ int main(int argc, char *argv[])
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 // apply FFT in-place
-    fftobj->fft(data);
+    //fftobj->fft(data);
+    dft1(dataout, data, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
+//    for (i=0; i < n; ++i)
+//      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
     for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-    ifftobj->fft(data);
+    //ifftobj->fft(data);
+    dft1(data, dataout, n, true);
 
 // print out transformed data
     cout<<"Result of backward transform:"<<endl;

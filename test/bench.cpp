@@ -160,7 +160,7 @@ public:
 };
 
 
-static const unsigned int MinP = 25;
+static const unsigned int MinP = 1;
 static const unsigned int MaxP = 25;
 
 
@@ -177,11 +177,11 @@ int main(int argc, char *argv[])
     typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
     typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;
 
-    typedef TYPELIST_2(OpenMP<2>, OpenMP<4>) ParallList;
-    typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_dp;
-    typedef GenerateTransform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_fp;
-    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_cdp;
-    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_cfp;
+//     typedef TYPELIST_2(OpenMP<2>, OpenMP<4>) ParallList;
+//     typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_dp;
+//     typedef GenerateTransform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_fp;
+//     typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_cdp;
+//     typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default, SIntID<1>, ParallList> List_cfp;
 
    int hardware_id = atoi(argv[1]);
    int system_id = atoi(argv[2]);
@@ -195,10 +195,6 @@ int main(int argc, char *argv[])
    GFFTbench<List_cds::Result> bench_cds;
    GFFTbench<List_cfs::Result> bench_cfs;
 
-   GFFTbench<List_dp::Result> bench_dp;
-   GFFTbench<List_fp::Result> bench_fp;
-   GFFTbench<List_cdp::Result> bench_cdp;
-   GFFTbench<List_cfp::Result> bench_cfp;
 
 /*   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
    bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);*/
@@ -212,7 +208,7 @@ int main(int argc, char *argv[])
 
 /*   bench_dp.realtime(hardware_id,system_id,compiler_id,release_id);
    bench_fp.realtime(hardware_id,system_id,compiler_id,release_id);*/
-   bench_cdp.realtime(hardware_id,system_id,compiler_id,release_id);
+   //bench_cdp.realtime(hardware_id,system_id,compiler_id,release_id);
 //   bench_cfp.realtime(hardware_id,system_id,compiler_id,release_id);
 
    return 0;
