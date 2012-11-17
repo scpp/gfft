@@ -25,7 +25,7 @@ using namespace std;
 using namespace GFFT;
 
 typedef DOUBLE ValueType;
-typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::FullList, SIntID<1> > TransformSet;
+typedef GenerateTransform<1, 4, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
 
 void dft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
 {
@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
     typedef DFT TransformType;
 
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, TransformType::ID, 1);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, TransformType::Inverse::ID, 1);
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(p, ValueType::ID, TransformType::ID, 1, ParallelizationGroup::Default::ID, INTIME::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(p, ValueType::ID, TransformType::Inverse::ID, 1, ParallelizationGroup::Default::ID, INTIME::ID);
 
     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
 
@@ -66,6 +66,8 @@ int main(int argc, char *argv[])
     for (i=0; i < n; ++i) {
        data[2*i] = 2*i;
        data[2*i+1] = 2*i+1; //2*i+1;
+       dataout[2*i] = 0;
+       dataout[2*i+1] = 0; 
     }
 
 // print out sample data
@@ -74,18 +76,18 @@ int main(int argc, char *argv[])
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 // apply FFT in-place
-    //fftobj->fft(data);
-    dft1(dataout, data, n, false);
+    fftobj->fft(data, dataout);
+    //dft1(dataout, data, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
-//    for (i=0; i < n; ++i)
-//      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+   for (i=0; i < n; ++i)
+     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-    //ifftobj->fft(data);
-    dft1(data, dataout, n, true);
+    //ifftobj->fft(dataout);
+    //dft1(data, dataout, n, true);
 
 // print out transformed data
     cout<<"Result of backward transform:"<<endl;

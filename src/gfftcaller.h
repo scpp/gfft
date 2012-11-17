@@ -38,21 +38,34 @@ template<class TList>
 struct Caller;
 
 template<class Head, class Tail>
-struct Caller<Loki::Typelist<Head,Tail> > {
+struct Caller<Loki::Typelist<Head,Tail> > 
+{
    template<typename T>
    void apply(T* data) {
       obj_.apply(data);
       next_.apply(data);
+   }
+   
+   template<typename T>
+   void apply(const T* src, T* dst) {
+      obj_.apply(src, dst);
+      next_.apply(src, dst);
    }
 private:
    Head obj_;
    Caller<Tail> next_;
 };
 
+
+
 template<>
-struct Caller<Loki::NullType> {
+struct Caller<Loki::NullType> 
+{
    template<typename T>
    void apply(T*) { }
+
+   template<typename T>
+   void apply(const T*, T*) { }
 };
 
 
@@ -68,18 +81,29 @@ template<class TList>
 struct StaticCaller;
 
 template<class Head, class Tail>
-struct StaticCaller<Loki::Typelist<Head,Tail> > {
+struct StaticCaller<Loki::Typelist<Head,Tail> > 
+{
    template<typename T>
    static void apply(T* data) {
       Head::apply(data);
       StaticCaller<Tail>::apply(data);
    }
+
+   template<typename T>
+   static void apply(const T* src, T* dst) {
+      Head::apply(src, dst);
+      StaticCaller<Tail>::apply(src, dst);
+   }
 };
 
 template<>
-struct StaticCaller<Loki::NullType> {
+struct StaticCaller<Loki::NullType> 
+{
    template<typename T>
    static void apply(T*) { }
+
+   template<typename T>
+   static void apply(const T*, T*) { }
 };
 
 } // namespace GFFT

@@ -38,6 +38,7 @@ template<typename T>
 class AbstractFFT {
 public:
    virtual void fft(T*) = 0;
+   virtual void fft(const T*, T*) = 0;
    virtual ~AbstractFFT() {}
 };
 
@@ -103,7 +104,8 @@ struct INTIME {
 //      typedef InTime<N,T,Direction::Sign> InT;
       typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
    public:
-      typedef TYPELIST_3(Swap,InT,Direction) Result;
+//       typedef TYPELIST_3(Swap,InT,Direction) Result;
+      typedef TYPELIST_2(InT,Direction) Result;
    };
 };
 
@@ -227,6 +229,9 @@ struct Serial {
 
    template<typename T>
    void apply(T*) { }
+
+   template<typename T>
+   void apply(const T*, T*) { }
 };
 
 /*! \brief %Transform is parallelized using %OpenMP standard
@@ -247,6 +252,12 @@ struct OpenMP {
 
    template<typename T>
    void apply(T*) {
+      omp_set_num_threads(NT);
+      omp_set_nested(true);
+   }
+
+   template<typename T>
+   void apply(const T*, T*) {
       omp_set_num_threads(NT);
       omp_set_nested(true);
    }

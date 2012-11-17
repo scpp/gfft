@@ -47,7 +47,7 @@ class Type,                    // DFT, IDFT, RDFT, IRDFT
 class Dim,
 class Parall,
 class Decimation,              // INTIME, INFREQ
-class FactoryPolicy=Empty,
+class FactoryPolicy = Empty,
 uint IDN = Power2::ID>
 class Transform:public FactoryPolicy {
    enum { P = Type::template Length<Power2>::Value };
@@ -72,10 +72,25 @@ public:
       return new Transform<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
    }
 
-   void fft(T* data) {
-      run.apply(data);
-   }
+   // in-place transform
+   void fft(T* data) { run.apply(data); }
+
+   // out-of-place transform
+   void fft(const T* src, T* dst) { run.apply(src, dst); }
 };
+
+// template<class Power2, class VType, class Type,
+// class Dim, class Parall, class Decimation,              
+// class FactoryPolicy, uint IDN>
+// void Transform<Power2, VType, Type, Dim, Parall, Decimation, FactoryPolicy, IDN>
+// ::fft(T* data) { run.apply(data); }
+   
+// template<class Power2, class VType, class Type,
+// class Dim, class Parall, class Decimation,              
+// class FactoryPolicy, uint IDN>
+// void Transform<Power2, VType, Type, Dim, Parall, Decimation, FactoryPolicy, IDN>
+// ::fft(const T* src, T* dst) { run.apply(src, dst); }
+
 
 /*!
 \defgroup gr_groups GFFT parameter groups

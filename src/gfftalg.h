@@ -30,15 +30,25 @@ using namespace MF;
 /// \tparam T is value type
 /// \param data is the array of length 4, containing two complex numbers (real,imag,real,imag).
 template<typename T>
-inline void _spec2(T* data) {
-      T tr = data[2];
-      T ti = data[3];
+inline void _spec2(T* data) 
+{
+      const T tr = data[2];
+      const T ti = data[3];
       data[2] = data[0]-tr;
       data[3] = data[1]-ti;
       data[0] += tr;
       data[1] += ti;
 }
 
+template<typename T>
+inline void _spec2(const T* src, T* dst) 
+{
+    const double  *a(src + 2), *a2(src + 1), *a3(src + 3);
+    *(dst) = (*(src) + *(a));
+    *((dst + 1)) = (*(a2) + *(a3));
+    *((dst + 2)) = (*(src) - *(a));
+    *((dst + 3)) = (*(a2) - *(a3));
+}
 
 template<typename T>
 struct TempTypeTrait;
@@ -92,17 +102,17 @@ class InTime {
 public:
    void apply(T* data) {
 
-      LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi,t;
-
       next.apply(data);
       next.apply(data+N);
+
+      LocalVType wtemp,tempr,tempi,wr,wi,t;
 
 //    Change dynamic calculation to the static one
 //      wtemp = sin(S*M_PI/N);
       t = Sin<N,1,LocalVType>::value();
-      wpr = -2.0*t*t;
+      const LocalVType wpr = -2.0*t*t;
 //      wpi = -sin(2*M_PI/N);
-      wpi = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
       for (unsigned long i=0; i<N; i+=2) {
@@ -112,6 +122,32 @@ public:
         data[i+N+1] = data[i+1]-tempi;
         data[i] += tempr;
         data[i+1] += tempi;
+
+        wtemp = wr;
+        wr += wr*wpr - wi*wpi;
+        wi += wi*wpr + wtemp*wpi;
+      }
+   }
+
+   void apply(const T* src, T* dst) {
+
+      next.apply(src, dst);
+      next.apply(src+N, dst+N);
+
+      LocalVType wtemp,tempr,tempi,wr,wi,t;
+
+      t = Sin<N,1,LocalVType>::value();
+      const LocalVType wpr = -2.0*t*t;
+      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+      wr = 1.0;
+      wi = 0.0;
+      for (unsigned long i=0; i<N; i+=2) {
+        tempr = src[i+N]*wr - src[i+N+1]*wi;
+        tempi = src[i+N]*wi + src[i+N+1]*wr;
+        dst[i+N] = src[i]-tempr;
+        dst[i+N+1] = src[i+1]-tempi;
+        dst[i] += tempr;
+        dst[i+1] += tempi;
 
         wtemp = wr;
         wr += wr*wpr - wi*wpi;
@@ -160,6 +196,7 @@ template<typename T, int S>
 class InTime<2,T,S> {
 public:
    void apply(T* data) { _spec2(data); }
+   void apply(const T* src, T* dst) { _spec2(src, dst); }
 };
 
 // Specialization for N=1, decimation-in-time
@@ -167,7 +204,9 @@ template<typename T, int S>
 class InTime<1,T,S> {
 public:
    void apply(T* data) { }
+   void apply(const T* src, T* dst) { }
 };
+
 
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
 /**
@@ -214,6 +253,8 @@ public:
       next.apply(data);
       next.apply(data+N);
    }
+
+   void apply(const T*, T*) { }
 };
 
 // Specialization for N=4, decimation-in-frequency
@@ -254,6 +295,7 @@ template<typename T, int S>
 class InFreq<2,T,S> {
 public:
    void apply(T* data) { _spec2(data); }
+   void apply(const T* src, T* dst) { _spec2(src, dst); }
 };
 
 // Specialization for N=1, decimation-in-frequency
@@ -261,6 +303,7 @@ template<typename T, int S>
 class InFreq<1,T,S> {
 public:
    void apply(T* data) { }
+   void apply(const T*, T*) { }
 };
 
 
@@ -292,6 +335,8 @@ public:
         j += m;
      }
    }
+
+   void apply(const T*, T*) { }
 };
 
 
@@ -383,6 +428,8 @@ public:
 
       if (N>1) data[N+1] = -data[N+1];
    }
+   
+   void apply(const T*, T*) { }
 };
 
 // Policy for a definition of forward FFT
@@ -390,6 +437,7 @@ template<unsigned long N, typename T>
 struct Forward {
    enum { Sign = 1 };
    void apply(T*) { }
+   void apply(const T*, T*) { }
 };
 
 template<unsigned long N, typename T,
@@ -397,6 +445,7 @@ template<typename> class Complex>
 struct Forward<N,Complex<T> > {
    enum { Sign = 1 };
    void apply(Complex<T>*) { }
+   void apply(const Complex<T>*, Complex<T>*) { }
 };
 
 // Policy for a definition of backward FFT
@@ -405,6 +454,9 @@ struct Backward {
    enum { Sign = -1 };
    void apply(T* data) {
       for (T* i=data; i<data+2*N; ++i) *i/=N;
+   }
+   void apply(const T*, T* dst) {
+      for (T* i=dst; i<dst+2*N; ++i) *i/=N;
    }
 };
 
@@ -415,6 +467,11 @@ struct Backward<N,Complex<T> > {
    void apply(Complex<T>* data) {
       for (unsigned long i=0; i<N; ++i) {
         data[i]/=N;
+      }
+   }
+   void apply(const Complex<T>*, Complex<T>* dst) {
+      for (unsigned long i=0; i<N; ++i) {
+        dst[i]/=N;
       }
    }
 };

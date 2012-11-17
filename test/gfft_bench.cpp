@@ -152,7 +152,7 @@ void print_header()
 }
 
 
-static const unsigned int MinP = 10;
+static const unsigned int MinP = 15;
 static const unsigned int MaxP = 15;
 
 
@@ -172,11 +172,11 @@ int main(int argc, char *argv[])
 
    cout<<setprecision(12)<<setw(12);
 
-   GFFTbench<List_ds::Result> bench_ds;
-   GFFTbench<List_fs::Result> bench_fs;
+//   GFFTbench<List_ds::Result> bench_ds;
+//   GFFTbench<List_fs::Result> bench_fs;
    GFFTbench<List_cds::Result> bench_cds;
-   GFFTbench<List_cfs::Result> bench_cfs;
-
+//   GFFTbench<List_cfs::Result> bench_cfs;
+/*
    GFFTbench<List_dp::Result> bench_dp;
    GFFTbench<List_fp::Result> bench_fp;
    GFFTbench<List_cdp::Result> bench_cdp;
@@ -198,7 +198,8 @@ int main(int argc, char *argv[])
    cout<<endl<<"Complex numbers, single precision"<<endl;
    print_header();
    bench_cfs.cputime();
-
+*/
+/*
    cout<<endl<<"================= Real time, single-threaded ================"<<endl;
    cout<<"Double precision"<<endl;
    print_header();
@@ -207,11 +208,11 @@ int main(int argc, char *argv[])
    cout<<endl<<"Single precision"<<endl;
    print_header();
    bench_fs.realtime();
-   
+*/   
    cout<<endl<<"Complex numbers, double precision"<<endl;
    print_header();
    bench_cds.realtime();
-   
+/*   
    cout<<endl<<"Complex numbers, single precision"<<endl;
    print_header();
    bench_cfs.realtime();
@@ -232,7 +233,7 @@ int main(int argc, char *argv[])
    cout<<endl<<"Complex numbers, single precision"<<endl;
    print_header();
    bench_cfp.realtime();
-
+*/
    return 0;
 }
 
