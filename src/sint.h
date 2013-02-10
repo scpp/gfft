@@ -35,6 +35,7 @@ template<Type N>                         \
 struct s_##Name {                        \
    typedef Type value_type;              \
    static const Type value = N;          \
+   static const Type Value = N;          \
 };
 
 STATIC_INTEGER_CLASS(int, int)

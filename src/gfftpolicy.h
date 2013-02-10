@@ -104,8 +104,8 @@ struct INTIME {
 //      typedef InTime<N,T,Direction::Sign> InT;
       typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
    public:
-//       typedef TYPELIST_3(Swap,InT,Direction) Result;
-      typedef TYPELIST_2(InT,Direction) Result;
+       typedef TYPELIST_3(Swap,InT,Direction) Result;
+//      typedef TYPELIST_2(InT,Direction) Result;
    };
 };
 
@@ -137,7 +137,7 @@ struct DFT {
 
    template<typename TPower>
    struct Length {
-      enum { Value = TPower::value };
+      static const uint Value = TPower::value;
    };
 
    template<unsigned long N, typename T>
@@ -158,7 +158,7 @@ struct IDFT {
 
    template<typename TPower>
    struct Length {
-      enum { Value = TPower::value };
+      static const uint Value = TPower::value;
    };
 
    template<unsigned long N, typename T>
@@ -179,7 +179,7 @@ struct RDFT {
 
    template<typename TPower>
    struct Length {
-      static const unsigned int Value = TPower::value-1;
+      static const uint Value = TPower::value-1;
    };
 
    template<unsigned long N, typename T>
@@ -200,7 +200,7 @@ struct IRDFT {
 
    template<typename TPower>
    struct Length {
-      enum { Value = TPower::value-1 };
+      static const uint Value = TPower::value-1;
    };
 
    template<unsigned long N, typename T>
@@ -219,9 +219,9 @@ struct IRDFT {
 */
 struct Serial {
    static const id_t ID = 0;
-   static const unsigned int NParProc = 1;
+   static const uint NParProc = 1;
 
-   template<unsigned int P, class T>
+   template<uint P, class T>
    struct Swap {
       enum { N = 1<<P };
       typedef GFFTswap<N,T> Result;
@@ -242,9 +242,9 @@ struct Serial {
 template<unsigned int NT>
 struct OpenMP {
    static const id_t ID = NT-1;
-   static const unsigned int NParProc = NT;
+   static const uint NParProc = NT;
 
-   template<unsigned int P, class T>
+   template<uint P, class T>
    struct Swap {
       //typedef GFFTswap<(1<<P),T> Result;
       typedef GFFTswap2OMP<NT,P,T> Result;

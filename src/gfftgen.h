@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2012 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,6 +21,8 @@
 */
 
 #include "sint.h"
+#include "typelistgen.h"
+#include "gfftparamgroups.h"
 
 
 /// Main namespace
@@ -49,7 +51,7 @@ class Parall,
 class Decimation,              // INTIME, INFREQ
 class FactoryPolicy = Empty,
 uint IDN = Power2::ID>
-class Transform:public FactoryPolicy {
+class Transform2:public FactoryPolicy {
    enum { P = Type::template Length<Power2>::Value };
    enum { N = 1<<P };
    typedef typename VType::ValueType T;
@@ -69,7 +71,7 @@ public:
    enum { ID = IDN, Len = N, PLen = P };
 
    static FactoryPolicy* Create() {
-      return new Transform<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
+      return new Transform2<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
    }
 
    // in-place transform
@@ -79,81 +81,46 @@ public:
    void fft(const T* src, T* dst) { run.apply(src, dst); }
 };
 
-// template<class Power2, class VType, class Type,
-// class Dim, class Parall, class Decimation,              
-// class FactoryPolicy, uint IDN>
-// void Transform<Power2, VType, Type, Dim, Parall, Decimation, FactoryPolicy, IDN>
-// ::fft(T* data) { run.apply(data); }
-   
-// template<class Power2, class VType, class Type,
-// class Dim, class Parall, class Decimation,              
-// class FactoryPolicy, uint IDN>
-// void Transform<Power2, VType, Type, Dim, Parall, Decimation, FactoryPolicy, IDN>
-// ::fft(const T* src, T* dst) { run.apply(src, dst); }
 
+template<class N,
+class VType,
+class Type,                    // DFT, IDFT, RDFT, IRDFT
+class Dim,
+class Parall,
+class Decimation,              // INTIME, INFREQ
+class FactoryPolicy = Empty,
+uint IDN = N::ID>
+class Transform:public FactoryPolicy {
+   //enum { P = Type::template Length<Power2>::Value };
+   //enum { N = 1<<P };
+   typedef typename VType::ValueType T;
+   //typedef typename Parall::template Swap<P,T>::Result Swap;
+   typedef typename Type::template Direction<N::Value,T> Dir;
+   typedef Separate<N::Value,T,Dir::Sign> Sep;
+   typedef Caller<Loki::NullType> EmptySwap;
+   typedef typename Decimation::template List<N::Value,T,EmptySwap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
 
-/*!
-\defgroup gr_groups GFFT parameter groups
-\brief Classes that represent groups of parameters to define transform
-*/
+   Caller<Loki::Typelist<Parall,Alg> > run;
+public:
+   typedef VType ValueType;
+   typedef Type TransformType;
+   typedef Parall ParallType;
+   typedef Decimation DecimationType;
 
-/// \brief Lists all acceptable and default value types
-/// \ingroup gr_groups
-struct ValueTypeGroup
-{
-  typedef TYPELIST_4(DOUBLE,FLOAT,COMPLEX_DOUBLE,COMPLEX_FLOAT) FullList;
-  static const uint Length = 4;
-  typedef DOUBLE Default;
-  static const uint default_id = DOUBLE::ID;
+   enum { ID = IDN, Len = N::Value };
+
+   static FactoryPolicy* Create() {
+      return new Transform<N,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
+   }
+
+   // in-place transform
+   void fft(T* data) { run.apply(data); }
+
+   // out-of-place transform
+   void fft(const T* src, T* dst) { run.apply(src, dst); }
 };
 
-/// \brief Lists all acceptable and default types of Fast Fourier transform
-/// \ingroup gr_groups
-struct TransformTypeGroup
-{
-  typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) FullList;
-  static const uint Length = 4;
-  typedef TYPELIST_2(DFT,IDFT) Default;
-  static const uint default_id = DFT::ID;
-};
-
-/// \brief Lists all acceptable and default parallelization methods
-/// \ingroup gr_groups
-struct ParallelizationGroup
-{
-  typedef TYPELIST_2(Serial,OpenMP<2>) FullList;
-  static const uint Length = 2;
-  typedef Serial Default;
-  static const uint default_id = Serial::ID;
-};
-
-/// \brief Lists all acceptable and default decimation versions
-/// \ingroup gr_groups
-struct DecimationGroup
-{
-  typedef TYPELIST_2(INTIME,INFREQ) FullList;
-  static const uint Length = 2;
-  typedef INFREQ Default;
-  static const uint default_id = INFREQ::ID;
-};
-
-/// Static unsigned integer class holder with additional definition of ID
-template<unsigned int N>
-struct SIntID : public s_uint<N> {
-   static const uint ID = N-1;
-};
-
-/// Generates Typelist with types SIntID<N>, N = Begin,...,End
-template<unsigned int Begin, unsigned int End>
-struct GenNumList {
-   typedef Loki::Typelist<SIntID<Begin>,
-      typename GenNumList<Begin+1,End>::Result> Result;
-};
-
-template<unsigned End>
-struct GenNumList<End,End> {
-   typedef Loki::Typelist<SIntID<End>,Loki::NullType> Result;
-};
 
 /// Takes types from TList as parameters to define Transform class
 /**
@@ -175,62 +142,6 @@ struct DefineTransform {
                 AbstractFFT<typename VType::ValueType>,ID> Result;
 };
 
-/** \class {GFFT::ListGenerator}
-    \brief Generates all different combinations of given parameters.
-\tparam TList is one- or two-dimensional (an entry can be a Typelist too) TypeList.
-\tparam TLenList is Typelist of \a s_uint<N>, where N is maximum possible 
-        lengths of every Typelist in TList. This array of numbers is used 
-        to comute unique ID for each generated unique set of parameters.
-\tparam DefTrans is transform definition class. 
-        DefineTransform class is substituted here, but also definitions of 
-        other template classes with suited parameters are potentially possible.
-\tparam WorkingList is the working Typelist, which accumulates a unique set of
-        parameters. It is being passed as parameter to the class DefineTransform,
-        when the set is complete. This parameter must not be set explicitely.
-\tparam ID unique id for each set of parameters. This static constant is generated 
-        at compile-time and must not be set explicitely.
-
-The parameters are given in the two-dimensional compile-time array.
-This metaprogram takes one parameter from every TList's entry
-and generates Typelist of unique sets of parameters to define Transform.
-The entry may be either a type or a Typelist.
-*/
-template<class TList, class TLenList, 
-         template<class,uint> class DefTrans,
-         class WorkingList=Loki::NullType, uint ID=0>
-struct ListGenerator;
-
-// H is a simple type
-template<class H, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
-struct ListGenerator<Loki::Typelist<H,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
-   typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
-};
-
-// Typelist is in the head
-template<class H, class T, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
-   typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Loki::Typelist<T,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID>::Result L1;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result L2;
-   typedef typename Loki::TL::Append<L1,L2>::Result Result;
-};
-
-template<class H, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,
-                     Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
-   typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
-};
-
-template<template<class,uint> class DefTrans, class WorkingList, uint ID>
-struct ListGenerator<Loki::NullType,Loki::NullType,DefTrans,WorkingList,ID> {
-   typedef Loki::Typelist<typename DefTrans<WorkingList,ID>::Result,Loki::NullType> Result;
-};
-
 
 
 template<class NList>
@@ -250,6 +161,8 @@ struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
    }
 };
 
+
+
 template <typename IdentifierType, class AbstractProduct>
 struct TransformFactoryError
 {
@@ -262,6 +175,28 @@ struct TransformFactoryError
    static AbstractProduct* OnUnknownType(IdentifierType) {
       throw Exception();
    }
+};
+
+
+
+/// Static unsigned integer class holder with additional definition of ID
+template<unsigned int N>
+struct SIntID : public s_uint<N> {
+   static const uint ID = N-1;
+};
+
+
+
+/// Generates Typelist with types SIntID<N>, N = Begin,...,End
+template<unsigned int Begin, unsigned int End>
+struct GenNumList {
+   typedef Loki::Typelist<SIntID<Begin>,
+      typename GenNumList<Begin+1,End>::Result> Result;
+};
+
+template<unsigned End>
+struct GenNumList<End,End> {
+   typedef Loki::Typelist<SIntID<End>,Loki::NullType> Result;
 };
 
 
@@ -313,7 +248,7 @@ class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
 class Dim        = SIntID<1>,
 class Parall     = ParallelizationGroup::Default,
 class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
-class GenerateTransform {
+class GeneratePower2Transform {
    typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
    enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
@@ -335,7 +270,7 @@ public:
 
    Loki::Factory<ObjectType,uint,ObjectType*(*)(),TransformFactoryError> factory;
 
-   GenerateTransform() {
+   GeneratePower2Transform() {
       FactoryInit<Result>::apply(factory);
    }
 
@@ -360,6 +295,55 @@ public:
 
 };
 
+
+
+template<class NList,
+class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
+class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
+class Dim        = SIntID<1>,
+class Parall     = ParallelizationGroup::Default,
+class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
+class GenerateTransform {
+   //typedef typename GenNumList<Begin,End>::Result NList;
+   enum { L1 = Loki::TL::Length<NList>::value };
+   enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
+   enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
+   enum { L4 = 1 };
+   enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
+   enum { L6 = Loki::TL::Length<DecimationGroup::FullList>::value };
+   typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
+
+   typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
+
+   typedef TYPELIST_6(Decimation,Parall,Dim,TransType,T,NList) RevList;
+
+   typedef TranslateID<LenList> Translate;
+
+public:
+   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
+   typedef AbstractFFT<typename T::ValueType> ObjectType;
+
+   Loki::Factory<ObjectType,uint,ObjectType*(*)(),TransformFactoryError> factory;
+
+   GenerateTransform() {
+      FactoryInit<Result>::apply(factory);
+   }
+
+   ObjectType* CreateTransformObject(uint n, uint vtype_id, 
+                                   uint trans_id = TransformTypeGroup::default_id, 
+                                   uint dim = 1, 
+                                   uint parall_id = ParallelizationGroup::default_id, 
+                                   uint decim_id = DecimationGroup::default_id) 
+   {
+      uint narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
+      uint obj_id = Translate::apply(narr);
+//std::cout<<obj_id<<std::endl;
+      return factory.CreateObject(obj_id);
+   }
+
+};
+
+  
 }  //namespace
 
 #endif

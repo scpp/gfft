@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2006-2009 by Volodymyr Myrnyy                           *
+ *   Copyright (C) 2006-2013 by Volodymyr Myrnyy                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -19,36 +19,13 @@
     \brief Recursive algorithms and short-radix FFT specifications
 */
 
-#include "metafunc.h"
+#include "gfftspec.h"
 
 
 namespace GFFT {
 
 using namespace MF;
 
-/// Specialization for complex-valued radix 2 FFT in-place
-/// \tparam T is value type
-/// \param data is the array of length 4, containing two complex numbers (real,imag,real,imag).
-template<typename T>
-inline void _spec2(T* data) 
-{
-      const T tr = data[2];
-      const T ti = data[3];
-      data[2] = data[0]-tr;
-      data[3] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-}
-
-template<typename T>
-inline void _spec2(const T* src, T* dst) 
-{
-    const double  *a(src + 2), *a2(src + 1), *a3(src + 3);
-    *(dst) = (*(src) + *(a));
-    *((dst + 1)) = (*(a2) + *(a3));
-    *((dst + 2)) = (*(src) - *(a));
-    *((dst + 3)) = (*(a2) - *(a3));
-}
 
 template<typename T>
 struct TempTypeTrait;
@@ -190,6 +167,14 @@ public:
    }
 };
 */
+
+// Specialization for N=3, decimation-in-time
+template<typename T, int S>
+class InTime<3,T,S> {
+public:
+   void apply(T* data) { }
+   void apply(const T* src, T* dst) { _spec3_fwd(src, dst); }
+};
 
 // Specialization for N=2, decimation-in-time
 template<typename T, int S>

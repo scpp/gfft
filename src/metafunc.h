@@ -59,7 +59,7 @@ This template class implements the common series \e S for the argument \f$ x = \
 */
 template<unsigned M, unsigned N, unsigned B, unsigned A>
 struct SinCosSeries {
-   static double value() {
+   static long double value() {
       return 1-(A*M_PI/B)*(A*M_PI/B)/M/(M+1)
                *SinCosSeries<M+2,N,B,A>::value();
    }
@@ -67,7 +67,7 @@ struct SinCosSeries {
 
 template<unsigned N, unsigned B, unsigned A>
 struct SinCosSeries<N,N,B,A> {
-   static double value() { return 1.; }
+   static long double value() { return 1.; }
 };
 
 
@@ -132,11 +132,84 @@ struct Cos<B,A,double> {
 
 template<unsigned B, unsigned A>
 struct Cos<B,A,long double> {
-   static double value() {
+   static long double value() {
       return SinCosSeries<1,60,B,A>::value();
    }
 };
 
+
+template<unsigned N, unsigned Base>
+struct NDigits {
+  static const unsigned value = NDigits<N/Base, Base>::value + 1;
+};
+
+template<unsigned Base>
+struct NDigits<0, Base> {
+  static const unsigned value = 0;
+};
+
+template<unsigned N, unsigned P>
+struct IPow {
+  static const unsigned value = IPow<N,P-1>::value * N;
+};
+
+template<unsigned N>
+struct IPow<N,1> {
+  static const unsigned value = N;
+};
+
+template<unsigned N>
+struct IPow<N,0> {
+  static const unsigned value = 1;
+};
+
+
+template<unsigned N, unsigned I>
+class SqrtSeries {
+public:
+   static long double value() {
+      static const long double XI = SqrtSeries<N,I-1>::value();
+      return 0.5*(XI + N/XI);
+   }
+};
+
+template<unsigned N>
+class SqrtSeries<N,0> {
+  static const unsigned ND = NDigits<N, 2>::value;
+  static const unsigned X0 = IPow<2, ND/2>::value;
+public:
+   static long double value() {
+     std::cout << X0 << std::endl;
+      return 0.5*(X0 + N/static_cast<long double>(X0));
+   }
+};
+
+template<unsigned N, typename T=double>
+struct Sqrt;
+
+template<unsigned N>
+struct Sqrt<N, float> {
+   static float value() {
+      return SqrtSeries<N,5>::value();
+   }
+};
+
+template<unsigned N>
+struct Sqrt<N, double> {
+   static double value() {
+      return SqrtSeries<N,6>::value();
+   }
+};
+
+template<unsigned N>
+struct Sqrt<N, long double> {
+   static long double value() {
+      return SqrtSeries<N,6>::value();
+   }
+};
+
+
+  
 } // namespace MF
 
 #endif /*__metafunc_h*/
