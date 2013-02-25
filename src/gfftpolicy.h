@@ -221,9 +221,9 @@ struct Serial {
    static const id_t ID = 0;
    static const uint NParProc = 1;
 
-   template<uint P, class T>
+   template<uint N, class T>
    struct Swap {
-      enum { N = 1<<P };
+      //enum { N = 1<<P };
       typedef GFFTswap<N,T> Result;
    };
 

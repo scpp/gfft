@@ -137,7 +137,7 @@ struct Cos<B,A,long double> {
    }
 };
 
-
+// Returns number of digits in N in the Base-system (Base=2 for binary)
 template<unsigned N, unsigned Base>
 struct NDigits {
   static const unsigned value = NDigits<N/Base, Base>::value + 1;
@@ -179,8 +179,7 @@ class SqrtSeries<N,0> {
   static const unsigned X0 = IPow<2, ND/2>::value;
 public:
    static long double value() {
-     std::cout << X0 << std::endl;
-      return 0.5*(X0 + N/static_cast<long double>(X0));
+     return 0.5*(X0 + N/static_cast<long double>(X0));
    }
 };
 

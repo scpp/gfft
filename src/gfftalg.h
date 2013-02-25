@@ -58,6 +58,16 @@ struct TempTypeTrait<Complex<T,A> > {
 //    typedef T Result;
 // };
 
+// Look here for a small prime factor using 6k+1, 6k+5 algorithm
+// until some relative small limit (e.g. 100)
+// then rely on some prime factor algorithm like Rader (only for primes), Winograd or Bluestein (for any n)
+// then come back to factoring
+template<unsigned long N>
+struct GetNextFactor {
+  // dummy trial: assume multiple of 2 and 3 only
+  static const int value = (N%2 == 0) ? 2 : 3; 
+};
+
 
 /// Danielson-Lanczos section of the decimation-in-time FFT version
 /**
@@ -72,15 +82,19 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InFreq
 */
-template<unsigned long N, typename T, int S>
+template<unsigned long N, typename T, int S, int LastK = 1>
 class InTime {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   InTime<N/2,T,S> next;
+   static const unsigned int K = GetNextFactor<N>::value;
+   static const unsigned int M = N/K;
+   static const unsigned int M2 = M*2;
+   InTime<M,T,S,K> next;
 public:
    void apply(T* data) {
 
       next.apply(data);
-      next.apply(data+N);
+//       next.apply(data + 2);
+      next.apply(data + M2);
 
       LocalVType wtemp,tempr,tempi,wr,wi,t;
 
@@ -92,11 +106,12 @@ public:
       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned long i=0; i<N; i+=2) {
-        tempr = data[i+N]*wr - data[i+N+1]*wi;
-        tempi = data[i+N]*wi + data[i+N+1]*wr;
-        data[i+N] = data[i]-tempr;
-        data[i+N+1] = data[i+1]-tempi;
+      for (unsigned long i=0; i<M2; i+=K) {
+	const int i2 = i+M2;
+        tempr = data[i2]*wr - data[i2+1]*wi;
+        tempi = data[i2]*wi + data[i2+1]*wr;
+        data[i2] = data[i]-tempr;
+        data[i2+1] = data[i+1]-tempi;
         data[i] += tempr;
         data[i+1] += tempi;
 
@@ -109,7 +124,8 @@ public:
    void apply(const T* src, T* dst) {
 
       next.apply(src, dst);
-      next.apply(src+N, dst+N);
+      next.apply(src + 2, dst + M2);
+//      next.apply(src+M2, dst+M2);
 
       LocalVType wtemp,tempr,tempi,wr,wi,t;
 
@@ -118,11 +134,12 @@ public:
       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned long i=0; i<N; i+=2) {
-        tempr = src[i+N]*wr - src[i+N+1]*wi;
-        tempi = src[i+N]*wi + src[i+N+1]*wr;
-        dst[i+N] = src[i]-tempr;
-        dst[i+N+1] = src[i+1]-tempi;
+      for (unsigned long i=0; i<M2; i+=K) {
+	const int i2 = i+M2;
+        tempr = dst[i2]*wr - dst[i2+1]*wi;
+        tempi = dst[i2]*wi + dst[i2+1]*wr;
+        dst[i2] = dst[i]-tempr;
+        dst[i2+1] = dst[i+1]-tempi;
         dst[i] += tempr;
         dst[i+1] += tempi;
 
@@ -169,24 +186,42 @@ public:
 */
 
 // Specialization for N=3, decimation-in-time
-template<typename T, int S>
-class InTime<3,T,S> {
+template<typename T, int S, int LastK>
+class InTime<3,T,S,LastK> {
 public:
-   void apply(T* data) { }
+   void apply(T* data) { _spec3_fwd(data); }
    void apply(const T* src, T* dst) { _spec3_fwd(src, dst); }
 };
 
 // Specialization for N=2, decimation-in-time
-template<typename T, int S>
-class InTime<2,T,S> {
+template<typename T, int S, int LastK>
+class InTime<2,T,S,LastK> {
+  static const int K2 = LastK*2;
 public:
-   void apply(T* data) { _spec2(data); }
-   void apply(const T* src, T* dst) { _spec2(src, dst); }
+  void apply(T* data) 
+  { 
+      _spec2(data); 
+//       const T tr = data[K2];
+//       const T ti = data[K2+1];
+//       data[K2] = data[0]-tr;
+//       data[K2+1] = data[1]-ti;
+//       data[0] += tr;
+//       data[1] += ti;
+  }
+  void apply(const T* src, T* dst) 
+  { 
+//    _spec2(src, dst); 
+    const T v1(src[1]), v2(src[K2]), v3(src[K2+1]);
+    dst[0] = (*src + v2);
+    dst[1] = (v1 + v3);
+    dst[2] = (*src - v2);
+    dst[3] = (v1 - v3);
+  }
 };
 
 // Specialization for N=1, decimation-in-time
-template<typename T, int S>
-class InTime<1,T,S> {
+template<typename T, int S, int LastK>
+class InTime<1,T,S,LastK> {
 public:
    void apply(T* data) { }
    void apply(const T* src, T* dst) { }
@@ -306,7 +341,7 @@ template<unsigned long N, typename T>
 class GFFTswap {
 public:
    void apply(T* data) {
-     unsigned long m,j=0;
+     unsigned long m, j = 0;
      for (unsigned long i=0; i<2*N-1; i+=2) {
         if (j>i) {
             std::swap(data[j], data[i]);
