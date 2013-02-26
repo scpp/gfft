@@ -88,12 +88,11 @@ class InTime {
    static const unsigned int K = GetNextFactor<N>::value;
    static const unsigned int M = N/K;
    static const unsigned int M2 = M*2;
-   InTime<M,T,S,K> next;
+   InTime<M,T,S,K*LastK> next;
 public:
    void apply(T* data) {
 
       next.apply(data);
-//       next.apply(data + 2);
       next.apply(data + M2);
 
       LocalVType wtemp,tempr,tempi,wr,wi,t;
@@ -124,7 +123,7 @@ public:
    void apply(const T* src, T* dst) {
 
       next.apply(src, dst);
-      next.apply(src + 2, dst + M2);
+      next.apply(src + 2*LastK, dst + M2);
 //      next.apply(src+M2, dst+M2);
 
       LocalVType wtemp,tempr,tempi,wr,wi,t;
