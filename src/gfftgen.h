@@ -98,7 +98,7 @@ class Transform:public FactoryPolicy {
    typedef typename Type::template Direction<N::Value,T> Dir;
    typedef Separate<N::Value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
-   typedef typename Decimation::template List<N::Value,T,Swap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Decimation::template List<N::Value,T,EmptySwap,Dir,Parall::NParProc>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
 
    Caller<Loki::Typelist<Parall,Alg> > run;

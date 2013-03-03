@@ -56,41 +56,6 @@ inline void _spec2(const T* src, T* dst)
 //     dst[3] = (v1 - v3);
 }
 
-template<typename T>
-inline void _spec3_fwd(T* data) 
-{ // 5 mult, 12 add
-  const T c = Sqrt<3, T>::value() * 0.5;
-  const T sr = data[2] + data[4];
-  const T dr = c*(data[2] - data[4]);
-  const T si = data[3] + data[5];
-  const T di = c*(data[3] - data[5]);
-  const T tr = data[0] - 0.5*sr;
-  const T ti = data[1] - 0.5*si;
-  data[0] += sr;
-  data[1] += si;
-  data[4] = tr + di;
-  data[5] = ti - dr;
-  data[2] = tr - di;
-  data[3] = ti + dr;
-}
-
-template<typename T>
-inline void _spec3_fwd(const T* src, T* dst) 
-{ // 5 mult, 12 add
-  const T c = Sqrt<3, T>::value() * 0.5;
-  const T sr = src[2] + src[4];
-  const T dr = c*(src[2] - src[4]);
-  const T si = src[3] + src[5];
-  const T di = c*(src[3] - src[5]);
-  const T tr = src[0] - 0.5*sr;
-  const T ti = src[1] - 0.5*si;
-  dst[0] = src[0] + sr;
-  dst[1] = src[1] + si;
-  dst[2] = tr + di;
-  dst[3] = ti - dr;
-  dst[4] = tr - di;
-  dst[5] = ti + dr;
-}
 
 template<typename T>
 inline void _spec4_fwd(const T* src, T* dst) 

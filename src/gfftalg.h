@@ -69,6 +69,41 @@ struct GetNextFactor {
 };
 
 
+// TODO: compare this with the simple loop
+template<unsigned long M, typename T, int LastK, int NIter>
+class IterateInTime {
+   static const unsigned int M2 = M*2;
+   IterateInTime<M,T,LastK,NIter-1> next;
+public:
+   template<class InTimeType>
+   void apply(InTimeType& step, T* data) 
+   {
+      next.apply(step, data);
+      step.apply(data + NIter*M2);
+   }
+   template<class InTimeType>
+   void apply(InTimeType& step, const T* src, T* dst) 
+   {
+      next.apply(step, src, dst);
+      step.apply(src + NIter*2*LastK, dst + NIter*M2);
+   }
+};
+
+template<unsigned long M, typename T, int LastK>
+class IterateInTime<M,T,LastK,0> {
+public:
+   template<class InTimeType>
+   void apply(InTimeType& step, T* data) 
+   {
+      step.apply(data);
+   }
+   template<class InTimeType>
+   void apply(InTimeType& step, const T* src, T* dst) 
+   {
+      step.apply(src, dst);
+   }
+};
+
 /// Danielson-Lanczos section of the decimation-in-time FFT version
 /**
 \tparam N current transform length
@@ -88,12 +123,13 @@ class InTime {
    static const unsigned int K = GetNextFactor<N>::value;
    static const unsigned int M = N/K;
    static const unsigned int M2 = M*2;
-   InTime<M,T,S,K*LastK> next;
+   IterateInTime<M,T,LastK,K-1> iter;
+   InTime<M,T,S,K*LastK> step;
 public:
-   void apply(T* data) {
-
-      next.apply(data);
-      next.apply(data + M2);
+   void apply(T* data) 
+   {
+      for (unsigned int i = 0; i < K; ++i)
+	step.apply(data + i*M2);
 
       LocalVType wtemp,tempr,tempi,wr,wi,t;
 
@@ -105,7 +141,7 @@ public:
       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned long i=0; i<M2; i+=K) {
+      for (unsigned long i=0; i<M2; i+=2) {
 	const int i2 = i+M2;
         tempr = data[i2]*wr - data[i2+1]*wi;
         tempi = data[i2]*wi + data[i2+1]*wr;
@@ -120,31 +156,53 @@ public:
       }
    }
 
-   void apply(const T* src, T* dst) {
+   void apply(const T* src, T* dst) 
+   {
+      for (unsigned int i = 0; i < K; ++i)
+        step.apply(src + i*2*LastK, dst + i*M2);
+//      iter.apply(step, src, dst);
 
-      next.apply(src, dst);
-      next.apply(src + 2*LastK, dst + M2);
-//      next.apply(src+M2, dst+M2);
-
-      LocalVType wtemp,tempr,tempi,wr,wi,t;
+      LocalVType tr1,ti1,tr2,ti2,wr1,wi1,wr2,wi2,t;
 
       t = Sin<N,1,LocalVType>::value();
-      const LocalVType wpr = -2.0*t*t;
-      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      wr = 1.0;
-      wi = 0.0;
-      for (unsigned long i=0; i<M2; i+=K) {
+      const LocalVType wpr1 = 1 - 2.0*t*t;
+      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
+      const LocalVType wpi2 = 2*wpr1*wpi1;
+      wr1 = wpr1;
+      wi1 = wpi1;
+      wr2 = wpr2;
+      wi2 = wpi2;
+      for (unsigned long i=0; i<M2; i+=2) {
 	const int i2 = i+M2;
-        tempr = dst[i2]*wr - dst[i2+1]*wi;
-        tempi = dst[i2]*wi + dst[i2+1]*wr;
-        dst[i2] = dst[i]-tempr;
-        dst[i2+1] = dst[i+1]-tempi;
-        dst[i] += tempr;
-        dst[i+1] += tempi;
+	const int i3 = i2+M2;
+        tr1 = (i>0) ? dst[i2]*wr1 - dst[i2+1]*wi1 : dst[i2];
+        ti1 = (i>0) ? dst[i2]*wi1 + dst[i2+1]*wr1 : dst[i2+1];
+        tr2 = (i>0) ? dst[i3]*wr2 - dst[i3+1]*wi2 : dst[i3];
+        ti2 = (i>0) ? dst[i3]*wi2 + dst[i3+1]*wr2 : dst[i3+1];
 
-        wtemp = wr;
-        wr += wr*wpr - wi*wpi;
-        wi += wi*wpr + wtemp*wpi;
+	const T c = S * Sqrt<3, T>::value() * 0.5;
+	const T sr = tr1 + tr2;
+	const T dr = c*(tr1 - tr2);
+	const T si = ti1 + ti2;
+	const T di = c*(ti1 - ti2);
+	const T tr = dst[i] - 0.5*sr;
+	const T ti = dst[i+1] - 0.5*si;
+	dst[i] += sr;
+	dst[i+1] += si;
+	dst[i2] = tr + di;
+	dst[i2+1] = ti - dr;
+	dst[i3] = tr - di;
+	dst[i3+1] = ti + dr;
+
+	if (i>0) {
+	  t = wr1;
+	  wr1 = t*wpr1 - wi1*wpi1;
+	  wi1 = wi1*wpr1 + t*wpi1;
+	  t = wr2;
+	  wr2 = t*wpr2 - wi2*wpi2;
+	  wi2 = wi2*wpr2 + t*wpi2;
+	}
       }
    }
 };
@@ -187,9 +245,44 @@ public:
 // Specialization for N=3, decimation-in-time
 template<typename T, int S, int LastK>
 class InTime<3,T,S,LastK> {
+  static const int K2 = LastK*2;
+  static const int K4 = 2*K2;
 public:
-   void apply(T* data) { _spec3_fwd(data); }
-   void apply(const T* src, T* dst) { _spec3_fwd(src, dst); }
+   void apply(T* data) 
+   { 
+    // _spec3_fwd(data); 
+      const T c = S * Sqrt<3, T>::value() * 0.5;
+      const T sr = data[2] + data[4];
+      const T dr = c*(data[2] - data[4]);
+      const T si = data[3] + data[5];
+      const T di = c*(data[3] - data[5]);
+      const T tr = data[0] - 0.5*sr;
+      const T ti = data[1] - 0.5*si;
+      data[0] += sr;
+      data[1] += si;
+      data[2] = tr + di;
+      data[3] = ti - dr;
+      data[4] = tr - di;
+      data[5] = ti + dr;
+   }
+   void apply(const T* src, T* dst) 
+   { 
+     //_spec3_fwd(src, dst); 
+    // 5 mult, 12 add
+      const T c = S * Sqrt<3, T>::value() * 0.5;
+      const T sr = src[K2] + src[K4];
+      const T dr = c*(src[K2] - src[K4]);
+      const T si = src[K2+1] + src[K4+1];
+      const T di = c*(src[K2+1] - src[K4+1]);
+      const T tr = src[0] - 0.5*sr;
+      const T ti = src[1] - 0.5*si;
+      dst[0] = src[0] + sr;
+      dst[1] = src[1] + si;
+      dst[2] = tr + di;
+      dst[3] = ti - dr;
+      dst[4] = tr - di;
+      dst[5] = ti + dr;     
+   }
 };
 
 // Specialization for N=2, decimation-in-time
@@ -199,17 +292,15 @@ class InTime<2,T,S,LastK> {
 public:
   void apply(T* data) 
   { 
-      _spec2(data); 
-//       const T tr = data[K2];
-//       const T ti = data[K2+1];
-//       data[K2] = data[0]-tr;
-//       data[K2+1] = data[1]-ti;
-//       data[0] += tr;
-//       data[1] += ti;
+      const T tr = data[2];
+      const T ti = data[3];
+      data[2] = data[0]-tr;
+      data[3] = data[1]-ti;
+      data[0] += tr;
+      data[1] += ti;
   }
   void apply(const T* src, T* dst) 
   { 
-//    _spec2(src, dst); 
     const T v1(src[1]), v2(src[K2]), v3(src[K2+1]);
     dst[0] = (*src + v2);
     dst[1] = (v1 + v3);
