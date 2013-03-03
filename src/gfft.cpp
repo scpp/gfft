@@ -26,7 +26,7 @@ using namespace GFFT;
 
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<9>, SIntID<27>) NList;
+typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<6>, SIntID<9>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
 
 void dft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 {
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
-    unsigned int i, n = 27;
+    unsigned int i, n = 9;
     
     typedef DFT TransformType;
 

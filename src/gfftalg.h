@@ -26,6 +26,7 @@ namespace GFFT {
 
 using namespace MF;
 
+typedef unsigned long int_t;
 
 template<typename T>
 struct TempTypeTrait;
@@ -62,7 +63,7 @@ struct TempTypeTrait<Complex<T,A> > {
 // until some relative small limit (e.g. 100)
 // then rely on some prime factor algorithm like Rader (only for primes), Winograd or Bluestein (for any n)
 // then come back to factoring
-template<unsigned long N>
+template<int_t N>
 struct GetNextFactor {
   // dummy trial: assume multiple of 2 and 3 only
   static const int value = (N%2 == 0) ? 2 : 3; 
@@ -70,7 +71,7 @@ struct GetNextFactor {
 
 
 // TODO: compare this with the simple loop
-template<unsigned long M, typename T, int LastK, int NIter>
+template<int_t M, typename T, int LastK, int NIter>
 class IterateInTime {
    static const unsigned int M2 = M*2;
    IterateInTime<M,T,LastK,NIter-1> next;
@@ -89,7 +90,7 @@ public:
    }
 };
 
-template<unsigned long M, typename T, int LastK>
+template<int_t M, typename T, int LastK>
 class IterateInTime<M,T,LastK,0> {
 public:
    template<class InTimeType>
@@ -101,6 +102,130 @@ public:
    void apply(InTimeType& step, const T* src, T* dst) 
    {
       step.apply(src, dst);
+   }
+};
+
+
+template<int_t K, int_t M, typename T, int S>
+class DFTk_x_Im_T;
+
+template<int_t M, typename T, int S>
+class DFTk_x_Im_T<3,M,T,S> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = 3*M;
+   static const int_t M2 = M*2;
+  
+public:
+   void apply(T* data) 
+   {
+      LocalVType tr1,ti1,tr2,ti2,wr1,wi1,wr2,wi2,t;
+
+      const T c = S * Sqrt<3, T>::value() * 0.5;
+
+      const int_t i10 = M2;
+      const int_t i11 = i10+1;
+      const int_t i20 = i10+M2;
+      const int_t i21 = i20+1;
+
+      const T sr = data[i10] + data[i20];
+      const T dr = c*(data[i10] - data[i20]);
+      const T si = data[i11] + data[i21];
+      const T di = c*(data[i11] - data[i21]);
+      const T tr = data[0] - 0.5*sr;
+      const T ti = data[1] - 0.5*si;
+      data[0] += sr;
+      data[1] += si;
+      data[i10] = tr + di;
+      data[i11] = ti - dr;
+      data[i20] = tr - di;
+      data[i21] = ti + dr;
+
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr1, wpi1)
+      const LocalVType wpr1 = 1 - 2.0*t*t;
+      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^2 = (wpr2, wpi2)
+      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
+      const LocalVType wpi2 = 2*wpr1*wpi1;
+      
+      wr1 = wpr1;
+      wi1 = wpi1;
+      wr2 = wpr2;
+      wi2 = wpi2;
+      for (int_t i=2; i<M2; i+=2) {
+	const int_t i10 = i+M2;
+	const int_t i11 = i10+1;
+	const int_t i20 = i10+M2;
+	const int_t i21 = i20+1;
+        tr1 = data[i10]*wr1 - data[i11]*wi1;
+        ti1 = data[i10]*wi1 + data[i11]*wr1;
+        tr2 = data[i20]*wr2 - data[i21]*wi2;
+        ti2 = data[i20]*wi2 + data[i21]*wr2;
+
+	const T sr = tr1 + tr2;
+	const T dr = c*(tr1 - tr2);
+	const T si = ti1 + ti2;
+	const T di = c*(ti1 - ti2);
+	const T tr = data[i] - 0.5*sr;
+	const T ti = data[i+1] - 0.5*si;
+	data[i] += sr;
+	data[i+1] += si;
+	data[i10] = tr + di;
+	data[i11] = ti - dr;
+	data[i20] = tr - di;
+	data[i21] = ti + dr;
+
+        t = wr1;
+        wr1 = t*wpr1 - wi1*wpi1;
+        wi1 = wi1*wpr1 + t*wpi1;
+        t = wr2;
+        wr2 = t*wpr2 - wi2*wpi2;
+        wi2 = wi2*wpr2 + t*wpi2;
+      }
+   }
+};
+
+template<int_t M, typename T, int S>
+class DFTk_x_Im_T<2,M,T,S> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = 2*M;
+   static const int_t M2 = M*2;
+  
+public:
+   void apply(T* data) 
+   {
+      LocalVType tr,ti,wr,wi,t;
+
+      const int_t i10 = M2;
+      const int_t i11 = i10+1;
+      tr = data[i10];
+      ti = data[i11];
+      data[i10] = data[0]-tr;
+      data[i11] = data[1]-ti;
+      data[0] += tr;
+      data[1] += ti;
+
+      t = Sin<N,1,LocalVType>::value();
+      const LocalVType wpr = -2.0*t*t;
+      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+      wr = 1+wpr;
+      wi = wpi;
+      for (int_t i=2; i<M2; i+=2) {
+	const int_t i10 = i+M2;
+	const int_t i11 = i10+1;
+        tr = data[i10]*wr - data[i11]*wi;
+        ti = data[i10]*wi + data[i11]*wr;
+        data[i10] = data[i]-tr;
+        data[i11] = data[i+1]-ti;
+        data[i] += tr;
+        data[i+1] += ti;
+
+        t = wr;
+        wr += wr*wpr - wi*wpi;
+        wi += wi*wpr + t*wpi;
+      }
    }
 };
 
@@ -117,93 +242,30 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InFreq
 */
-template<unsigned long N, typename T, int S, int LastK = 1>
+template<int_t N, typename T, int S, int LastK = 1>
 class InTime {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
    static const unsigned int K = GetNextFactor<N>::value;
    static const unsigned int M = N/K;
    static const unsigned int M2 = M*2;
-   IterateInTime<M,T,LastK,K-1> iter;
-   InTime<M,T,S,K*LastK> step;
+   //IterateInTime<M,T,LastK,K-1> iter;
+   InTime<M,T,S,K*LastK> dft_str;
+   DFTk_x_Im_T<K,M,T,S> dft_scaled;
 public:
    void apply(T* data) 
    {
       for (unsigned int i = 0; i < K; ++i)
-	step.apply(data + i*M2);
+	dft_str.apply(data + i*M2);
 
-      LocalVType wtemp,tempr,tempi,wr,wi,t;
-
-//    Change dynamic calculation to the static one
-//      wtemp = sin(S*M_PI/N);
-      t = Sin<N,1,LocalVType>::value();
-      const LocalVType wpr = -2.0*t*t;
-//      wpi = -sin(2*M_PI/N);
-      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      wr = 1.0;
-      wi = 0.0;
-      for (unsigned long i=0; i<M2; i+=2) {
-	const int i2 = i+M2;
-        tempr = data[i2]*wr - data[i2+1]*wi;
-        tempi = data[i2]*wi + data[i2+1]*wr;
-        data[i2] = data[i]-tempr;
-        data[i2+1] = data[i+1]-tempi;
-        data[i] += tempr;
-        data[i+1] += tempi;
-
-        wtemp = wr;
-        wr += wr*wpr - wi*wpi;
-        wi += wi*wpr + wtemp*wpi;
-      }
+      dft_scaled.apply(data);
    }
 
    void apply(const T* src, T* dst) 
    {
       for (unsigned int i = 0; i < K; ++i)
-        step.apply(src + i*2*LastK, dst + i*M2);
+        dft_str.apply(src + i*2*LastK, dst + i*M2);
 //      iter.apply(step, src, dst);
 
-      LocalVType tr1,ti1,tr2,ti2,wr1,wi1,wr2,wi2,t;
-
-      t = Sin<N,1,LocalVType>::value();
-      const LocalVType wpr1 = 1 - 2.0*t*t;
-      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
-      const LocalVType wpi2 = 2*wpr1*wpi1;
-      wr1 = wpr1;
-      wi1 = wpi1;
-      wr2 = wpr2;
-      wi2 = wpi2;
-      for (unsigned long i=0; i<M2; i+=2) {
-	const int i2 = i+M2;
-	const int i3 = i2+M2;
-        tr1 = (i>0) ? dst[i2]*wr1 - dst[i2+1]*wi1 : dst[i2];
-        ti1 = (i>0) ? dst[i2]*wi1 + dst[i2+1]*wr1 : dst[i2+1];
-        tr2 = (i>0) ? dst[i3]*wr2 - dst[i3+1]*wi2 : dst[i3];
-        ti2 = (i>0) ? dst[i3]*wi2 + dst[i3+1]*wr2 : dst[i3+1];
-
-	const T c = S * Sqrt<3, T>::value() * 0.5;
-	const T sr = tr1 + tr2;
-	const T dr = c*(tr1 - tr2);
-	const T si = ti1 + ti2;
-	const T di = c*(ti1 - ti2);
-	const T tr = dst[i] - 0.5*sr;
-	const T ti = dst[i+1] - 0.5*si;
-	dst[i] += sr;
-	dst[i+1] += si;
-	dst[i2] = tr + di;
-	dst[i2+1] = ti - dr;
-	dst[i3] = tr - di;
-	dst[i3+1] = ti + dr;
-
-	if (i>0) {
-	  t = wr1;
-	  wr1 = t*wpr1 - wi1*wpi1;
-	  wi1 = wi1*wpr1 + t*wpi1;
-	  t = wr2;
-	  wr2 = t*wpr2 - wi2*wpi2;
-	  wi2 = wi2*wpr2 + t*wpi2;
-	}
-      }
+      dft_scaled.apply(dst);
    }
 };
 
@@ -331,7 +393,7 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InTime
 */
-template<unsigned long N, typename T, int S>
+template<int_t N, typename T, int S>
 class InFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    InFreq<N/2,T,S> next;
@@ -347,7 +409,7 @@ public:
       wpi = -S*Sin<N,2,LocalVType>::value();
       wr = 1.0;
       wi = 0.0;
-      for (unsigned long i=0; i<N; i+=2) {
+      for (int_t i=0; i<N; i+=2) {
         tempr = data[i] - data[i+N];
         tempi = data[i+1] - data[i+N+1];
         data[i] += data[i+N];
@@ -427,12 +489,12 @@ similar to the one presented in the book
 "Numerical recipes in C++".
 \sa GFFTswap2
 */
-template<unsigned long N, typename T>
+template<int_t N, typename T>
 class GFFTswap {
 public:
    void apply(T* data) {
-     unsigned long m, j = 0;
-     for (unsigned long i=0; i<2*N-1; i+=2) {
+     int_t m, j = 0;
+     for (int_t i=0; i<2*N-1; i+=2) {
         if (j>i) {
             std::swap(data[j], data[i]);
             std::swap(data[j+1], data[i+1]);
@@ -470,11 +532,11 @@ implemented in template class GFFTswap2OMP.
 template<unsigned int P, typename T,
 unsigned int I=0>
 class GFFTswap2 {
-   static const unsigned long BN = 1<<(I+1);
-   static const unsigned long BR = 1<<(P-I);
+   static const int_t BN = 1<<(I+1);
+   static const int_t BR = 1<<(P-I);
    GFFTswap2<P,T,I+1> next;
 public:
-   void apply(T* data, unsigned long n=0, unsigned long r=0) {
+   void apply(T* data, int_t n=0, int_t r=0) {
       next.apply(data,n,r);
       next.apply(data,n|BN,r|BR);
    }
@@ -483,7 +545,7 @@ public:
 template<unsigned int P, typename T>
 class GFFTswap2<P,T,P> {
 public:
-   void apply(T* data, unsigned long n=0, unsigned long r=0) {
+   void apply(T* data, int_t n=0, int_t r=0) {
       if (n>r) {
         swap(data[n],data[r]);
         swap(data[n+1],data[r+1]);
@@ -498,13 +560,13 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<unsigned long N, typename T, int S>
+template<int_t N, typename T, int S>
 class Separate {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(T* data) {
-      unsigned long i,i1,i2,i3,i4;
+      int_t i,i1,i2,i3,i4;
       LocalVType wtemp,wr,wi,wpr,wpi;
       LocalVType h1r,h1i,h2r,h2i,h3r,h3i;
       wtemp = Sin<2*N,1,LocalVType>::value();
@@ -543,14 +605,14 @@ public:
 };
 
 // Policy for a definition of forward FFT
-template<unsigned long N, typename T>
+template<int_t N, typename T>
 struct Forward {
    enum { Sign = 1 };
    void apply(T*) { }
    void apply(const T*, T*) { }
 };
 
-template<unsigned long N, typename T,
+template<int_t N, typename T,
 template<typename> class Complex>
 struct Forward<N,Complex<T> > {
    enum { Sign = 1 };
@@ -559,7 +621,7 @@ struct Forward<N,Complex<T> > {
 };
 
 // Policy for a definition of backward FFT
-template<unsigned long N, typename T>
+template<int_t N, typename T>
 struct Backward {
    enum { Sign = -1 };
    void apply(T* data) {
@@ -570,17 +632,17 @@ struct Backward {
    }
 };
 
-template<unsigned long N, typename T,
+template<int_t N, typename T,
 template<typename> class Complex>
 struct Backward<N,Complex<T> > {
    enum { Sign = -1 };
    void apply(Complex<T>* data) {
-      for (unsigned long i=0; i<N; ++i) {
+      for (int_t i=0; i<N; ++i) {
         data[i]/=N;
       }
    }
    void apply(const Complex<T>*, Complex<T>* dst) {
-      for (unsigned long i=0; i<N; ++i) {
+      for (int_t i=0; i<N; ++i) {
         dst[i]/=N;
       }
    }
