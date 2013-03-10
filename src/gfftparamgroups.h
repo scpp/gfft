@@ -46,7 +46,8 @@ struct TransformTypeGroup
 {
   typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) FullList;
   static const uint Length = 4;
-  typedef TYPELIST_2(DFT,IDFT) Default;
+//  typedef TYPELIST_2(DFT,IDFT) Default;
+  typedef DFT Default;
   static const uint default_id = DFT::ID;
 };
 

@@ -26,7 +26,7 @@ using namespace GFFT;
 
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<6>, SIntID<9>) NList;
+typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<8>, SIntID<16>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
 
 void dft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
@@ -55,13 +55,15 @@ int main(int argc, char *argv[])
 {
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
-    unsigned int i, n = 9;
+    unsigned int i, n = 4;
     
     typedef DFT TransformType;
 
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, ParallelizationGroup::Default::ID, INTIME::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, ParallelizationGroup::Default::ID, INTIME::ID);
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
+								   ParallelizationGroup::Default::ID, INFREQ::ID);
+    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
+								   ParallelizationGroup::Default::ID, INFREQ::ID);
 
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
@@ -89,14 +91,14 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
-//     fftobj->fft(data);
-    fftobj->fft(data, dataout);
+//      fftobj->fft(data);
+   fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
-//     for (i=0; i < n; ++i)
-//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//      for (i=0; i < n; ++i)
+//        cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
    for (i=0; i < n; ++i)
      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 

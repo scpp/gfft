@@ -232,6 +232,9 @@ struct Serial {
 
    template<typename T>
    void apply(const T*, T*) { }
+
+   template<typename T>
+   void apply(const T*, T*, T*) { }
 };
 
 /*! \brief %Transform is parallelized using %OpenMP standard
@@ -258,6 +261,12 @@ struct OpenMP {
 
    template<typename T>
    void apply(const T*, T*) {
+      omp_set_num_threads(NT);
+      omp_set_nested(true);
+   }
+
+   template<typename T>
+   void apply(const T*, T*, T*) {
       omp_set_num_threads(NT);
       omp_set_nested(true);
    }

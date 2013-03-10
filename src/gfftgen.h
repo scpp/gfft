@@ -43,45 +43,6 @@ typedef unsigned int uint;
 Use this class only, if you need transform of a single fixed type and length.
 Otherwise, rely to template class GenerateTransform
 */
-template<class Power2,
-class VType,
-class Type,                    // DFT, IDFT, RDFT, IRDFT
-class Dim,
-class Parall,
-class Decimation,              // INTIME, INFREQ
-class FactoryPolicy = Empty,
-uint IDN = Power2::ID>
-class Transform2:public FactoryPolicy {
-   enum { P = Type::template Length<Power2>::Value };
-   enum { N = 1<<P };
-   typedef typename VType::ValueType T;
-   typedef typename Parall::template Swap<P,T>::Result Swap;
-   typedef typename Type::template Direction<N,T> Dir;
-   typedef Separate<N,T,Dir::Sign> Sep;
-   typedef typename Decimation::template List<N,T,Swap,Dir,Parall::NParProc>::Result TList;
-   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
-
-   Caller<Loki::Typelist<Parall,Alg> > run;
-public:
-   typedef VType ValueType;
-   typedef Type TransformType;
-   typedef Parall ParallType;
-   typedef Decimation DecimationType;
-
-   enum { ID = IDN, Len = N, PLen = P };
-
-   static FactoryPolicy* Create() {
-      return new Transform2<Power2,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
-   }
-
-   // in-place transform
-   void fft(T* data) { run.apply(data); }
-
-   // out-of-place transform
-   void fft(const T* src, T* dst) { run.apply(src, dst); }
-};
-
-
 template<class N,
 class VType,
 class Type,                    // DFT, IDFT, RDFT, IRDFT
@@ -98,10 +59,13 @@ class Transform:public FactoryPolicy {
    typedef typename Type::template Direction<N::Value,T> Dir;
    typedef Separate<N::Value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
-   typedef typename Decimation::template List<N::Value,T,EmptySwap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Decimation::template List<N::Value,T,Swap,Dir,Parall::NParProc>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
 
    Caller<Loki::Typelist<Parall,Alg> > run;
+   
+   T* buf;
+   
 public:
    typedef VType ValueType;
    typedef Type TransformType;
@@ -114,11 +78,23 @@ public:
       return new Transform<N,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
    }
 
+   Transform() 
+   {
+     if (Decimation::ID == 1)
+       buf = new T[2*N::Value];
+   }
+ 
+   ~Transform() 
+   {
+     if (Decimation::ID == 1)
+       delete [] buf;
+   }
+
    // in-place transform
    void fft(T* data) { run.apply(data); }
 
    // out-of-place transform
-   void fft(const T* src, T* dst) { run.apply(src, dst); }
+   void fft(const T* src, T* dst) { run.apply(src, dst, buf); }
 };
 
 
@@ -185,18 +161,26 @@ struct SIntID : public s_uint<N> {
    static const uint ID = N-1;
 };
 
-
-
-/// Generates Typelist with types SIntID<N>, N = Begin,...,End
-template<unsigned int Begin, unsigned int End>
-struct GenNumList {
-   typedef Loki::Typelist<SIntID<Begin>,
-      typename GenNumList<Begin+1,End>::Result> Result;
+/// Static unsigned integer class holder with additional definition of ID
+template<unsigned int P>
+struct Power2holder {
+   static const unsigned long N = 1<<P;
+   static const unsigned long ID = N-1;
+   static const unsigned long Value = N;
+   static const unsigned long value = N;
 };
 
-template<unsigned End>
-struct GenNumList<End,End> {
-   typedef Loki::Typelist<SIntID<End>,Loki::NullType> Result;
+/// Generates Typelist with types Holder<N>, N = Begin,...,End
+template<unsigned int Begin, unsigned int End, 
+template<unsigned int> class Holder = SIntID>
+struct GenNumList {
+   typedef Loki::Typelist<Holder<Begin>,
+      typename GenNumList<Begin+1,End,Holder>::Result> Result;
+};
+
+template<unsigned End, template<unsigned int> class Holder>
+struct GenNumList<End,End,Holder> {
+   typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
 };
 
 
@@ -249,7 +233,7 @@ class Dim        = SIntID<1>,
 class Parall     = ParallelizationGroup::Default,
 class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
 class GeneratePower2Transform {
-   typedef typename GenNumList<Begin,End>::Result NList;
+   typedef typename GenNumList<Begin,End,Power2holder>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
    enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
    enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
