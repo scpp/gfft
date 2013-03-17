@@ -104,6 +104,36 @@ public:
 };
 
 
+// TODO: compare this with the simple loop
+template<int_t K, int_t M, typename T, int S, int NIter>
+class IterateInFreq {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t M2 = M*2;
+   static const int_t N = K*M;
+   IterateInFreq<K,M,T,S,NIter-1> next;
+   DFTk_inplace<K,M2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      next.apply(data);
+
+      const LocalVType t = Sin<N,NIter,LocalVType>::value();
+      const LocalVType wr = 1 - 2.0*t*t;
+      const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
+      spec_inp.apply(&wr, &wi, data + NIter*2);
+   }
+};
+
+template<int_t K, int_t M, typename T, int S>
+class IterateInFreq<K,M,T,S,0> {
+   DFTk_inplace<K,M*2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+   }
+};
+
 template<int_t K, int_t M, typename T, int S>
 class DFTk_x_Im_T;
 
@@ -250,7 +280,7 @@ public:
 // Specialization for N=3, decimation-in-time
 template<typename T, int S, int_t LastK>
 class InTime<3,T,S,LastK> {
-  DFTk<3, LastK*2, T, S> spec;
+  DFTk<3, LastK*2, 2, T, S> spec;
   DFTk_inplace<3, 2, T, S> spec_inp;
 public:
    void apply(T* data) 
@@ -266,7 +296,7 @@ public:
 // Specialization for N=2, decimation-in-time
 template<typename T, int S, int_t LastK>
 class InTime<2,T,S,LastK> {
-  DFTk<2, LastK*2, T, S> spec;
+  DFTk<2, LastK*2, 2, T, S> spec;
   DFTk_inplace<2, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
@@ -284,23 +314,97 @@ template<typename T, int S, int_t LastK>
 class InTime<1,T,S,LastK> {
 public:
    void apply(T* data) { }
-   void apply(const T* src, T* dst, T*) { }
+   void apply(const T* src, T* dst, T*) { *dst = *src; }
 };
 
+/////////////////////////////////////////////////////////
 
 template<int_t K, int_t M, typename T, int S>
 class T_DFTk_x_Im;
+
+template<int_t M, typename T, int S>
+class T_DFTk_x_Im<3,M,T,S> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = 3*M;
+   static const int_t M2 = M*2;
+   DFTk<3,M2,M2,T,S> spec;
+   DFTk_inplace<3,M2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+
+      LocalVType wr[2],wi[2],t;
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr1, wpi1)
+      const LocalVType wpr1 = 1 - 2.0*t*t;
+      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^2 = (wpr2, wpi2)
+      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
+      const LocalVType wpi2 = 2*wpr1*wpi1;
+      
+      wr[0] = wpr1;
+      wi[0] = wpi1;
+      wr[1] = wpr2;
+      wi[1] = wpi2;
+      for (int_t i=2; i<M2; i+=2) {
+	spec_inp.apply(wr, wi, data+i);
+
+        t = wr[0];
+        wr[0] = t*wpr1 - wi[0]*wpi1;
+        wi[0] = wi[0]*wpr1 + t*wpi1;
+        t = wr[1];
+        wr[1] = t*wpr2 - wi[1]*wpi2;
+        wi[1] = wi[1]*wpr2 + t*wpi2;
+      }
+   }
+   void apply(const T* src, T* dst) 
+   {
+      spec.apply(src, dst);
+
+      LocalVType wr[2],wi[2],t;
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr1, wpi1)
+      const LocalVType wpr1 = 1 - 2.0*t*t;
+      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^2 = (wpr2, wpi2)
+      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
+      const LocalVType wpi2 = 2*wpr1*wpi1;
+      
+      wr[0] = wpr1;
+      wi[0] = wpi1;
+      wr[1] = wpr2;
+      wi[1] = wpi2;
+      for (int_t i=2; i<M2; i+=2) {
+	spec.apply(wr, wi, src+i, dst+i);
+
+        t = wr[0];
+        wr[0] = t*wpr1 - wi[0]*wpi1;
+        wi[0] = wi[0]*wpr1 + t*wpi1;
+        t = wr[1];
+        wr[1] = t*wpr2 - wi[1]*wpi2;
+        wi[1] = wi[1]*wpr2 + t*wpi2;
+      }
+   }
+};
 
 template<int_t M, typename T, int S>
 class T_DFTk_x_Im<2,M,T,S>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
-   DFTk<2,N,T,S> spec;
+   DFTk<2,N,N,T,S> spec;
    DFTk_inplace<2,N,T,S> spec_inp;
+
+   //IterateInFreq<2,M,T,S,M-1> iterate;
 public:
    void apply(T* data) 
    {
+     //iterate.apply(data);
       spec_inp.apply(data);
 
       LocalVType t,wr,wi;
@@ -311,12 +415,6 @@ public:
       wi = wpi;
       for (int_t i=2; i<N; i+=2) {
 	spec_inp.apply(&wr, &wi, data+i);
-//         tempr = data[i] - data[i+N];
-//         tempi = data[i+1] - data[i+N+1];
-//         data[i] += data[i+N];
-//         data[i+1] += data[i+N+1];
-//         data[i+N] = tempr*wr - tempi*wi;
-//         data[i+N+1] = tempi*wr + tempr*wi;
 
         t = wr;
         wr += t*wpr - wi*wpi;
@@ -326,24 +424,16 @@ public:
    
    void apply(const T* src, T* dst) 
    { 
-      //spec.apply(src, dst);
+      spec.apply(src, dst);
      
       LocalVType t,wr,wi;
       t = Sin<N,1,LocalVType>::value();
       const LocalVType wpr = -2.0*t*t;
       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      wr = 1;
-      wi = 0;
-      for (int_t i=0; i<N; i+=2) {
+      wr = 1+wpr;
+      wi = wpi;
+      for (int_t i=2; i<N; i+=2) {
 	spec.apply(&wr, &wi, src+i, dst+i);
-// 	const int_t i10 = i+N;
-// 	const int_t i11 = i10+1;
-//         T tempr = src[i] - src[i10];
-//         T tempi = src[i+1] - src[i11];
-//         dst[i] = src[i] + src[i10];
-//         dst[i+1] = src[i+1] + src[i11];
-//         dst[i10] = tempr*wr - tempi*wi;
-//         dst[i11] = tempi*wr + tempr*wi;
 
         t = wr;
         wr += t*wpr - wi*wpi;
@@ -371,6 +461,8 @@ class InFreq {
    static const int_t K = GetNextFactor<N>::value;
    static const int_t M = N/K;
    static const int_t M2 = M*2;
+   static const int_t N2 = N*2;
+   static const int_t LastK2 = LastK*2;
    //IterateInTime<M,T,LastK,K-1> iter;
    InFreq<M,T,S,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S> dft_scaled;
@@ -378,57 +470,20 @@ class InFreq {
 public:
    void apply(T* data) 
    {
-     dft_scaled.apply(data);
-//       LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
-//       wtemp = Sin<N,1,LocalVType>::value();
-//       wpr = -2.0*wtemp*wtemp;
-//       wpi = -S*Sin<N,2,LocalVType>::value();
-//       wr = 1.0;
-//       wi = 0.0;
-//       for (int_t i=0; i<M2; i+=2) {
-//         tempr = data[i] - data[i+N];
-//         tempi = data[i+1] - data[i+N+1];
-//         data[i] += data[i+N];
-//         data[i+1] += data[i+N+1];
-//         data[i+N] = tempr*wr - tempi*wi;
-//         data[i+N+1] = tempi*wr + tempr*wi;
-// 
-//         wtemp = wr;
-//         wr += wr*wpr - wi*wpi;
-//         wi += wi*wpr + wtemp*wpi;
-//       }
+      dft_scaled.apply(data);
 
-      for (int_t i = 0; i < K; ++i)
-        dft_str.apply(data + i*M2);
+      // K times call to dft_str.apply()
+      for (int_t m = 0; m < N2; m+=M2)
+        dft_str.apply(data + m);
    }
 
    void apply(const T* src, T* dst, T* buf) 
    { 
       dft_scaled.apply(src, buf);
 
-//       LocalVType wtemp,tempr,tempi,wr,wi,wpr,wpi;
-//       wtemp = Sin<N,1,LocalVType>::value();
-//       wpr = -2.0*wtemp*wtemp;
-//       wpi = -S*Sin<N,2,LocalVType>::value();
-//       wr = 1.0;
-//       wi = 0.0;
-//       for (int_t i=0; i<M2; i+=2) {
-// 	const int_t i10 = i+M2;
-// 	const int_t i11 = i10+1;
-//         tempr = src[i] - src[i10];
-//         tempi = src[i+1] - src[i11];
-//         buf[i] = src[i] + src[i10];
-//         buf[i+1] = src[i+1] + src[i11];
-//         buf[i10] = tempr*wr - tempi*wi;
-//         buf[i11] = tempi*wr + tempr*wi;
-// 
-//         wtemp = wr;
-//         wr += wr*wpr - wi*wpi;
-//         wi += wi*wpr + wtemp*wpi;
-//       }
-
-      for (int_t i = 0; i < K; ++i)
-	dft_str.apply(buf + i*M2, dst + i*2*LastK, buf + i*M2);
+      int_t lk = 0;
+      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+	dft_str.apply(buf + m, dst + lk, buf + m);
    }
 };
 
@@ -468,70 +523,65 @@ public:
 // Specialization for N=2, decimation-in-frequency
 template<typename T, int S, int_t LastK>
 class InFreq<3,T,S,LastK> {
-  static const int_t K2 = LastK*2;
-  static const int_t K4 = 2*K2;
+//   static const int_t K2 = LastK*2;
+//   static const int_t K4 = 2*K2;
+  DFTk<3, 2, LastK*2, T, S> spec;
+  DFTk_inplace<3, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
-      const T c = S * Sqrt<3, T>::value() * 0.5;
-      const T sr = data[2] + data[4];
-      const T dr = c*(data[2] - data[4]);
-      const T si = data[3] + data[5];
-      const T di = c*(data[3] - data[5]);
-      const T tr = data[0] - 0.5*sr;
-      const T ti = data[1] - 0.5*si;
-      data[0] += sr;
-      data[1] += si;
-      data[2] = tr + di;
-      data[3] = ti - dr;
-      data[4] = tr - di;
-      data[5] = ti + dr;
+    spec_inp.apply(data);
+//       const T c = S * Sqrt<3, T>::value() * 0.5;
+//       const T sr = data[2] + data[4];
+//       const T dr = c*(data[2] - data[4]);
+//       const T si = data[3] + data[5];
+//       const T di = c*(data[3] - data[5]);
+//       const T tr = data[0] - 0.5*sr;
+//       const T ti = data[1] - 0.5*si;
+//       data[0] += sr;
+//       data[1] += si;
+//       data[2] = tr + di;
+//       data[3] = ti - dr;
+//       data[4] = tr - di;
+//       data[5] = ti + dr;
   }
-  void apply(const T* src, T* dst, T* buf) 
+  void apply(const T* src, T* dst, T*) 
   { 
-    // 5 mult, 12 add
-      const T c = S * Sqrt<3, T>::value() * 0.5;
-      const T sr = src[K2] + src[K4];
-      const T dr = c*(src[K2] - src[K4]);
-      const T si = src[K2+1] + src[K4+1];
-      const T di = c*(src[K2+1] - src[K4+1]);
-      const T tr = src[0] - 0.5*sr;
-      const T ti = src[1] - 0.5*si;
-      dst[0] = src[0] + sr;
-      dst[1] = src[1] + si;
-      dst[2] = tr + di;
-      dst[3] = ti - dr;
-      dst[4] = tr - di;
-      dst[5] = ti + dr;     
+    spec.apply(src, dst);
+//       const T c = S * Sqrt<3, T>::value() * 0.5;
+//       const T sr = src[K2] + src[K4];
+//       const T dr = c*(src[K2] - src[K4]);
+//       const T si = src[K2+1] + src[K4+1];
+//       const T di = c*(src[K2+1] - src[K4+1]);
+//       const T tr = src[0] - 0.5*sr;
+//       const T ti = src[1] - 0.5*si;
+//       dst[0] = src[0] + sr;
+//       dst[1] = src[1] + si;
+//       dst[2] = tr + di;
+//       dst[3] = ti - dr;
+//       dst[4] = tr - di;
+//       dst[5] = ti + dr;     
   }
 };
 
 // Specialization for N=2, decimation-in-frequency
 template<typename T, int S, int_t LastK>
 class InFreq<2,T,S,LastK> {
-  static const int_t K2 = LastK*2;
+  DFTk<2, 2, LastK*2, T, S> spec;
+  DFTk_inplace<2, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
-//    _spec2(data); 
-      const T tr = data[2];
-      const T ti = data[3];
-      data[2] = data[0]-tr;
-      data[3] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
+    spec_inp.apply(data);
   }
-  void apply(const T* src, T* dst, T* buf) 
+  void apply(const T* src, T* dst, T*) 
   { 
-    const T v1(src[1]), v2(src[2]), v3(src[3]);
-    dst[0] = (*src + v2);
-    dst[1] = (v1 + v3);
-    dst[K2] = (*src - v2);
-    dst[K2+1] = (v1 - v3);
-//     dst[0] = src[0];
-//     dst[1] = src[1];
-//     dst[2] = src[2];
-//     dst[3] = src[3];
+     spec.apply(src, dst);
+//     const T v1(src[1]), v2(src[2]), v3(src[3]);
+//     dst[0] = (*src + v2);
+//     dst[1] = (v1 + v3);
+//     dst[K2] = (*src - v2);
+//     dst[K2+1] = (v1 - v3);
   }
 };
 
@@ -540,7 +590,7 @@ template<typename T, int S, int_t LastK>
 class InFreq<1,T,S,LastK> {
 public:
    void apply(T* data) { }
-   void apply(const T*, T*) { }
+   void apply(const T* src, T* dst) { *dst = *src; }
 };
 
 

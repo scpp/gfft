@@ -33,6 +33,11 @@ class DFTk_inplace;
 template<int_t M, typename T, int S>
 class DFTk_inplace<3,M,T,S> 
 {
+  static const int_t I10 = M;
+  static const int_t I11 = M+1;
+  static const int_t I20 = M+M;
+  static const int_t I21 = I20+1;
+  
   T m_coef;
   
 public:
@@ -40,48 +45,59 @@ public:
   
   void apply(T* data) 
   { 
-      const int_t i10 = M;
-      const int_t i11 = i10+1;
-      const int_t i20 = i10+M;
-      const int_t i21 = i20+1;
-
-      const T sr = data[i10] + data[i20];
-      const T dr = m_coef * (data[i10] - data[i20]);
-      const T si = data[i11] + data[i21];
-      const T di = m_coef * (data[i11] - data[i21]);
-      const T tr = data[0] - 0.5*sr;
-      const T ti = data[1] - 0.5*si;
-      data[0] += sr;
-      data[1] += si;
-      data[i10] = tr + di;
-      data[i11] = ti - dr;
-      data[i20] = tr - di;
-      data[i21] = ti + dr;
+      const T sum_r = data[I10] + data[I20];
+      const T dif_r = m_coef * (data[I10] - data[I20]);
+      const T sum_i = data[I11] + data[I21];
+      const T dif_i = m_coef * (data[I11] - data[I21]);
+      const T tr = data[0] - 0.5*sum_r;
+      const T ti = data[1] - 0.5*sum_i;
+      data[0] += sum_r;
+      data[1] += sum_i;
+      data[I10] = tr + dif_i;
+      data[I11] = ti - dif_r;
+      data[I20] = tr - dif_i;
+      data[I21] = ti + dif_r;
   }
   template<class LT>
   void apply(T* data, const LT* wr, const LT* wi) 
   { 
-	const int_t i10 = M;
-	const int_t i11 = i10+1;
-	const int_t i20 = i10+M;
-	const int_t i21 = i20+1;
-        const T tr1 = data[i10]*wr[0] - data[i11]*wi[0];
-        const T ti1 = data[i10]*wi[0] + data[i11]*wr[0];
-        const T tr2 = data[i20]*wr[1] - data[i21]*wi[1];
-        const T ti2 = data[i20]*wi[1] + data[i21]*wr[1];
+        const T tr1 = data[I10]*wr[0] - data[I11]*wi[0];
+        const T ti1 = data[I10]*wi[0] + data[I11]*wr[0];
+        const T tr2 = data[I20]*wr[1] - data[I21]*wi[1];
+        const T ti2 = data[I20]*wi[1] + data[I21]*wr[1];
 
-	const T sr = tr1 + tr2;
-	const T dr = m_coef * (tr1 - tr2);
-	const T si = ti1 + ti2;
-	const T di = m_coef * (ti1 - ti2);
-	const T tr = data[0] - 0.5*sr;
-	const T ti = data[1] - 0.5*si;
-	data[0] += sr;
-	data[1] += si;
-	data[i10] = tr + di;
-	data[i11] = ti - dr;
-	data[i20] = tr - di;
-	data[i21] = ti + dr;
+	const T sum_r = tr1 + tr2;
+	const T dif_r = m_coef * (tr1 - tr2);
+	const T sum_i = ti1 + ti2;
+	const T dif_i = m_coef * (ti1 - ti2);
+	const T tr = data[0] - 0.5*sum_r;
+	const T ti = data[1] - 0.5*sum_i;
+	data[0] += sum_r;
+	data[1] += sum_i;
+	data[I10] = tr + dif_i;
+	data[I11] = ti - dif_r;
+	data[I20] = tr - dif_i;
+	data[I21] = ti + dif_r;
+  }
+  template<class LT>
+  void apply(const LT* wr, const LT* wi, T* data) 
+  { 
+      const T sum_r = data[I10] + data[I20];
+      const T dif_r = m_coef * (data[I10] - data[I20]);
+      const T sum_i = data[I11] + data[I21];
+      const T dif_i = m_coef * (data[I11] - data[I21]);
+      const T tr = data[0] - 0.5*sum_r;
+      const T ti = data[1] - 0.5*sum_i;
+      const T trpdi = tr + dif_i;
+      const T trmdi = tr - dif_i;
+      const T tipdr = ti + dif_r;
+      const T timdr = ti - dif_r;
+      data[0] += sum_r;
+      data[1] += sum_i;
+      data[I10] = trpdi*wr[0] - timdr*wi[0];
+      data[I11] = trpdi*wi[0] + timdr*wr[0];
+      data[I20] = trmdi*wr[1] - tipdr*wi[1];
+      data[I21] = trmdi*wi[1] + tipdr*wr[1];
   }
 };
 
@@ -105,6 +121,7 @@ public:
 //       data[M] = tr;
 //       data[M+1] = ti;
   }
+  // For decimation-in-time
   template<class LT>
   void apply(T* data, const LT* wr, const LT* wi) 
   { 
@@ -115,6 +132,7 @@ public:
         data[0] += tr;
         data[1] += ti;
   }
+  // For decimation-in-frequency
   template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
@@ -127,15 +145,16 @@ public:
   }  
 };
 
+////////////////////////////////////////////////////////
 
-
-template<int_t N, int_t M, typename T, int S>
+template<int_t N, int_t SI, int_t DI, typename T, int S>
 class DFTk;
 
-template<int_t M, typename T, int S>
-class DFTk<3,M,T,S> 
+template<int_t SI, int_t DI, typename T, int S>
+class DFTk<3,SI,DI,T,S> 
 {
-  static const int_t M2 = M+M;
+  static const int_t SI2 = SI+SI;
+  static const int_t DI2 = DI+DI;
   T m_coef;
   
 public:
@@ -144,42 +163,65 @@ public:
   void apply(const T* src, T* dst) 
   { 
     // 4 mult, 12 add
-      const T sr = src[M] + src[M2];
-      const T dr = m_coef * (src[M] - src[M2]);
-      const T si = src[M+1] + src[M2+1];
-      const T di = m_coef * (src[M+1] - src[M2+1]);
+      const T sr = src[SI] + src[SI2];
+      const T dr = m_coef * (src[SI] - src[SI2]);
+      const T si = src[SI+1] + src[SI2+1];
+      const T di = m_coef * (src[SI+1] - src[SI2+1]);
       const T tr = src[0] - 0.5*sr;
       const T ti = src[1] - 0.5*si;
-      dst[0] = src[0] + sr;
-      dst[1] = src[1] + si;
-      dst[2] = tr + di;
-      dst[3] = ti - dr;
-      dst[4] = tr - di;
-      dst[5] = ti + dr;     
-  }
-};
-
-template<int_t M, typename T, int S>
-class DFTk<2,M,T,S> 
-{
-public:
-  void apply(const T* src, T* dst) 
-  { 
-    const T v1(src[1]), v2(src[M]), v3(src[M+1]);
-    dst[0] = (*src + v2);
-    dst[1] = (v1 + v3);
-    dst[2] = (*src - v2);
-    dst[3] = (v1 - v3);
+      dst[0]     = src[0] + sr;
+      dst[1]     = src[1] + si;
+      dst[DI]    = tr + di;
+      dst[DI+1]  = ti - dr;
+      dst[DI2]   = tr - di;
+      dst[DI2+1] = ti + dr;     
   }
   template<class LT>
   void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
   { 
-        const T tr = src[0] - src[M];
-        const T ti = src[1] - src[M+1];
-        dst[0] = src[0] + src[M];
-        dst[1] = src[1] + src[M+1];
-        dst[M]   = tr * (*wr) - ti * (*wi);
-        dst[M+1] = ti * (*wr) + tr * (*wi);
+    // 4 mult, 12 add
+      const T sr = src[SI] + src[SI2];
+      const T dr = m_coef * (src[SI] - src[SI2]);
+      const T si = src[SI+1] + src[SI2+1];
+      const T di = m_coef * (src[SI+1] - src[SI2+1]);
+      const T tr = src[0] - 0.5*sr;
+      const T ti = src[1] - 0.5*si;
+      const T trpdi = tr + di;
+      const T trmdi = tr - di;
+      const T tipdr = ti + dr;
+      const T timdr = ti - dr;
+      dst[0]     = src[0] + sr;
+      dst[1]     = src[1] + si;
+      dst[DI]    = trpdi*wr[0] - timdr*wi[0];
+      dst[DI+1]  = trpdi*wi[0] + timdr*wr[0];
+      dst[DI2]   = trmdi*wr[1] - tipdr*wi[1];
+      dst[DI2+1] = trmdi*wi[1] + tipdr*wr[1];     
+  }
+};
+
+template<int_t SI, int_t DI, typename T, int S>
+class DFTk<2,SI,DI,T,S> 
+{
+public:
+  void apply(const T* src, T* dst) 
+  { 
+    // the temporaries tr, ti are necessary, because may happen src == dst
+        const T tr = src[0] - src[SI];
+        const T ti = src[1] - src[SI+1];
+        dst[0] = src[0] + src[SI];
+        dst[1] = src[1] + src[SI+1];
+        dst[DI]   = tr;
+        dst[DI+1] = ti;
+  }
+  template<class LT>
+  void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
+  { 
+        const T tr = src[0] - src[SI];
+        const T ti = src[1] - src[SI+1];
+        dst[0] = src[0] + src[SI];
+        dst[1] = src[1] + src[SI+1];
+        dst[DI]   = tr * (*wr) - ti * (*wi);
+        dst[DI+1] = ti * (*wr) + tr * (*wi);
   }
 };
 

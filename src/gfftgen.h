@@ -51,9 +51,7 @@ class Parall,
 class Decimation,              // INTIME, INFREQ
 class FactoryPolicy = Empty,
 uint IDN = N::ID>
-class Transform:public FactoryPolicy {
-   //enum { P = Type::template Length<Power2>::Value };
-   //enum { N = 1<<P };
+class Transform : public FactoryPolicy {
    typedef typename VType::ValueType T;
    typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::Value,T> Dir;
