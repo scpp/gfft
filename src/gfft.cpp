@@ -50,14 +50,14 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<8>, SIntID<16>) NList;
+typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>, SIntID<7>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
 
 int main(int argc, char *argv[])
 {
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
-    unsigned int i, n = 1024;
+    unsigned int i, n = 7;
     
     typedef DFT TransformType;
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 								   ParallelizationGroup::Default::ID, INFREQ::ID);
     TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
 								   ParallelizationGroup::Default::ID, INFREQ::ID);
-
+    
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
     ValueType::ValueType* dataout = new ValueType::ValueType [2*n];
@@ -93,19 +93,19 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
-      fftobj->fft(data);
-//    fftobj->fft(data, dataout);
+//      fftobj->fft(data);
+    fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
-     for (i=0; i < n; ++i)
-       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-//    for (i=0; i < n; ++i)
-//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+//      for (i=0; i < n; ++i)
+//        cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+   for (i=0; i < n; ++i)
+     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-    ifftobj->fft(data);
-//    ifftobj->fft(dataout, data);
+//    ifftobj->fft(data);
+   ifftobj->fft(dataout, data);
    dft1(data1, dataout1, n, true);
 
 // print out transformed data
@@ -119,11 +119,8 @@ int main(int argc, char *argv[])
       cout<<"("<<fabs(data[2*i]-data1[2*i])<<","<<fabs(data[2*i+1]-data1[2*i+1])<<")   \t("
       <<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
     
-//     static const int NN = 30;
-//     cout.precision(20);
-//     cout << Sqrt<NN,float>::value() << endl;
-//     cout << Sqrt<NN,double>::value() << endl;
-//     cout << Sqrt<NN,long double>::value() << endl;
+//     cout << GetNextFactor<16,4>::value << endl;
+//     cout << GetNextFactor<16,5>::value << endl;
 
 }
 

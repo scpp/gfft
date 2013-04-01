@@ -21,6 +21,37 @@
 
 #include <cmath>
 
+template<typename T>
+struct TempTypeTrait;
+
+template<>
+struct TempTypeTrait<float> {
+   typedef double Result;
+};
+
+template<>
+struct TempTypeTrait<double> {
+   typedef long double Result;
+};
+
+template<typename T,
+template<typename> class Complex>
+struct TempTypeTrait<Complex<T> > {
+   typedef typename TempTypeTrait<T>::Result Result;
+};
+
+template<typename T, typename A,
+template<typename,typename> class Complex>
+struct TempTypeTrait<Complex<T,A> > {
+   typedef typename TempTypeTrait<T>::Result Result;
+};
+
+// template<typename T, typename A,
+// template<typename,typename> class Complex>
+// struct TempTypeTrait<Complex<T,A> > {
+//    typedef T Result;
+// };
+
 /// Metafunctions template classes
 /*!
 Template classes under this namespace are dedicated to the calculation of
@@ -133,7 +164,7 @@ struct Cos<B,A,double> {
 template<unsigned B, unsigned A>
 struct Cos<B,A,long double> {
    static long double value() {
-      return SinCosSeries<1,60,B,A>::value();
+      return SinCosSeries<1,59,B,A>::value();
    }
 };
 

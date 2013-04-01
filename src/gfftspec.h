@@ -27,8 +27,166 @@ namespace GFFT {
 
 using namespace MF;
 
+template<typename T, int_t N, int S, int_t K>
+struct ComputeTwiddles
+{
+  static const int_t K2 = K*2;
+  
+  static void apply(T* c, T* s)
+  {
+    ComputeTwiddles<T,N,S,K-1>::apply(c, s);
+    c[K-1] = Cos<N,K2,T>::value();
+    s[K-1] = S*Sin<N,K2,T>::value();
+  }
+};
+
+template<typename T, int_t N, int S>
+struct ComputeTwiddles<T,N,S,1>
+{
+  static void apply(T* c, T* s)
+  {
+    c[0] = Cos<N,2,T>::value();
+    s[0] = S*Sin<N,2,T>::value();
+  }
+};
+
+//////////////////////////////////////////////////
+
 template<int_t N, int_t M, typename T, int S>
-class DFTk_inplace;
+class DFTk_inplace
+{
+  //GFFT_STATIC_ASSERT((N%2 == 1))   // N is assumed odd, otherwise compiler would not come here
+  
+  typedef typename TempTypeTrait<T>::Result LocalVType;
+  static const int_t K = (N-1)/2; 
+  static const int_t NM = N*M; 
+   
+  LocalVType m_c[K], m_s[K];
+  
+public:
+  DFTk_inplace() 
+  { 
+    ComputeTwiddles<LocalVType, N, S, K>::apply(m_c, m_s);
+  }
+  
+  void apply(T* data) 
+  { 
+    T sr[K], si[K], dr[K], di[K];
+    for (int_t i=0; i<K; ++i) {
+      const int_t k = (i+1)*M;
+      sr[i] = data[k]   + data[NM-k];
+      si[i] = data[k+1] + data[NM-k+1];
+      dr[i] = data[k]   - data[NM-k];
+      di[i] = data[k+1] - data[NM-k+1];
+    }
+    
+    for (int_t i=1; i<K+1; ++i) {
+      T re1(0), re2(0), im1(0), im2(0);
+      for (int_t j=0; j<K; ++j) {
+	const bool sign_change = (i*(j+1) % N) > K;
+	const int_t k = (i+j-1)%K;
+	const T s1 = m_s[k]*di[j];
+	const T s2 = m_s[k]*dr[j];
+	re1 += m_c[k]*sr[j];
+	im1 += m_c[k]*si[j];
+	re2 += sign_change ? -s1 : s1;
+	im2 -= sign_change ? -s2 : s2;
+      }
+      const int_t k = i*M;
+      data[k] = data[0] + re1 + re2;
+      data[k+1] = data[1] + im1 + im2;
+      data[NM-k] = data[0] + re1 - re2;
+      data[NM-k+1] = data[1] + im1 - im2;
+    }
+    
+    for (int_t i=0; i<K; ++i) {
+      data[0] += sr[i];
+      data[1] += si[i];
+    }
+  }
+
+  template<class LT>
+  void apply(T* data, const LT* wr, const LT* wi) 
+  { 
+    T sr[K], si[K], dr[K], di[K];
+    for (int_t i=0; i<K; ++i) {
+      const int_t k = (i+1)*M;
+      const T tr1 = data[k]*wr[i] - data[k+1]*wi[i];
+      const T ti1 = data[k]*wi[i] + data[k+1]*wr[i];
+      const T tr2 = data[NM-k]*wr[K-i] - data[NM-k+1]*wi[K-i];
+      const T ti2 = data[NM-k]*wi[K-i] + data[NM-k+1]*wr[K-i];
+      sr[i] = tr1 + tr2;
+      si[i] = ti1 + ti2;
+      dr[i] = tr1 - tr2;
+      di[i] = ti1 - ti2;
+    }
+    
+    for (int_t i=1; i<K+1; ++i) {
+      T re1(0), re2(0), im1(0), im2(0);
+      for (int_t j=0; j<K; ++j) {
+	const bool sign_change = (i*(j+1) % N) > K;
+	const int_t k = (i+j-1)%K;
+	const T s1 = m_s[k]*di[j];
+	const T s2 = m_s[k]*dr[j];
+	re1 += m_c[k]*sr[j];
+	im1 += m_c[k]*si[j];
+	re2 += sign_change ? -s1 : s1;
+	im2 -= sign_change ? -s2 : s2;
+      }
+      const int_t k = i*M;
+      data[k] = data[0] + re1 + re2;
+      data[k+1] = data[1] + im1 + im2;
+      data[NM-k] = data[0] + re1 - re2;
+      data[NM-k+1] = data[1] + im1 - im2;
+    }
+    
+    for (int_t i=0; i<K; ++i) {
+      data[0] += sr[i];
+      data[1] += si[i];
+    }
+  }
+  
+  template<class LT>
+  void apply(const LT* wr, const LT* wi, T* data) 
+  { 
+    T sr[K], si[K], dr[K], di[K];
+    for (int_t i=0; i<K; ++i) {
+      const int_t k = (i+1)*M;
+      sr[i] = data[k]   + data[NM-k];
+      si[i] = data[k+1] + data[NM-k+1];
+      dr[i] = data[k]   - data[NM-k];
+      di[i] = data[k+1] - data[NM-k+1];
+    }
+    
+    for (int_t i=1; i<K+1; ++i) {
+      T re1(0), re2(0), im1(0), im2(0);
+      for (int_t j=0; j<K; ++j) {
+	const bool sign_change = (i*(j+1) % N) > K;
+	const int_t k = (i+j-1)%K;
+	const T s1 = m_s[k]*di[j];
+	const T s2 = m_s[k]*dr[j];
+	re1 += m_c[k]*sr[j];
+	im1 += m_c[k]*si[j];
+	re2 += sign_change ? -s1 : s1;
+	im2 -= sign_change ? -s2 : s2;
+      }
+      const int_t k = i*M;
+      const T tr1 = data[0] + re1 + re2;
+      const T ti1 = data[1] + im1 + im2;
+      const T tr2 = data[0] + re1 - re2;
+      const T ti2 = data[1] + im1 - im2;
+      data[k] = tr1*wr[i-1] - ti1*wi[i-1];
+      data[k+1] = tr1*wi[i-1] + ti1*wr[i-1];
+      data[NM-k] = tr2*wr[K-i+1] - ti2*wi[K-i+1];
+      data[NM-k+1] = tr2*wi[K-i+1] + ti2*wr[K-i+1];
+    }
+    
+    for (int_t i=0; i<K; ++i) {
+      data[0] += sr[i];
+      data[1] += si[i];
+    }
+  }
+};
 
 template<int_t M, typename T, int S>
 class DFTk_inplace<3,M,T,S> 
@@ -148,7 +306,66 @@ public:
 ////////////////////////////////////////////////////////
 
 template<int_t N, int_t SI, int_t DI, typename T, int S>
-class DFTk;
+class DFTk
+{
+  //GFFT_STATIC_ASSERT(N%2 == 1)   // N is assumed odd, otherwise compiler would not come here
+  
+  typedef typename TempTypeTrait<T>::Result LocalVType;
+  static const int_t K = (N-1)/2; 
+  static const int_t NSI = N*SI; 
+  static const int_t NDI = N*DI; 
+   
+  LocalVType m_c[K], m_s[K];
+  
+public:
+  DFTk() 
+  { 
+    ComputeTwiddles<LocalVType, N, S, K>::apply(m_c, m_s);
+  }
+  
+  void apply(const T* src, T* dst) 
+  { 
+    T sr[K], si[K], dr[K], di[K];
+    for (int_t i=0; i<K; ++i) {
+      const int_t k = (i+1)*SI;
+      sr[i] = src[k]   + src[NSI-k];
+      si[i] = src[k+1] + src[NSI-k+1];
+      dr[i] = src[k]   - src[NSI-k];
+      di[i] = src[k+1] - src[NSI-k+1];
+    }
+    
+    for (int_t i=1; i<K+1; ++i) {
+      T re1(0), re2(0), im1(0), im2(0);
+      for (int_t j=0; j<K; ++j) {
+	const bool sign_change = (i*(j+1) % N) > K;
+	const int_t k = (i+j-1)%K;
+	const T s1 = m_s[k]*di[j];
+	const T s2 = m_s[k]*dr[j];
+	re1 += m_c[k]*sr[j];
+	im1 += m_c[k]*si[j];
+	re2 += sign_change ? -s1 : s1;
+	im2 -= sign_change ? -s2 : s2;
+      }
+      const int_t k = i*DI;
+      dst[k] = src[0] + re1 + re2;
+      dst[k+1] = src[1] + im1 + im2;
+      dst[NDI-k] = src[0] + re1 - re2;
+      dst[NDI-k+1] = src[1] + im1 - im2;
+    }
+
+    dst[0] = src[0];
+    dst[1] = src[1];
+    for (int_t i=0; i<K; ++i) {
+      dst[0] += sr[i];
+      dst[1] += si[i];
+    }
+  }
+
+  template<class LT>
+  void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
+  { 
+  }
+};
 
 template<int_t SI, int_t DI, typename T, int S>
 class DFTk<3,SI,DI,T,S> 

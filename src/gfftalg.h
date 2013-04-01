@@ -26,47 +26,61 @@ namespace GFFT {
 
 using namespace MF;
 
-template<typename T>
-struct TempTypeTrait;
+
+template<bool C>
+struct StaticAssert;
 
 template<>
-struct TempTypeTrait<float> {
-   typedef double Result;
+struct StaticAssert<true> { };
+
+#define GFFT_STATIC_ASSERT(c) StaticAssert<c> static__assert; 
+
+
+template<int_t N, int_t K,  
+bool C = ((6*K+1)*(6*K+1) <= N)>
+struct GetNextFactorLoop;
+
+template<int_t N, int_t K>
+struct GetNextFactorLoop<N, K, true>
+{
+  static const int_t Candidate1 = 6*K + 1;
+  static const int_t Candidate2 = 6*K + 5;
+  static const int_t value = (N % Candidate1 == 0) ? Candidate1 
+          : (N % Candidate2 == 0) ? Candidate2 : GetNextFactorLoop<N, K+1>::value;
 };
 
-template<>
-struct TempTypeTrait<double> {
-   typedef long double Result;
+// N is prime
+template<int_t N, int_t K>
+struct GetNextFactorLoop<N, K, false>
+{
+  static const int_t value = N;
 };
 
-template<typename T,
-template<typename> class Complex>
-struct TempTypeTrait<Complex<T> > {
-   typedef typename TempTypeTrait<T>::Result Result;
-};
-
-template<typename T, typename A,
-template<typename,typename> class Complex>
-struct TempTypeTrait<Complex<T,A> > {
-   typedef typename TempTypeTrait<T>::Result Result;
-};
-
-// template<typename T, typename A,
-// template<typename,typename> class Complex>
-// struct TempTypeTrait<Complex<T,A> > {
-//    typedef T Result;
-// };
 
 // Look here for a small prime factor using 6k+1, 6k+5 algorithm
 // until some relative small limit (e.g. 100)
 // then rely on some prime factor algorithm like Rader (only for primes), Winograd or Bluestein (for any n)
 // then come back to factoring
+template<int_t N,
+bool C = ((N%2 == 0) || (N%3 == 0) || (N%5 == 0) || (N%7 == 0))>
+struct GetNextFactor;
+
 template<int_t N>
-struct GetNextFactor {
-  // dummy trial: assume multiple of 2 and 3 only
-  static const int value = (N%2 == 0) ? 2 : 3; 
+struct GetNextFactor<N, true> 
+{
+  static const bool m2 = (N%2 == 0);
+  static const bool m3 = (N%3 == 0);
+  static const bool m5 = (N%5 == 0);
+  static const bool m7 = (N%7 == 0);
+  GFFT_STATIC_ASSERT(m2 || m3 || m5 || m7)
+  static const int_t value = (m2 ? 2 : (m3 ? 3 : (m5 ? 5 : (m7 ? 7 : 0))));
 };
 
+template<int_t N>
+struct GetNextFactor<N, false> 
+{
+  static const int_t value = GetNextFactorLoop<N, 1>::value;
+};
 
 // TODO: compare this with the simple loop
 template<int_t M, typename T, int LastK, int NIter>
@@ -135,7 +149,47 @@ public:
 };
 
 template<int_t K, int_t M, typename T, int S>
-class DFTk_x_Im_T;
+class DFTk_x_Im_T 
+{
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = K*M;
+   static const int_t M2 = M*2;
+   DFTk_inplace<K,M2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+
+      LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr[0], wpi[0])
+      wpr[0] = 1 - 2.0*t*t;
+      wpi[0] = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^i = (wpr2, wpi2)
+      for (int_t i=0; i<K-2; ++i) {
+	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
+	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
+      }
+      
+      for (int_t i=0; i<K-1; ++i) {
+	wr[i] = wpr[i];
+	wi[i] = wpi[i];
+      }
+      
+      for (int_t i=2; i<M2; i+=2) {
+	spec_inp.apply(data+i, wr, wi);
+
+	for (int_t i=0; i<K-1; ++i) {
+	  t = wr[i];
+	  wr[i] = t*wpr[i] - wi[i]*wpi[i];
+	  wi[i] = wi[i]*wpr[i] + t*wpi[i];
+	}
+      }
+   }
+  
+};
 
 template<int_t M, typename T, int S>
 class DFTk_x_Im_T<3,M,T,S> {
@@ -217,7 +271,7 @@ Therefore, it has two specializations for N=2 and N=1 (the trivial and empty cas
 */
 template<int_t N, typename T, int S, int_t LastK = 1>
 class InTime {
-   static const int_t K = GetNextFactor<N>::value;
+   static const int_t K = GetNextFactor<N, LastK>::value;
    static const int_t M = N/K;
    static const int_t M2 = M*2;
    //IterateInTime<M,T,LastK,K-1> iter;
@@ -320,7 +374,78 @@ public:
 /////////////////////////////////////////////////////////
 
 template<int_t K, int_t M, typename T, int S>
-class T_DFTk_x_Im;
+class T_DFTk_x_Im
+{
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = K*M;
+   static const int_t M2 = M*2;
+   DFTk<K,M2,M2,T,S> spec;
+   DFTk_inplace<K,M2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+
+      LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr[0], wpi[0])
+      wpr[0] = 1 - 2.0*t*t;
+      wpi[0] = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^i = (wpr2, wpi2)
+      for (int_t i=0; i<K-2; ++i) {
+	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
+	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
+      }
+      
+      for (int_t i=0; i<K-1; ++i) {
+	wr[i] = wpr[i];
+	wi[i] = wpi[i];
+      }
+
+      for (int_t i=2; i<M2; i+=2) {
+	spec_inp.apply(wr, wi, data+i);
+
+	for (int_t i=0; i<K-1; ++i) {
+	  t = wr[i];
+	  wr[i] = t*wpr[i] - wi[i]*wpi[i];
+	  wi[i] = wi[i]*wpr[i] + t*wpi[i];
+	}
+      }
+   }
+   void apply(const T* src, T* dst) 
+   {
+      spec.apply(src, dst);
+
+      LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
+      t = Sin<N,1,LocalVType>::value();
+
+      // W = (wpr[0], wpi[0])
+      wpr[0] = 1 - 2.0*t*t;
+      wpi[0] = -S*Sin<N,2,LocalVType>::value();
+      
+      // W^i = (wpr2, wpi2)
+      for (int_t i=0; i<K-2; ++i) {
+	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
+	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
+      }
+      
+      for (int_t i=0; i<K-1; ++i) {
+	wr[i] = wpr[i];
+	wi[i] = wpi[i];
+      }
+      for (int_t i=2; i<M2; i+=2) {
+	spec.apply(wr, wi, src+i, dst+i);
+
+	for (int_t i=0; i<K-1; ++i) {
+	  t = wr[i];
+	  wr[i] = t*wpr[i] - wi[i]*wpi[i];
+	  wi[i] = wi[i]*wpr[i] + t*wpi[i];
+	}
+      }
+   }
+};
 
 template<int_t M, typename T, int S>
 class T_DFTk_x_Im<3,M,T,S> {
@@ -404,7 +529,7 @@ class T_DFTk_x_Im<2,M,T,S>
 public:
    void apply(T* data) 
    {
-     //iterate.apply(data);
+      //iterate.apply(data);
       spec_inp.apply(data);
 
       LocalVType t,wr,wi;
@@ -455,10 +580,12 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InTime
 */
-template<int_t N, typename T, int S, int_t LastK = 1>
+template<int_t N, typename T, int S, 
+int_t LastK = 1,
+int_t K = GetNextFactor<N, LastK>::value>
 class InFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const int_t K = GetNextFactor<N>::value;
+   //static const int_t K = GetNextFactor<N, LastK>::value;
    static const int_t M = N/K;
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
@@ -466,7 +593,7 @@ class InFreq {
    //IterateInTime<M,T,LastK,K-1> iter;
    InFreq<M,T,S,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S> dft_scaled;
-   //InFreq<N/2,T,S> next;
+
 public:
    void apply(T* data) 
    {
@@ -520,47 +647,36 @@ public:
 //    }
 // };
 
-// Specialization for N=2, decimation-in-frequency
+// Specialization for prime N
+template<int_t N, typename T, int S, int_t LastK>
+class InFreq<N,T,S,LastK,N> {
+  DFTk<N, 2, LastK*2, T, S> spec;
+  DFTk_inplace<N, 2, T, S> spec_inp;
+public:
+  void apply(T* data) 
+  { 
+    spec_inp.apply(data);
+  }
+  void apply(const T* src, T* dst, T*) 
+  { 
+    spec.apply(src, dst);
+  }
+};
+
+/*
+// Specialization for N=3, decimation-in-frequency
 template<typename T, int S, int_t LastK>
 class InFreq<3,T,S,LastK> {
-//   static const int_t K2 = LastK*2;
-//   static const int_t K4 = 2*K2;
   DFTk<3, 2, LastK*2, T, S> spec;
   DFTk_inplace<3, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
     spec_inp.apply(data);
-//       const T c = S * Sqrt<3, T>::value() * 0.5;
-//       const T sr = data[2] + data[4];
-//       const T dr = c*(data[2] - data[4]);
-//       const T si = data[3] + data[5];
-//       const T di = c*(data[3] - data[5]);
-//       const T tr = data[0] - 0.5*sr;
-//       const T ti = data[1] - 0.5*si;
-//       data[0] += sr;
-//       data[1] += si;
-//       data[2] = tr + di;
-//       data[3] = ti - dr;
-//       data[4] = tr - di;
-//       data[5] = ti + dr;
   }
   void apply(const T* src, T* dst, T*) 
   { 
     spec.apply(src, dst);
-//       const T c = S * Sqrt<3, T>::value() * 0.5;
-//       const T sr = src[K2] + src[K4];
-//       const T dr = c*(src[K2] - src[K4]);
-//       const T si = src[K2+1] + src[K4+1];
-//       const T di = c*(src[K2+1] - src[K4+1]);
-//       const T tr = src[0] - 0.5*sr;
-//       const T ti = src[1] - 0.5*si;
-//       dst[0] = src[0] + sr;
-//       dst[1] = src[1] + si;
-//       dst[2] = tr + di;
-//       dst[3] = ti - dr;
-//       dst[4] = tr - di;
-//       dst[5] = ti + dr;     
   }
 };
 
@@ -576,12 +692,7 @@ public:
   }
   void apply(const T* src, T* dst, T*) 
   { 
-     spec.apply(src, dst);
-//     const T v1(src[1]), v2(src[2]), v3(src[3]);
-//     dst[0] = (*src + v2);
-//     dst[1] = (v1 + v3);
-//     dst[K2] = (*src - v2);
-//     dst[K2+1] = (v1 - v3);
+    spec.apply(src, dst);
   }
 };
 
@@ -590,9 +701,9 @@ template<typename T, int S, int_t LastK>
 class InFreq<1,T,S,LastK> {
 public:
    void apply(T* data) { }
-   void apply(const T* src, T* dst) { *dst = *src; }
+   void apply(const T* src, T* dst, T*) { *dst = *src; }
 };
-
+*/
 
 /// Binary reordering of array elements
 /*!
