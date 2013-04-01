@@ -31,6 +31,7 @@ using namespace GFFT;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 
+const char space = '\t';
 
 
 template<class GenListResult>
@@ -49,7 +50,6 @@ public:
 
      size_t i,it;
      double t,mt;
-     char space = '\t';
      progClock* cl=new progClock();
 
      it = size_t(5000000./(double)H::Len)+1;
@@ -92,7 +92,7 @@ public:
           <<0<<space    // array type
           <<1<<space    // dim
           <<3<<space    // CPU-time
-          <<H::PLen<<space
+          <<H::Len<<space
           <<mt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
@@ -106,14 +106,14 @@ public:
      next.realtime(hardware_id,system_id,compiler_id,software_id);
 
      size_t i,it;
-     char space = '\t';
 
      it = size_t(5000000./(double)H::Len)+1;
 
      Tp* data = new Tp [2*H::Len*it];
+     Tp* dataout = new Tp [2*H::Len*it];
 
       // initial data
-     for (i=0; i<2*H::Len*it; ++i)
+     for (i=0; i<2*H::Len*it; ++i) 
        data[i] = 0;
 
       time_duration td;
@@ -126,6 +126,7 @@ public:
       for (i=0; i<3; ++i) {
         d=data;
         for (size_t j=0; j<it; ++j) {
+//           gfft.fft(d, dataout);
           gfft.fft(d);
           d+=2*H::Len;
         }
@@ -144,10 +145,11 @@ public:
           <<0<<space    // array type
           <<1<<space    // dim
           <<2<<space    // real time
-          <<H::PLen<<space
+          <<H::Len<<space
           <<rt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
+      delete [] dataout;
       delete [] data;
    }
 };
@@ -160,8 +162,8 @@ public:
 };
 
 
-static const unsigned int MinP = 1;
-static const unsigned int MaxP = 25;
+static const unsigned int MinP = 4;
+static const unsigned int MaxP = 10;
 
 
 int main(int argc, char *argv[])
@@ -172,10 +174,11 @@ int main(int argc, char *argv[])
       exit(1);
     }
 
-    typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default> List_ds;
-    typedef GenerateTransform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
-    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
-    typedef GenerateTransform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;
+    typedef GeneratePower2Transform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
+       ParallelizationGroup::Default, INFREQ> List_ds;
+//    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
+//     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
+//     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;
 
 //     typedef TYPELIST_2(OpenMP<2>, OpenMP<4>) ParallList;
 //     typedef GenerateTransform<MinP, MaxP, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallList> List_dp;
@@ -191,19 +194,33 @@ int main(int argc, char *argv[])
    cout<<setprecision(12);
 
    GFFTbench<List_ds::Result> bench_ds;
-   GFFTbench<List_fs::Result> bench_fs;
-   GFFTbench<List_cds::Result> bench_cds;
-   GFFTbench<List_cfs::Result> bench_cfs;
+//   GFFTbench<List_fs::Result> bench_fs;
+//    GFFTbench<List_cds::Result> bench_cds;
+//    GFFTbench<List_cfs::Result> bench_cfs;
 
-
-/*   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
-   bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);*/
+  // Header
+      cout<<"hdw"<<space
+          <<"sys"<<space
+          <<"comp"<<space
+          <<"soft"<<space
+          <<"fwd/bkw"<<space
+          <<"dbl/fl"<<space
+          <<"inT/inF"<<space
+          <<"parall"<<space
+          <<0<<space    // array type
+          <<1<<space    // dim
+          <<2<<space    // real time
+          <<"len"<<space
+          <<"time"<<endl;
+   cout.precision(4);
+//   bench_ds.cputime(hardware_id,system_id,compiler_id,release_id);
+//   bench_fs.cputime(hardware_id,system_id,compiler_id,release_id);
 //    bench_cds.cputime(hardware_id,system_id,compiler_id,release_id);
 //    bench_cfs.cputime(hardware_id,system_id,compiler_id,release_id);
 
-/*   bench_ds.realtime(hardware_id,system_id,compiler_id,release_id);
-   bench_fs.realtime(hardware_id,system_id,compiler_id,release_id);*/
-   bench_cds.realtime(hardware_id,system_id,compiler_id,release_id);
+   bench_ds.realtime(hardware_id,system_id,compiler_id,release_id);
+//   bench_fs.realtime(hardware_id,system_id,compiler_id,release_id);
+//   bench_cds.realtime(hardware_id,system_id,compiler_id,release_id);
 //   bench_cfs.realtime(hardware_id,system_id,compiler_id,release_id);
 
 /*   bench_dp.realtime(hardware_id,system_id,compiler_id,release_id);
