@@ -27,6 +27,16 @@ namespace GFFT {
 using namespace MF;
 
 
+template<class TList> struct Print;
+
+template<> struct Print<Loki::NullType> { };
+
+template<class Head, class Tail>
+struct Print<Loki::Typelist<Head,Tail> > {
+   typedef typename Print<Tail>::Result Result;
+};
+
+
 template<bool C>
 struct StaticAssert;
 
@@ -34,6 +44,81 @@ template<>
 struct StaticAssert<true> { };
 
 #define GFFT_STATIC_ASSERT(c) StaticAssert<c> static__assert; 
+
+template<typename T1, typename T2>
+struct Pair {
+  typedef T1 first;
+  typedef T2 second;
+};
+
+template<int_t N, int_t Factor, 
+bool C = (N % Factor == 0)>
+struct IsMultipleOf;
+  
+template<int_t N, int_t Factor>
+struct IsMultipleOf<N, Factor, true> {
+  static const int_t value = IsMultipleOf<N/Factor, Factor>::value + 1;
+};
+
+template<int_t N, int_t Factor> 
+struct IsMultipleOf<N, Factor, false> {
+  static const int_t value = 0;
+};
+
+template<int_t Factor> 
+struct IsMultipleOf<0, Factor, true> {
+  static const int_t value = 0;
+};
+
+template<int_t N, int_t K,  
+bool C = (6*K+1 <= N)>
+struct FactorizationLoop;
+
+template<int_t N, int_t K>
+struct FactorizationLoop<N, K, true>
+{
+  static const int_t Candidate1 = 6*K + 1;
+  static const int_t Candidate2 = 6*K + 5;
+  static const int_t P1 = IsMultipleOf<N, Candidate1>::value;
+  static const int_t P2 = IsMultipleOf<N, Candidate2>::value;
+  static const int_t F1 = IPow<Candidate1, P1>::value;
+  static const int_t F2 = IPow<Candidate2, P2>::value;
+  typedef Pair<SInt<Candidate1>, SInt<P1> > T1;
+  typedef Pair<SInt<Candidate2>, SInt<P2> > T2;
+  
+  static const int_t NextN = N/F1/F2;
+  typedef typename FactorizationLoop<NextN, K+1>::Result NextIter;
+  
+  typedef typename Loki::Select<(P1>0) && (P2>0), 
+    Loki::Typelist<T1, Loki::Typelist<T2, NextIter> >, 
+    typename Loki::Select<(P1>0), Loki::Typelist<T1, NextIter>, 
+    typename Loki::Select<(P2>0), Loki::Typelist<T2, NextIter>, NextIter>::Result>::Result>::Result Result;
+};
+
+template<int_t N, int_t K>
+struct FactorizationLoop<N, K, false>
+{
+  typedef Loki::NullType Result;
+};
+
+typedef TYPELIST_5(SInt<2>, SInt<3>, SInt<5>, SInt<7>, SInt<11>) InitialPrimesList;
+
+template<typename Num,
+typename StartList = InitialPrimesList>
+struct Factorization;
+
+template<typename Num, typename H, typename Tail>
+struct Factorization<Num, Loki::Typelist<H,Tail> >
+{
+  static const int_t P = IsMultipleOf<Num::value, H::value>::value;
+  typedef SInt<Num::value / IPow<H::value,P>::value> NextNum;
+  typedef typename Factorization<NextNum,Tail>::Result Next;
+  typedef typename Loki::Select<(P > 0), 
+     Loki::Typelist<Pair<H, SInt<P> >, Next>, Next>::Result Result;
+};
+
+template<typename Num>
+struct Factorization<Num, Loki::NullType> : public FactorizationLoop<Num::value, 2> {};
 
 
 template<int_t N, int_t K,  
@@ -62,7 +147,7 @@ struct GetNextFactorLoop<N, K, false>
 // then rely on some prime factor algorithm like Rader (only for primes), Winograd or Bluestein (for any n)
 // then come back to factoring
 template<int_t N,
-bool C = ((N%2 == 0) || (N%3 == 0) || (N%5 == 0) || (N%7 == 0))>
+bool C = ((N%2 == 0) || (N%3 == 0) || (N%5 == 0))>
 struct GetNextFactor;
 
 template<int_t N>
@@ -71,9 +156,8 @@ struct GetNextFactor<N, true>
   static const bool m2 = (N%2 == 0);
   static const bool m3 = (N%3 == 0);
   static const bool m5 = (N%5 == 0);
-  static const bool m7 = (N%7 == 0);
-  GFFT_STATIC_ASSERT(m2 || m3 || m5 || m7)
-  static const int_t value = (m2 ? 2 : (m3 ? 3 : (m5 ? 5 : (m7 ? 7 : 0))));
+  GFFT_STATIC_ASSERT(m2 || m3 || m5)
+  static const int_t value = (m2 ? 2 : (m3 ? 3 : (m5 ? 5 : 0)));
 };
 
 template<int_t N>

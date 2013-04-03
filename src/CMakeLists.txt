@@ -6,7 +6,7 @@ project(gfft)
 #include_directories()
 
 ### GCC compiler
-add_definitions(-time -Wall -O0 -g3 -fopenmp -DGFFTDOC)
+add_definitions(-time -Wall -O0 -g3 -fopenmp -ftemplate-depth=10000 -DGFFTDOC)
 
 ### Intel compiler
 #add_definitions(-O3 -openmp -DGFFTDOC)

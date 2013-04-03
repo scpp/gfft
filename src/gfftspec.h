@@ -21,8 +21,6 @@
 
 #include "metafunc.h"
 
-typedef unsigned long int_t;
-
 namespace GFFT {
 
 using namespace MF;

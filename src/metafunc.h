@@ -21,6 +21,8 @@
 
 #include <cmath>
 
+#include "sint.h"
+
 template<typename T>
 struct TempTypeTrait;
 

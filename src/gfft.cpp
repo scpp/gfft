@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     unsigned int i, n = 7;
     
     typedef DFT TransformType;
-
+/*
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
 								   ParallelizationGroup::Default::ID, INFREQ::ID);
@@ -118,9 +118,12 @@ int main(int argc, char *argv[])
     for (i=0; i < n; ++i)
       cout<<"("<<fabs(data[2*i]-data1[2*i])<<","<<fabs(data[2*i+1]-data1[2*i+1])<<")   \t("
       <<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-    
-//     cout << GetNextFactor<16,4>::value << endl;
-//     cout << GetNextFactor<16,5>::value << endl;
+*/
+
+//    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
+    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
+//    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
+//    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 
 }
 
