@@ -71,11 +71,12 @@ struct IsMultipleOf<0, Factor, true> {
 };
 
 template<int_t N, int_t K,  
-bool C = (6*K+1 <= N)>
+bool C1 = ((6*K+1)*(6*K+1) <= N),
+bool C2 = ((N % (6*K+1) == 0) || (N % (6*K+5) == 0))>
 struct FactorizationLoop;
 
 template<int_t N, int_t K>
-struct FactorizationLoop<N, K, true>
+struct FactorizationLoop<N, K, true, true>
 {
   static const int_t Candidate1 = 6*K + 1;
   static const int_t Candidate2 = 6*K + 5;
@@ -96,10 +97,15 @@ struct FactorizationLoop<N, K, true>
 };
 
 template<int_t N, int_t K>
-struct FactorizationLoop<N, K, false>
+struct FactorizationLoop<N, K, true, false> : public FactorizationLoop<N, K+1> {};
+
+template<int_t N, int_t K, bool C>
+struct FactorizationLoop<N, K, false, C>
 {
-  typedef Loki::NullType Result;
+  typedef Pair<SInt<N>, SInt<1> > T;
+  typedef Loki::Typelist<T, Loki::NullType> Result;
 };
+
 
 typedef TYPELIST_5(SInt<2>, SInt<3>, SInt<5>, SInt<7>, SInt<11>) InitialPrimesList;
 
@@ -121,50 +127,7 @@ template<typename Num>
 struct Factorization<Num, Loki::NullType> : public FactorizationLoop<Num::value, 2> {};
 
 
-template<int_t N, int_t K,  
-bool C = ((6*K+1)*(6*K+1) <= N)>
-struct GetNextFactorLoop;
 
-template<int_t N, int_t K>
-struct GetNextFactorLoop<N, K, true>
-{
-  static const int_t Candidate1 = 6*K + 1;
-  static const int_t Candidate2 = 6*K + 5;
-  static const int_t value = (N % Candidate1 == 0) ? Candidate1 
-          : (N % Candidate2 == 0) ? Candidate2 : GetNextFactorLoop<N, K+1>::value;
-};
-
-// N is prime
-template<int_t N, int_t K>
-struct GetNextFactorLoop<N, K, false>
-{
-  static const int_t value = N;
-};
-
-
-// Look here for a small prime factor using 6k+1, 6k+5 algorithm
-// until some relative small limit (e.g. 100)
-// then rely on some prime factor algorithm like Rader (only for primes), Winograd or Bluestein (for any n)
-// then come back to factoring
-template<int_t N,
-bool C = ((N%2 == 0) || (N%3 == 0) || (N%5 == 0))>
-struct GetNextFactor;
-
-template<int_t N>
-struct GetNextFactor<N, true> 
-{
-  static const bool m2 = (N%2 == 0);
-  static const bool m3 = (N%3 == 0);
-  static const bool m5 = (N%5 == 0);
-  GFFT_STATIC_ASSERT(m2 || m3 || m5)
-  static const int_t value = (m2 ? 2 : (m3 ? 3 : (m5 ? 5 : 0)));
-};
-
-template<int_t N>
-struct GetNextFactor<N, false> 
-{
-  static const int_t value = GetNextFactorLoop<N, 1>::value;
-};
 
 // TODO: compare this with the simple loop
 template<int_t M, typename T, int LastK, int NIter>
