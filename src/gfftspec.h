@@ -82,7 +82,8 @@ public:
       T re1(0), re2(0), im1(0), im2(0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t k = (i+j-1)%K;
+	const int_t kk = (i+j*i)%N;
+	const int_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -123,7 +124,8 @@ public:
       T re1(0), re2(0), im1(0), im2(0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t k = (i+j-1)%K;
+	const int_t kk = (i+j*i)%N;
+	const int_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -160,7 +162,8 @@ public:
       T re1(0), re2(0), im1(0), im2(0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t k = (i+j-1)%K;
+	const int_t kk = (i+j*i)%N;
+	const int_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -387,7 +390,8 @@ public:
       T re1(0), re2(0), im1(0), im2(0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t k = (i+j-1)%K;
+	const int_t kk = (i+j*i)%N;
+	const int_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
