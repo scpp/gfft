@@ -159,24 +159,32 @@ struct TransformFactoryError
 
 
 
-/// Static unsigned integer class holder with additional definition of ID
-template<unsigned int P>
+template<int_t P>
 struct Power2holder {
-   static const unsigned long N = 1<<P;
-   static const unsigned long ID = N-1;
-   static const unsigned long Value = N;
-   static const unsigned long value = N;
+   static const int_t N = 1<<P;
+   static const int_t ID = N-1;
+   static const int_t Value = N;
+   static const int_t value = N;
+};
+
+template<int_t P>
+struct Power3holder {
+   static const int_t N = IPow<3,P>::value;
+   static const int_t ID = N-1;
+   static const int_t Value = N;
+   static const int_t value = N;
 };
 
 /// Generates Typelist with types Holder<N>, N = Begin,...,End
-template<unsigned int Begin, unsigned int End, 
-template<unsigned int> class Holder = SIntID>
+template<int_t Begin, int_t End, 
+template<int_t> class Holder = SIntID>
 struct GenNumList {
    typedef Loki::Typelist<Holder<Begin>,
       typename GenNumList<Begin+1,End,Holder>::Result> Result;
 };
 
-template<unsigned End, template<unsigned int> class Holder>
+template<int_t End, 
+template<int_t> class Holder>
 struct GenNumList<End,End,Holder> {
    typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
 };
@@ -184,8 +192,7 @@ struct GenNumList<End,End,Holder> {
 
 /// MAIN CLASS TO USE! Generates a set of transform classes
 /**
-\tparam Begin defines minimum transform length as a power of two (2^Begin)
-\tparam End defines maximum transform length as a power of two (2^End)
+\tparam NList Typelist containing transform lengths
 \tparam T type of data element
 \tparam TransType type of transform: DFT, IDFT, RDFT, IRDFT
 \tparam Dim dimension of transform, defined as SIntID<N>, N=1,2,...
@@ -224,64 +231,8 @@ typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::TransformTypeGroup::FullLi
 
 \sa Transform, ListGenerator
 */
-/*
-template<unsigned Begin, unsigned End,
-class T        
-class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
-class Dim        = SIntID<1>,
-class Parall     = ParallelizationGroup::Default,
-class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
-class GeneratePower2Transform {
-   typedef typename GenNumList<Begin,End,Power2holder>::Result NList;
-   enum { L1 = Loki::TL::Length<NList>::value };
-   enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
-   enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
-   enum { L4 = 1 };
-   enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
-   enum { L6 = Loki::TL::Length<DecimationGroup::FullList>::value };
-   typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
-
-   typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
-
-   typedef TYPELIST_6(Decimation,Parall,Dim,TransType,T,NList) RevList;
-
-   typedef TranslateID<LenList> Translate;
-
-public:
-   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
-   typedef AbstractFFT<typename T::ValueType> ObjectType;
-
-   Loki::Factory<ObjectType,uint,ObjectType*(*)(),TransformFactoryError> factory;
-
-   GeneratePower2Transform() {
-      FactoryInit<Result>::apply(factory);
-   }
-
-   ObjectType* CreateTransformObject(uint p, uint vtype_id, 
-                                   uint trans_id = TransformTypeGroup::default_id, 
-                                   uint dim = 1, 
-                                   uint parall_id = ParallelizationGroup::default_id, 
-                                   uint decim_id = DecimationGroup::default_id) 
-   {
-      uint n[] = {p-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
-      uint obj_id = Translate::apply(n);
-//std::cout<<obj_id<<std::endl;
-      return factory.CreateObject(obj_id);
-   }
-
-//    static unsigned int trans_id(const unsigned int* n) {
-//       unsigned int nn[6];
-//       for (int i=0; i<6; ++i) nn[i] = n[i];
-//       nn[0]--;
-//       return Translate::apply(nn);
-//    }
-
-};
-*/
-
-
 template<class NList,
-class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
+class T         /* = ValueTypeList*/,        // has to be set explicitely because of AbstractFFT<T>
 class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
 class Dim        = SIntID<1>,
 class Parall     = ParallelizationGroup::Default,
@@ -303,13 +254,13 @@ class GenerateTransform {
    typedef TranslateID<LenList> Translate;
 
 public:
-   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result FFTList;
+   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
    typedef AbstractFFT<typename T::ValueType> ObjectType;
 
    Loki::Factory<ObjectType,int_t,ObjectType*(*)(),TransformFactoryError> factory;
 
    GenerateTransform() {
-      FactoryInit<FFTList>::apply(factory);
+      FactoryInit<Result>::apply(factory);
    }
 
    ObjectType* CreateTransformObject(int_t n, int_t vtype_id, 
