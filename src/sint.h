@@ -20,6 +20,7 @@
 #define __sint_h
 
 typedef unsigned int int_t;
+typedef unsigned short short_t;
 
 /// Integer number metacontainer.
 /**     Integer N is wrapped into container class to handle integers and other

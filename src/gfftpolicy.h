@@ -97,12 +97,12 @@ struct COMPLEX_FLOAT {
 */
 struct INTIME {
    static const id_t ID = 0;
-   template<unsigned long N, typename T,
+   template<int_t N, typename NFact, typename T,
             class Swap,
-            class Direction, unsigned int NT>
+            class Direction, short_t NT>
    class List {
-//      typedef InTime<N,T,Direction::Sign> InT;
-      typedef InTimeOMP<NT,N,T,Direction::Sign> InT;
+      typedef InTime<N,NFact,T,Direction::Sign> InT;
+//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign> InT;
    public:
        typedef TYPELIST_3(Swap,InT,Direction) Result;
 //      typedef TYPELIST_2(InT,Direction) Result;
@@ -114,12 +114,12 @@ struct INTIME {
 */
 struct INFREQ {
    static const id_t ID = 1;
-   template<unsigned long N, typename T,
+   template<int_t N, typename NFact, typename T,
             class Swap,
-            class Direction, unsigned int NT>
+            class Direction, short_t NT>
    class List {
-//      typedef InFreq<N,T,Direction::Sign> InF;
-      typedef InFreqOMP<NT,N,T,Direction::Sign> InF;
+      typedef InFreq<N,NFact,T,Direction::Sign> InF;
+//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign> InF;
    public:
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };

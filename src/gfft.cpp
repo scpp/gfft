@@ -50,17 +50,18 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>, SIntID<7>) NList;
+typedef TYPELIST_5(SIntID<7>, SIntID<8>, SIntID<11>, SIntID<12>, SIntID<13>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
 
 int main(int argc, char *argv[])
 {
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
-    unsigned int i, n = 7;
-    
+    int_t i, n;
+    cin >> n;
+   
     typedef DFT TransformType;
-/*
+
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
 								   ParallelizationGroup::Default::ID, INFREQ::ID);
@@ -118,10 +119,11 @@ int main(int argc, char *argv[])
     for (i=0; i < n; ++i)
       cout<<"("<<fabs(data[2*i]-data1[2*i])<<","<<fabs(data[2*i+1]-data1[2*i+1])<<")   \t("
       <<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-*/
 
+
+//    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
-    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
+//    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
 //    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 

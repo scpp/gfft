@@ -187,6 +187,57 @@ public:
 };
 
 template<int_t M, typename T, int S>
+class DFTk_inplace<4,M,T,S> 
+{
+  static const int_t I10 = M;
+  static const int_t I11 = M+1;
+  static const int_t I20 = M+M;
+  static const int_t I21 = I20+1;
+  static const int_t I30 = I20+M;
+  static const int_t I31 = I30+1;
+  
+public:
+  DFTk_inplace() { }
+  
+  void apply(T* data) 
+  { 
+      T tr = data[I20];
+      T ti = data[I21];
+      data[I20] = data[0]-tr;
+      data[I21] = data[1]-ti;
+      data[0] += tr;
+      data[1] += ti;
+      tr = data[I30];
+      ti = data[I31];
+      data[I30] = S*(data[I11]-ti);
+      data[I31] = S*(tr-data[I10]);
+      data[I10] += tr;
+      data[I11] += ti;
+
+      tr = data[I10];
+      ti = data[I11];
+      data[I10] = data[0]-tr;
+      data[I11] = data[1]-ti;
+      data[0] += tr;
+      data[1] += ti;
+      tr = data[I30];
+      ti = data[I31];
+      data[I30] = data[I20]-tr;
+      data[I31] = data[I21]-ti;
+      data[I20] += tr;
+      data[I21] += ti;
+  }
+  template<class LT>
+  void apply(T* data, const LT* wr, const LT* wi) 
+  { 
+  }
+  template<class LT>
+  void apply(const LT* wr, const LT* wi, T* data) 
+  { 
+  }
+};
+
+template<int_t M, typename T, int S>
 class DFTk_inplace<3,M,T,S> 
 {
   static const int_t I10 = M;

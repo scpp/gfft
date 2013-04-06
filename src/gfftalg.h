@@ -20,21 +20,12 @@
 */
 
 #include "gfftspec.h"
+#include "gfftfactor.h"
 
 
 namespace GFFT {
 
 using namespace MF;
-
-
-template<class TList> struct Print;
-
-template<> struct Print<Loki::NullType> { };
-
-template<class Head, class Tail>
-struct Print<Loki::Typelist<Head,Tail> > {
-   typedef typename Print<Tail>::Result Result;
-};
 
 
 template<bool C>
@@ -44,87 +35,6 @@ template<>
 struct StaticAssert<true> { };
 
 #define GFFT_STATIC_ASSERT(c) StaticAssert<c> static__assert; 
-
-template<typename T1, typename T2>
-struct Pair {
-  typedef T1 first;
-  typedef T2 second;
-};
-
-template<int_t N, int_t Factor, 
-bool C = (N % Factor == 0)>
-struct IsMultipleOf;
-  
-template<int_t N, int_t Factor>
-struct IsMultipleOf<N, Factor, true> {
-  static const int_t value = IsMultipleOf<N/Factor, Factor>::value + 1;
-};
-
-template<int_t N, int_t Factor> 
-struct IsMultipleOf<N, Factor, false> {
-  static const int_t value = 0;
-};
-
-template<int_t Factor> 
-struct IsMultipleOf<0, Factor, true> {
-  static const int_t value = 0;
-};
-
-template<int_t N, int_t K,  
-bool C1 = ((6*K+1)*(6*K+1) <= N),
-bool C2 = ((N % (6*K+1) == 0) || (N % (6*K+5) == 0))>
-struct FactorizationLoop;
-
-template<int_t N, int_t K>
-struct FactorizationLoop<N, K, true, true>
-{
-  static const int_t Candidate1 = 6*K + 1;
-  static const int_t Candidate2 = 6*K + 5;
-  static const int_t P1 = IsMultipleOf<N, Candidate1>::value;
-  static const int_t P2 = IsMultipleOf<N, Candidate2>::value;
-  static const int_t F1 = IPow<Candidate1, P1>::value;
-  static const int_t F2 = IPow<Candidate2, P2>::value;
-  typedef Pair<SInt<Candidate1>, SInt<P1> > T1;
-  typedef Pair<SInt<Candidate2>, SInt<P2> > T2;
-  
-  static const int_t NextN = N/F1/F2;
-  typedef typename FactorizationLoop<NextN, K+1>::Result NextIter;
-  
-  typedef typename Loki::Select<(P1>0) && (P2>0), 
-    Loki::Typelist<T1, Loki::Typelist<T2, NextIter> >, 
-    typename Loki::Select<(P1>0), Loki::Typelist<T1, NextIter>, 
-    typename Loki::Select<(P2>0), Loki::Typelist<T2, NextIter>, NextIter>::Result>::Result>::Result Result;
-};
-
-template<int_t N, int_t K>
-struct FactorizationLoop<N, K, true, false> : public FactorizationLoop<N, K+1> {};
-
-template<int_t N, int_t K, bool C>
-struct FactorizationLoop<N, K, false, C>
-{
-  typedef Pair<SInt<N>, SInt<1> > T;
-  typedef Loki::Typelist<T, Loki::NullType> Result;
-};
-
-
-typedef TYPELIST_5(SInt<2>, SInt<3>, SInt<5>, SInt<7>, SInt<11>) InitialPrimesList;
-
-template<typename Num,
-typename StartList = InitialPrimesList>
-struct Factorization;
-
-template<typename Num, typename H, typename Tail>
-struct Factorization<Num, Loki::Typelist<H,Tail> >
-{
-  static const int_t P = IsMultipleOf<Num::value, H::value>::value;
-  typedef SInt<Num::value / IPow<H::value,P>::value> NextNum;
-  typedef typename Factorization<NextNum,Tail>::Result Next;
-  typedef typename Loki::Select<(P > 0), 
-     Loki::Typelist<Pair<H, SInt<P> >, Next>, Next>::Result Result;
-};
-
-template<typename Num>
-struct Factorization<Num, Loki::NullType> : public FactorizationLoop<Num::value, 2> {};
 
 
 
@@ -316,89 +226,54 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InFreq
 */
-template<int_t N, typename T, int S, int_t LastK = 1>
-class InTime {
-   static const int_t K = GetNextFactor<N, LastK>::value;
+template<int_t N, typename NFact, typename T, int S, int_t LastK = 1>
+class InTime;
+
+template<int_t N, typename Head, typename Tail, typename T, int S, int_t LastK>
+class InTime<N, Loki::Typelist<Head,Tail>, T, S, LastK>
+{
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t K = Head::first::value;
    static const int_t M = N/K;
    static const int_t M2 = M*2;
+   static const int_t N2 = N*2;
+   static const int_t LastK2 = LastK*2;
+   
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    //IterateInTime<M,T,LastK,K-1> iter;
-   InTime<M,T,S,K*LastK> dft_str;
+   InTime<M,NFactNext,T,S,K*LastK> dft_str;
    DFTk_x_Im_T<K,M,T,S> dft_scaled;
 public:
    void apply(T* data) 
    {
-      for (unsigned int i = 0; i < K; ++i)
-	dft_str.apply(data + i*M2);
+      for (int_t m = 0; m < N2; m+=M2)
+	dft_str.apply(data + m);
 
       dft_scaled.apply(data);
    }
 
    void apply(const T* src, T* dst, T* buf) 
    {
-      for (int_t i = 0; i < K; ++i)
-        dft_str.apply(src + i*2*LastK, dst + i*M2, buf);
+      int_t lk = 0;
+      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+        dft_str.apply(src + lk, dst + m, buf);
 //      iter.apply(step, src, dst);
 
       dft_scaled.apply(dst);
    }
 };
 
-/*
-/// Specialization for N=4, decimation-in-time
-template<typename T, int S>
-class InTime<4,T,S> {
-public:
-   void apply(T* data) {
-      T tr = data[2];
-      T ti = data[3];
-      data[2] = data[0]-tr;
-      data[3] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[6];
-      ti = data[7];
-      data[6] = S*(data[5]-ti);
-      data[7] = S*(tr-data[4]);
-      data[4] += tr;
-      data[5] += ti;
+// Take the next factor from the list
+template<int_t N, int_t K, typename Tail, typename T, int S, int_t LastK>
+class InTime<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, LastK>
+: public InTime<N, Tail, T, S, LastK> {};
 
-      tr = data[4];
-      ti = data[5];
-      data[4] = data[0]-tr;
-      data[5] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[6];
-      ti = data[7];
-      data[6] = data[2]-tr;
-      data[7] = data[3]-ti;
-      data[2] += tr;
-      data[3] += ti;
-   }
-};
-*/
 
-// Specialization for N=3, decimation-in-time
-template<typename T, int S, int_t LastK>
-class InTime<3,T,S,LastK> {
-  DFTk<3, LastK*2, 2, T, S> spec;
-  DFTk_inplace<3, 2, T, S> spec_inp;
-public:
-   void apply(T* data) 
-   { 
-      spec_inp.apply(data);
-   }
-   void apply(const T* src, T* dst, T*) 
-   { 
-      spec.apply(src, dst);
-   }
-};
-
-// Specialization for N=2, decimation-in-time
-template<typename T, int S, int_t LastK>
-class InTime<2,T,S,LastK> {
-  DFTk<2, LastK*2, 2, T, S> spec;
-  DFTk_inplace<2, 2, T, S> spec_inp;
+// Specialization for prime N
+template<int_t N, typename T, int S, int_t LastK>
+class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,LastK> {
+  DFTk<N, LastK*2, 2, T, S> spec;
+  DFTk_inplace<N, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
@@ -410,6 +285,7 @@ public:
   }
 };
 
+/*
 // Specialization for N=1, decimation-in-time
 template<typename T, int S, int_t LastK>
 class InTime<1,T,S,LastK> {
@@ -417,6 +293,7 @@ public:
    void apply(T* data) { }
    void apply(const T* src, T* dst, T*) { *dst = *src; }
 };
+*/
 
 /////////////////////////////////////////////////////////
 
@@ -627,18 +504,22 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InTime
 */
-template<int_t N, typename T, int S, 
-int_t LastK = 1,
-int_t K = GetNextFactor<N, LastK>::value>
-class InFreq {
+template<int_t N, typename NFact, typename T, int S, int_t LastK = 1>
+class InFreq;
+
+template<int_t N, typename Head, typename Tail, typename T, int S, int_t LastK>
+class InFreq<N, Loki::Typelist<Head,Tail>, T, S, LastK>
+{
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   //static const int_t K = GetNextFactor<N, LastK>::value;
+   static const int_t K = Head::first::value;
    static const int_t M = N/K;
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
    static const int_t LastK2 = LastK*2;
-   //IterateInTime<M,T,LastK,K-1> iter;
-   InFreq<M,T,S,K*LastK> dft_str;
+   
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   //IterateInFreq<M,T,LastK,K-1> iter;
+   InFreq<M,NFactNext,T,S,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S> dft_scaled;
 
 public:
@@ -661,42 +542,16 @@ public:
    }
 };
 
-// Specialization for N=4, decimation-in-frequency
-// template<typename T, int S>
-// class InFreq<4,T,S> {
-// public:
-//    void apply(T* data) {
-//       T tr = data[4];
-//       T ti = data[5];
-//       data[4] = data[0]-tr;
-//       data[5] = data[1]-ti;
-//       data[0] += tr;
-//       data[1] += ti;
-//       tr = data[6];
-//       ti = data[7];
-//       data[6] = S*(data[3]-ti);
-//       data[7] = S*(tr-data[2]);
-//       data[2] += tr;
-//       data[3] += ti;
-// 
-//       tr = data[2];
-//       ti = data[3];
-//       data[2] = data[0]-tr;
-//       data[3] = data[1]-ti;
-//       data[0] += tr;
-//       data[1] += ti;
-//       tr = data[6];
-//       ti = data[7];
-//       data[6] = data[4]-tr;
-//       data[7] = data[5]-ti;
-//       data[4] += tr;
-//       data[5] += ti;
-//    }
-// };
+
+// Take the next factor from the list
+template<int_t N, int_t K, typename Tail, typename T, int S, int_t LastK>
+class InFreq<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, LastK>
+: public InFreq<N, Tail, T, S, LastK> {};
+
 
 // Specialization for prime N
 template<int_t N, typename T, int S, int_t LastK>
-class InFreq<N,T,S,LastK,N> {
+class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,LastK> {
   DFTk<N, 2, LastK*2, T, S> spec;
   DFTk_inplace<N, 2, T, S> spec_inp;
 public:

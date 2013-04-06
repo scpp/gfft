@@ -51,7 +51,7 @@ with the half of the transform length N
 until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 */
-template<int_t N, typename T, int S,
+template<typename N, typename T, int S,
 template<typename> class Complex>
 class InTime<N,Complex<T>,S> {
    typedef typename TempTypeTrait<T>::Result LocalVType;

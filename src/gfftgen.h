@@ -28,7 +28,11 @@
 /// Main namespace
 namespace GFFT {
 
-typedef unsigned int uint;
+/// Static unsigned integer class holder with additional definition of ID
+template<int_t N>
+struct SIntID : public SInt<N> {
+   static const uint ID = N-1;
+};
 
 /** \class {GFFT::Transform}
 \brief Generic Fast Fourier transform in-place class
@@ -41,7 +45,7 @@ typedef unsigned int uint;
 \tparam FactoryPolicy policy used to create an object factory. Don't define it explicitely, if unsure
 
 Use this class only, if you need transform of a single fixed type and length.
-Otherwise, rely to template class GenerateTransform
+Otherwise, rely on template class GenerateTransform
 */
 template<class N,
 class VType,
@@ -51,15 +55,17 @@ class Parall,
 class Decimation,              // INTIME, INFREQ
 class FactoryPolicy = Empty,
 uint IDN = N::ID>
-class Transform : public FactoryPolicy {
+class Transform : public FactoryPolicy 
+{
    typedef typename VType::ValueType T;
    typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::Value,T> Dir;
    typedef Separate<N::Value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
-   typedef typename Decimation::template List<N::Value,T,Swap,Dir,Parall::NParProc>::Result TList;
+   typedef typename Factorization<N, SInt>::Result NFact;
+   typedef typename Decimation::template List<N::Value,NFact,T,Swap,Dir,Parall::NParProc>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
-
+   
    Caller<Loki::Typelist<Parall,Alg> > run;
    
    T* buf;
@@ -154,12 +160,6 @@ struct TransformFactoryError
 
 
 /// Static unsigned integer class holder with additional definition of ID
-template<unsigned int N>
-struct SIntID : public s_uint<N> {
-   static const uint ID = N-1;
-};
-
-/// Static unsigned integer class holder with additional definition of ID
 template<unsigned int P>
 struct Power2holder {
    static const unsigned long N = 1<<P;
@@ -224,8 +224,9 @@ typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::TransformTypeGroup::FullLi
 
 \sa Transform, ListGenerator
 */
+/*
 template<unsigned Begin, unsigned End,
-class T         /* = ValueTypeList*/,        // has to be set explicitely because of the AbstractFFT<T>
+class T        
 class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
 class Dim        = SIntID<1>,
 class Parall     = ParallelizationGroup::Default,
@@ -276,7 +277,7 @@ public:
 //    }
 
 };
-
+*/
 
 
 template<class NList,
@@ -302,23 +303,23 @@ class GenerateTransform {
    typedef TranslateID<LenList> Translate;
 
 public:
-   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
+   typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result FFTList;
    typedef AbstractFFT<typename T::ValueType> ObjectType;
 
-   Loki::Factory<ObjectType,uint,ObjectType*(*)(),TransformFactoryError> factory;
+   Loki::Factory<ObjectType,int_t,ObjectType*(*)(),TransformFactoryError> factory;
 
    GenerateTransform() {
-      FactoryInit<Result>::apply(factory);
+      FactoryInit<FFTList>::apply(factory);
    }
 
-   ObjectType* CreateTransformObject(uint n, uint vtype_id, 
-                                   uint trans_id = TransformTypeGroup::default_id, 
-                                   uint dim = 1, 
-                                   uint parall_id = ParallelizationGroup::default_id, 
-                                   uint decim_id = DecimationGroup::default_id) 
+   ObjectType* CreateTransformObject(int_t n, int_t vtype_id, 
+                                   int_t trans_id = TransformTypeGroup::default_id, 
+                                   int_t dim = 1, 
+                                   int_t parall_id = ParallelizationGroup::default_id, 
+                                   int_t decim_id = DecimationGroup::default_id) 
    {
-      uint narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
-      uint obj_id = Translate::apply(narr);
+      int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
+      int_t obj_id = Translate::apply(narr);
 //std::cout<<obj_id<<std::endl;
       return factory.CreateObject(obj_id);
    }

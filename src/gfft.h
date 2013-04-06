@@ -30,7 +30,7 @@
 
 #include "finit.h"
 #include "gfftomp.h"
-#include "gfftstdalg.h"
+//#include "gfftstdalg.h"
 #include "gfftpolicy.h"
 #include "gfftcaller.h"
 #include "gfftgen.h"
