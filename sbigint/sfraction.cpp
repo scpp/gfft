@@ -29,9 +29,11 @@ static const int BN = 20;
 static const unsigned A = 65000;
 static const unsigned B = 6500;
 static const unsigned int Base = 1<<(sizeof(IntT)*4);
-typedef NUMLIST_2(A,A) L1;
-typedef NUMLIST_2(A+1,A) L11;
-typedef NUMLIST_2(B,B) L2;
+typedef SInt<A> TA;
+typedef SInt<B> TB;
+typedef TYPELIST_2(TA,TA) L1;
+typedef TYPELIST_2(SInt<A+1>,TA) L11;
+typedef TYPELIST_2(TB,TB) L2;
 
 /*typedef SBigInt<true,L1,Base> BI1;
 typedef SBigInt<true,L2,Base> BI2;
@@ -45,15 +47,15 @@ typedef Sub<Sum3,BI1>::Result Sum;*/
 
 //typedef NL::Print<Sum::Num>::Result deb;
 //typedef Translate<BI2,10>::Result SumT;
-typedef NUMLIST_3(3,5,8) LL1;
-typedef NUMLIST_2(7,2) LL2;
+typedef TYPELIST_3(SInt<3>,SInt<5>,SInt<8>) LL1;
+typedef TYPELIST_2(SInt<7>,SInt<2>) LL2;
 typedef SBigInt<true,LL1,10> BI1;
 typedef SBigInt<true,LL2,10> BI2;
 typedef Div<BI1,BI2> D;
 
 //D::ModResult a;
-typedef NL::Print<D::DivResult>::Result deb0;
-typedef NL::Print<D::ModResult>::Result deb1;
+//typedef NL::Print<D::DivResult>::Result deb0;
+//typedef NL::Print<D::ModResult>::Result deb1;
 // typedef NL::Print<SInt<D::L1> >::Result deb2;
 // typedef NL::Print<SInt<D::L2> >::Result deb3;
 
