@@ -27,12 +27,33 @@ struct SFraction {
 template<class A, class B>
 struct GCD;
 
-template<int N1, int N2>
+template<bool S1, class N1, base_t B1, bool S2, class N2, base_t B2>
+struct GCD<SBigInt<S1,N1,B1>, SBigInt<S2,N2,B2> > {
+  typedef SBigInt<S2,N2,B2> TN2;
+  typedef typename Div<SBigInt<S1,N1,B1>,TN2>::ModResult Mod;
+  typedef typename GCD<TN2,Mod>::Result Result;
+};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SBigInt<S,N1,Base>, SInt<N2> > {
+  typedef typename Div<SBigInt<S,N1,Base>,SInt<N2> >::ModResult Mod;
+  typedef typename GCD<SInt<N2>,Mod>::Result Result;
+};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SInt<N2>, SBigInt<S,N1,Base> > : public GCD<SBigInt<S,N1,Base>, SInt<N2> > {};
+
+template<int_t N1, int_t N2>
 struct GCD<SInt<N1>, SInt<N2> > {
    typedef typename GCD<SInt<N2>,SInt<N1%N2> >::Result Result;
 };
 
-template<int N>
+template<bool S, class N, base_t Base>
+struct GCD<SBigInt<S,N,Base>, SInt<0> > {
+   typedef SBigInt<S,N,Base> Result;
+};
+
+template<int_t N>
 struct GCD<SInt<N>, SInt<0> > {
    typedef SInt<N> Result;
 };
@@ -40,8 +61,8 @@ struct GCD<SInt<N>, SInt<0> > {
 template<class N, class D>
 class Simplify<SFraction<N,D> > {
    typedef typename GCD<N,D>::Result T;
-   typedef typename Div<N,T>::Result Num;
-   typedef typename Div<D,T>::Result Den;
+   typedef typename Div<N,T>::DivResult Num;
+   typedef typename Div<D,T>::DivResult Den;
 public:
    typedef SFraction<Num,Den> Result;
 };

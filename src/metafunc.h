@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "sint.h"
+#include "sfraction.h"
 
 template<typename T>
 struct TempTypeTrait;
@@ -104,6 +104,7 @@ struct SinCosSeries<N,N,B,A> {
 };
 
 
+
 /** \class {MF::Sin}
 \brief Sine function
 
@@ -183,19 +184,33 @@ struct NDigits<0, Base> {
 
 template<unsigned N, unsigned P>
 struct IPow {
-  static const unsigned value = IPow<N,P-1>::value * N;
+  static const unsigned long value = IPow<N,P-1>::value * N;
 };
 
 template<unsigned N>
 struct IPow<N,1> {
-  static const unsigned value = N;
+  static const unsigned long value = N;
 };
 
 template<unsigned N>
 struct IPow<N,0> {
-  static const unsigned value = 1;
+  static const unsigned long value = 1;
 };
 
+template<int_t N, int_t P>
+struct IPowBig {
+  typedef typename Mult<typename IPowBig<N,P-1>::Result, SInt<N> >::Result Result;
+};
+
+template<int_t N>
+struct IPowBig<N,1> {
+  typedef SInt<N> Result;
+};
+
+template<int_t N>
+struct IPowBig<N,0> {
+  typedef SInt<1> Result;
+};
 
 template<unsigned N, unsigned I>
 class SqrtSeries {
@@ -240,8 +255,43 @@ struct Sqrt<N, long double> {
    }
 };
 
-
+template<int K = 10>
+struct Pi
+{
+  static const unsigned long P16 = IPow<16,K>::value;
+  static const int_t K1 = 8*K+1;
+  static const int_t K2 = 4*K+2;
+  static const int_t K3 = 8*K+5;
+  static const int_t K4 = 8*K+6;
   
+  typedef typename IPowBig<16,K>::Result PBig;
+  typedef SInt<K1> TK1;
+  typedef SInt<K2> TK2;
+  typedef SInt<K3> TK3;
+  typedef SInt<K4> TK4;
+  typedef typename Mult<typename Mult<typename Mult<TK1,TK2>::Result, 
+                        typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
+  typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
+  
+  typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
+  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
+  
+  typedef double T;
+  static T value() 
+  {
+    return (4./static_cast<T>(K1) - 2./static_cast<T>(K2) - 1./static_cast<T>(K3) - 1./static_cast<T>(K4))
+            /static_cast<T>(P16) + Pi<K-1>::value();
+  }
+};
+
+template<>
+struct Pi<0>
+{
+  typedef SFraction<SInt<47>, SInt<15> > Result;
+  
+  static double value() { return 47./15.; }
+};
+
 } // namespace MF
 
 #endif /*__metafunc_h*/

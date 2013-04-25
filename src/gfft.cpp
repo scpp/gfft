@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009-2013 by Volodymyr Myrnyy                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
     int_t i, n = 11;
-    cin >> n;
-   
+//    cin >> n;
+/*   
     typedef DFT TransformType;
 
     TransformSet gfft;
@@ -127,13 +127,30 @@ int main(int argc, char *argv[])
     }
     cout<<"---------------------------------------------"<<endl;
     cout << mx1 << "                 " << mx2 << endl;
-
+*/
 
 //    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
 //    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
+
+typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;
+typedef TYPELIST_2(SInt<7>,SInt<2>) LL2;
+typedef SBigInt<true,LL1,10> BI1;
+typedef SBigInt<true,LL2,10> BI2;
+typedef Mult<BI1,BI2>::Result M;
+//typedef Simplify<Div<M,BI2>::ModResult>::Result D;
+
+typedef unsigned long int RetType;
+typedef Pi<3>::Result TPi;
+//typedef Print<TPi>::Result TTT;
+// cout<< Evaluate2Int<M,int_t>::value << endl; 
+// cout<< Evaluate2Int<D,int_t>::value << endl; 
+// cout<< Evaluate2Float<M,double>::value() << endl; 
+// cout<< Evaluate2Float<D,double>::value() << endl; 
+cout.precision(20);
+cout<< Evaluate2Float<TPi::Numer,RetType>::value() << "/" << Evaluate2Float<TPi::Denom,RetType>::value() << endl;
 
 }
 

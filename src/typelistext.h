@@ -24,7 +24,7 @@
 #ifndef __typelist_h
 #define __typelist_h
 
-#include <loki/Typelist.h>
+#include "loki/Typelist.h"
 
 namespace Loki {
 
