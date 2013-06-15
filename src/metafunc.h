@@ -273,7 +273,9 @@ struct Pi
                         typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
-  typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
+//   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
+//   typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
+  typedef SFraction<Numer,Denom> Fraction;
   typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
   
   typedef double T;

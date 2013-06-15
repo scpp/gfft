@@ -137,20 +137,52 @@ int main(int argc, char *argv[])
 
 typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;
 typedef TYPELIST_2(SInt<7>,SInt<2>) LL2;
+typedef TYPELIST_2(SInt<2>,SInt<1>) LL3;
 typedef SBigInt<true,LL1,10> BI1;
 typedef SBigInt<true,LL2,10> BI2;
+typedef SBigInt<true,LL3,10> BI3;
 typedef Mult<BI1,BI2>::Result M;
+typedef Div<BI2,SInt<3> >::DivResult DD;
+typedef Simplify<Div<BI2,SInt<30> >::ModResult>::Result DM;
+typedef Add<BI1,BI2>::Result A;
+typedef Sub<BI1,BI2>::Result S;
+typedef Sub<S,BI2>::Result SS;
 //typedef Simplify<Div<M,BI2>::ModResult>::Result D;
+//typedef Print<DM>::Result TTT;
 
-typedef unsigned long int RetType;
-typedef Pi<3>::Result TPi;
-//typedef Print<TPi>::Result TTT;
-// cout<< Evaluate2Int<M,int_t>::value << endl; 
+//typedef unsigned long int RetType;
+typedef long double RetType;
+//typedef Simplify<SF>::Result SI;
+//typedef Print<G1>::Result TTT;
+//cout<< Evaluate2Int<G1,int_t>::Value << endl; 
 // cout<< Evaluate2Int<D,int_t>::value << endl; 
 // cout<< Evaluate2Float<M,double>::value() << endl; 
 // cout<< Evaluate2Float<D,double>::value() << endl; 
 cout.precision(20);
-cout<< Evaluate2Float<TPi::Numer,RetType>::value() << "/" << Evaluate2Float<TPi::Denom,RetType>::value() << endl;
+// cout << (int)NL::Compare<BI1, BI2>::value << endl;
+// cout << (int)NL::Compare<BI2, S>::value << endl;
+// cout << (int)NL::Compare<BI2, SS>::value << endl;
+//cout << (int)GCD<BI2, BI2>::Result::value << endl;
+//typedef Pi<2>::Result TPi;
+typedef Simplify<Pi<5>::Result>::Result TPi;
+typedef GCD<TPi::Numer, TPi::Denom>::Result G1;
+cout << ">>>>>>> " << Evaluate2Int<G1,RetType>::Value << endl;
+typedef Div<TPi::Numer, TPi::Denom>::ModResult M1;
+cout << "1) mod("<< Evaluate2Int<TPi::Numer,RetType>::Value << "," << Evaluate2Int<TPi::Denom,RetType>::Value << ") = " << Evaluate2Int<M1,RetType>::Value << endl;
+typedef Div<TPi::Denom, M1>::ModResult M2;
+cout << "2) mod("<< Evaluate2Int<TPi::Denom,RetType>::Value << "," << Evaluate2Int<M1,RetType>::Value << ") = " << Evaluate2Int<M2,RetType>::Value << endl;
+// typedef Print<TPi::Denom>::Result TT2;
+//typedef Print<M2>::Result TT1;
+typedef Div<M1, M2>::ModResult M3;
+cout << "3) mod("<< Evaluate2Int<M1,RetType>::Value << "," << Evaluate2Int<M2,RetType>::Value << ") = " << Evaluate2Int<M3,RetType>::Value << endl;
+typedef Div<M2, M3>::ModResult M4;
+cout << "4) mod("<< Evaluate2Int<M2,RetType>::Value << "," << Evaluate2Int<M3,RetType>::Value << ") = " << Evaluate2Int<M4,RetType>::Value << endl;
+// 
+const RetType numer = Evaluate2Float<TPi::Numer,RetType>::value();
+const RetType denom = Evaluate2Float<TPi::Denom,RetType>::value();
+cout<< numer << "/" << denom << " = " << (double)numer/denom << endl;
+
+//cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
 
 }
 

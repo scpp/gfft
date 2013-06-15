@@ -24,28 +24,39 @@ struct SFraction {
 };
 
 ///Greatest common divisor of A and B
+/*
 template<class A, class B>
 struct GCD;
 
-template<bool S1, class N1, base_t B1, bool S2, class N2, base_t B2>
-struct GCD<SBigInt<S1,N1,B1>, SBigInt<S2,N2,B2> > {
-  typedef SBigInt<S2,N2,B2> TN2;
-  typedef typename Div<SBigInt<S1,N1,B1>,TN2>::ModResult Mod;
-  typedef typename GCD<TN2,Mod>::Result Result;
+template<bool S1, class N1, bool S2, class N2, base_t B>
+struct GCD<SBigInt<S1,N1,B>, SBigInt<S2,N2,B> > {
+  typedef SBigInt<S1,N1,B> TN1;
+  typedef SBigInt<S2,N2,B> TN2;
+  static const int C = NL::Compare<TN1,TN2>::value;
+  typedef typename Loki::Select<(C==0), TN1,
+          typename Loki::Select<(C>0), typename GCD<TN2, typename Simplify<typename Sub<TN1,TN2>::Result>::Result>::Result,
+                                       typename GCD<TN1, typename Simplify<typename Sub<TN2,TN1>::Result>::Result>::Result>::Result>::Result Result;
 };
 
 template<bool S, class N1, base_t Base, int_t N2>
 struct GCD<SBigInt<S,N1,Base>, SInt<N2> > {
-  typedef typename Div<SBigInt<S,N1,Base>,SInt<N2> >::ModResult Mod;
-  typedef typename GCD<SInt<N2>,Mod>::Result Result;
+  typedef SBigInt<S,N1,Base> TN1;
+  typedef SInt<N2> TN2;
+  static const int C = NL::Compare<TN1,TN2>::value;
+  typedef typename Loki::Select<(C==0), TN1,
+          typename Loki::Select<(C>0), typename GCD<TN2, typename Simplify<typename Sub<TN1,TN2>::Result>::Result>::Result,
+                                       typename GCD<TN1, typename Simplify<typename Sub<TN2,TN1>::Result>::Result>::Result>::Result>::Result Result;
 };
 
 template<bool S, class N1, base_t Base, int_t N2>
-struct GCD<SInt<N2>, SBigInt<S,N1,Base> > : public GCD<SBigInt<S,N1,Base>, SInt<N2> > {};
+struct GCD<SInt<N2>, SBigInt<S,N1,Base> > 
+: public GCD<SBigInt<S,N1,Base>, SInt<N2> > {};
 
 template<int_t N1, int_t N2>
 struct GCD<SInt<N1>, SInt<N2> > {
-   typedef typename GCD<SInt<N2>,SInt<N1%N2> >::Result Result;
+   typedef typename Loki::Select<(N1==N2), SInt<N1>, 
+           typename Loki::Select<(N1>N2), typename GCD<SInt<N2>, SInt<N1-N2> >::Result,
+                                          typename GCD<SInt<N1>, SInt<N2-N1> >::Result>::Result>::Result Result;
 };
 
 template<bool S, class N, base_t Base>
@@ -57,6 +68,75 @@ template<int_t N>
 struct GCD<SInt<N>, SInt<0> > {
    typedef SInt<N> Result;
 };
+*/
+
+template<class A, class B,
+int C = (int)NL::Compare<A,B>::value>
+struct GCD;
+
+template<class A, class B>
+struct GCD<A,B,0> {
+  typedef A Result;
+};
+
+template<bool S1, class N1, bool S2, class N2, base_t B>
+struct GCD<SBigInt<S1,N1,B>, SBigInt<S2,N2,B>, 1> {
+  typedef SBigInt<S1,N1,B> TN1;
+  typedef SBigInt<S2,N2,B> TN2;
+  typedef typename Simplify<typename Div<TN1,TN2>::ModResult>::Result Mod;
+//  typedef Loki::TL::Print<Mod> T;
+  typedef typename GCD<TN2,Mod>::Result Result;
+};
+
+template<bool S1, class N1, base_t B1, bool S2, class N2, base_t B2>
+struct GCD<SBigInt<S1,N1,B1>, SBigInt<S2,N2,B2>, -1>
+: public GCD<SBigInt<S2,N2,B2>, SBigInt<S1,N1,B1> > {};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SBigInt<S,N1,Base>, SInt<N2>, 1> {
+  typedef typename Simplify<typename Div<SBigInt<S,N1,Base>,SInt<N2> >::ModResult>::Result Mod;
+  typedef typename GCD<SInt<N2>,Mod>::Result Result;
+};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SBigInt<S,N1,Base>, SInt<N2>, -1> 
+: public GCD<SInt<N2>, SBigInt<S,N1,Base> > {};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SInt<N2>, SBigInt<S,N1,Base>, 1> 
+{
+   static const int_t N = Evaluate2Int<SBigInt<S,N1,Base>, int_t>::Value;
+   typedef typename GCD<SInt<N2>, SInt<N> >::Result Result;
+};
+
+template<bool S, class N1, base_t Base, int_t N2>
+struct GCD<SInt<N2>, SBigInt<S,N1,Base>, -1> 
+: public GCD<SBigInt<S,N1,Base>, SInt<N2> > {};
+
+template<int_t N1, int_t N2>
+struct GCD<SInt<N1>, SInt<N2>, 1> {
+   typedef typename GCD<SInt<N2>,SInt<N1%N2> >::Result Result;
+};
+
+template<int_t N1, int_t N2>
+struct GCD<SInt<N1>, SInt<N2>, -1> 
+: public GCD<SInt<N2>, SInt<N1> > {};
+
+template<bool S1, bool S2, class N, base_t Base>
+struct GCD<SBigInt<S1,N,Base>, SBigInt<S2,Loki::NullType,Base>, 1> {
+   typedef SBigInt<S1,N,Base> Result;
+};
+
+template<bool S, class N, base_t Base>
+struct GCD<SBigInt<S,N,Base>, SInt<0>, 1> {
+   typedef SBigInt<S,N,Base> Result;
+};
+
+template<int_t N>
+struct GCD<SInt<N>, SInt<0>, 1> {
+   typedef SInt<N> Result;
+};
+
 
 template<class N, class D>
 class Simplify<SFraction<N,D> > {
