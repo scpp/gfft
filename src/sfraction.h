@@ -23,6 +23,14 @@ struct SFraction {
    typedef Den Denom;
 };
 
+template<class BigInt, int_t NDecPlaces, base_t DecBase>
+struct SDecimalFraction {
+   typedef BigInt Num;
+   static const int_t NDec = NDecPlaces;
+   static const base_t Base = DecBase;
+};
+
+
 ///Greatest common divisor of A and B
 /*
 template<class A, class B>
@@ -199,6 +207,7 @@ class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
 public:
    typedef SFraction<Numer,D> Result;
 };
+
 
 
 #endif

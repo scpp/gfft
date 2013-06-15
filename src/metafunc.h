@@ -274,9 +274,9 @@ struct Pi
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
 //   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
-//   typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
   typedef SFraction<Numer,Denom> Fraction;
-  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
+//  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
+  typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
   
   typedef double T;
   static T value() 
@@ -293,6 +293,21 @@ struct Pi<0>
   
   static double value() { return 47./15.; }
 };
+
+
+/////////////////////////////////////////////////////
+
+template<class Fraction, int_t NDigits, base_t DecBase>
+struct FractionToDecimal;
+
+template<class Numer, class Denom, int_t NDigits, base_t DecBase>
+struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
+  typedef typename IPowBig<DecBase,NDigits>::Result M;
+  typedef typename Mult<Numer,M>::Result NewNumer;
+  typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
+  typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
+};
+
 
 } // namespace MF
 

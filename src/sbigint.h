@@ -28,6 +28,8 @@
 #include "loki/TypeManip.h"
 #include "loki/TypeTraits.h"
 
+#include <iostream>
+
 typedef unsigned int base_t;
 typedef int IntT;
 
@@ -778,6 +780,37 @@ template<bool S, base_t Base, base_t NewBase>
 class Translate<SBigInt<S,Loki::NullType,Base>,NewBase> {
 public:
    typedef SBigInt<S,Loki::NullType,NewBase> Result;
+};
+
+
+////////////////////////////////////////////////////////
+
+template<class BigInt>
+struct Cout;
+
+template<bool S, class H, class T, base_t Base>
+struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> > 
+{
+  typedef Cout<SBigInt<S,T,Base> > Next;
+  
+  static void apply(std::ostream& os, const int_t width = 0) { 
+    int_t w = width;
+    if (w == 0) {
+      base_t b = Base-1;
+      while (b > 0) { b/=10; ++w; }
+    }
+    Next::apply(os,w);
+    os.fill('0');
+    os.width(w);
+    os << std::right << H::Value;
+  }
+};
+
+template<bool S, class H, base_t Base>
+struct Cout<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base> > {
+  static void apply(std::ostream& os, const int_t width = 0) { 
+    os << H::Value;
+  }
 };
 
 #endif
