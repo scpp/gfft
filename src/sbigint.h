@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008-2013 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2008-2013 by Volodymyr Myrnyy                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,10 +34,16 @@ typedef unsigned int base_t;
 typedef long IntT;
 
 //static const base_t DefaultBase = (1<<(sizeof(IntT)*4));
+
 // for 32bit
-//static const base_t DefaultBase = 65536;
+//static const base_t DefaultBase        = 65536;
+//static const base_t DefaultDecimalBase = 10000;
+
 // for 64bit
-static const base_t DefaultBase = 2147483648;
+//static const base_t DefaultBase        = 2147483648;
+static const base_t DefaultBase        = 1000000000;
+static const base_t DefaultDecimalBase = 1000000000;
+
 
 /// \brief Big integer number metacontainer.
 /// \param S sign of the big integer

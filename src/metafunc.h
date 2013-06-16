@@ -297,8 +297,8 @@ struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
 
 /////////////////////////////////////////////////////
 
-template<int K = 10>
-struct Pi
+template<int K>
+struct PiFraction
 {
   typedef typename IPowBig<16,K>::Result PBig;
   typedef SInt<8*K+1> TK1;
@@ -310,15 +310,65 @@ struct Pi
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
 //   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
-  typedef SFraction<Numer,Denom> Fraction;
-  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
-  //typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
+  typedef SFraction<Numer,Denom> Result;
 };
 
 template<>
-struct Pi<0>
+struct PiFraction<0>
 {
   typedef SFraction<SInt<47>, SInt<15> > Result;
+};
+
+template<int_t Count, int_t Start = 0> 
+struct PiSum
+{
+  typedef typename PiFraction<Start>::Result Fraction;
+
+  typedef typename Add<typename PiSum<Count-1,Start+1>::Result, Fraction>::Result Result;
+  //typedef typename Simplify<typename Add<typename Pi<K,I+1>::Result, Fraction>::Result>::Result Result;
+};
+
+template<int_t Start> 
+struct PiSum<1,Start>
+{
+  typedef typename PiFraction<Start>::Result Result;
+};
+
+template<int_t Start> 
+struct PiSum<0,Start> {};  // Error
+
+
+
+template<int Accuracy, int I, class Value, class Dec1, class Dec2,
+bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
+class PiLoop;
+
+template<int Accuracy, int I, class Value, class Dec1, class Dec2>
+struct PiLoop<Accuracy,I,Value,Dec1,Dec2,true>
+{
+  typedef Value Result;
+};
+
+template<int Accuracy, int I, class Value, class Dec1, class Dec2>
+struct PiLoop<Accuracy,I,Value,Dec1,Dec2,false>
+{
+  typedef typename Add<typename PiFraction<I>::Result,Value>::Result NextValue;
+  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
+  typedef typename PiLoop<Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
+};
+
+
+template<int Accuracy = 2,    // in powers of DefaultBase
+int I = 12>  
+struct Pi
+{
+  typedef typename PiSum<I,0>::Result StartValue;
+  typedef typename FractionToDecimal<StartValue,Accuracy,DefaultBase>::AllDecimals StartDecimal;
+
+  typedef typename Add<typename PiFraction<I>::Result,StartValue>::Result NextValue;
+  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
+  
+  typedef typename PiLoop<Accuracy,I+1,NextValue,StartDecimal,NextDecimal>::Result Result;
 };
 
 
