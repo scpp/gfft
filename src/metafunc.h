@@ -297,7 +297,117 @@ struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
 
 /////////////////////////////////////////////////////
 
-template<int K>
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int_t Count, int_t Start = 0, class PrevStep = Loki::NullType> 
+struct FuncSeries
+{
+  typedef typename FuncStep<Start,X,PrevStep>::Result Step;
+
+  typedef typename Accum<Step, 
+          typename FuncSeries<X,FuncStep,Accum,Count-1,Start+1,Step>::Result>::Result Result;
+};
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int_t Start,class PrevStep> 
+struct FuncSeries<X,FuncStep,Accum,1,Start,PrevStep>
+{
+  typedef typename FuncStep<Start,X,PrevStep>::Result Result;
+};
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int_t Start,class PrevStep> 
+struct FuncSeries<X,FuncStep,Accum,0,Start,PrevStep> {};  // Error
+
+
+/*
+template<class X,
+template<int,class> class FuncStep,
+template<class,class> class Accum,
+int_t Count, int_t Start = 0> 
+struct FuncSeries1
+{
+  typedef typename FuncStep<Start,X>::Result Step;
+
+  typedef typename Accum<Step, 
+          typename FuncSeries1<X,FuncStep,Accum,Count-1,Start+1>::Result>::Result Fraction;
+  typedef typename Add<typename Fraction::Denom,typename Fraction::Numer>::Result NewNumer;
+  typedef SFraction<NewNumer,typename Fraction::Denom> Result;
+};
+
+template<class X,
+template<int,class> class FuncStep,
+template<class,class> class Accum,
+int_t Start> 
+struct FuncSeries1<X,FuncStep,Accum,1,Start>
+{
+  typedef typename FuncStep<Start,X>::Result Fraction;
+  typedef typename Add<typename Fraction::Denom,typename Fraction::Numer>::Result NewNumer;
+  typedef SFraction<NewNumer,typename Fraction::Denom> Result;
+};
+
+template<class X,
+template<int,class> class FuncStep,
+template<class,class> class Accum,
+int_t Start> 
+struct FuncSeries1<X,FuncStep,Accum,0,Start> {};  // Error
+*/
+
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Accuracy, int I, class Value, class Dec1, class Dec2,
+bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
+class FuncLoop;
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Accuracy, int I, class Value, class Dec1, class Dec2>
+struct FuncLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,true>
+{
+  typedef Value Result;
+};
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Accuracy, int I, class Value, class Dec1, class Dec2>
+struct FuncLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,false>
+{
+  typedef typename Accum<typename FuncStep<I,X,Value>::Result,Value>::Result NextValue;
+  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
+  typedef typename FuncLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
+};
+
+
+
+template<class X,
+template<int,class,class> class FuncStep,  // One step of the series to compute the function
+template<class,class> class Accumulator,      // How the steps are accumulated, normally Add or Mult
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 10>          //
+struct GenericMetaFunc
+{
+  typedef typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0>::Result StartValue;
+  typedef typename FractionToDecimal<StartValue,Accuracy,DefaultBase>::AllDecimals StartDecimal;
+
+  typedef typename FuncStep<NStartingSteps,X,StartValue>::Result NextStep;
+  typedef typename Accumulator<NextStep,StartValue>::Result NextValue;
+  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
+  
+  typedef typename FuncLoop<X,FuncStep,Accumulator,Accuracy,NStartingSteps+1,NextValue,StartDecimal,NextDecimal>::Result Result;
+};
+
+
+
+template<int K,class C,class Aux>
 struct PiFraction
 {
   typedef typename IPowBig<16,K>::Result PBig;
@@ -313,12 +423,12 @@ struct PiFraction
   typedef SFraction<Numer,Denom> Result;
 };
 
-template<>
-struct PiFraction<0>
+template<class C,class Aux>
+struct PiFraction<0,C,Aux>
 {
   typedef SFraction<SInt<47>, SInt<15> > Result;
 };
-
+/*
 template<int_t Count, int_t Start = 0> 
 struct PiSum
 {
@@ -370,6 +480,56 @@ struct Pi
   
   typedef typename PiLoop<Accuracy,I+1,NextValue,StartDecimal,NextDecimal>::Result Result;
 };
+*/
+
+template<int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 12>  
+struct Pi : public GenericMetaFunc<Loki::NullType,PiFraction,Add,Accuracy,NStartingSteps> 
+{};
+
+
+/*
+template<unsigned M, unsigned N, unsigned B, unsigned A>
+struct SinCosSeriesFraction {
+      return 1-(A*M_PI/B)*(A*M_PI/B)/M/(M+1)
+               *SinCosSeries<M+2,N,B,A>::value();
+};
+
+template<unsigned N, unsigned B, unsigned A>
+struct SinCosSeriesFraction<N,N,B,A> {
+   static long double value() { return 1.; }
+};
+*/
+template<int K, class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
+struct SinCosFraction 
+{
+  static const int_t M = 2*K+D;
+  typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
+  typedef typename Mult<typename Mult<X,X>::Result,Divider>::Result XX;
+//   typedef typename Loki::Select<Loki::IsSameType<Aux,Loki::NullType>::value, XX,
+//           typename Mult<XX,Aux>::Result>::Result XP;
+  typedef typename Mult<XX,Aux>::Result XP;
+  typedef typename Negate<XP>::Result Result;
+};
+
+template<class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
+struct SinCosFraction<0,X,Aux,D>
+{
+  typedef SFraction<SInt<1>,SInt<1> > Result;
+};
+
+
+template<int K, class X, class Aux>
+struct CosFraction : public SinCosFraction<K,X,Aux,1> {};
+
+template<int K, class X, class Aux>
+struct SinFraction : public SinCosFraction<K,X,Aux,2> {};
+
+template<class X, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 10>  
+struct Cos : public GenericMetaFunc<X,CosFraction,Mult,Accuracy,NStartingSteps> 
+{};
 
 
 } // namespcae EX

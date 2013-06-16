@@ -165,7 +165,7 @@ cout.precision(20);
 //cout << (int)GCD<BI2, BI2>::Result::value << endl;
 //typedef Pi<13>::Result TPi;
 
-typedef EX::Pi<3> MetaPi;
+typedef EX::Pi<1> MetaPi;
 typedef Simplify<MetaPi::Result>::Result TPi;
 
 // typedef GCD<TPi::Numer, TPi::Denom>::Result G1;
@@ -192,6 +192,12 @@ cout << " ";
 Cout<TPiDec::Num>::apply(cout);
 cout << endl << M_PI << endl;
 //cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
+
+// typedef Simplify<EX::Cos<TPi,1>::Result>::Result CosPi;
+// typedef EX::FractionToDecimal<CosPi,30,10>::Result CosPiDec;
+// cout << " ";
+// Cout<CosPiDec::Num>::apply(cout);
+//cout << endl << M_PI << endl;
 
 }
 

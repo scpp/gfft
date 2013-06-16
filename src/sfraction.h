@@ -31,6 +31,7 @@ struct SDecimalFraction {
 };
 
 
+
 ///Greatest common divisor of A and B
 /*
 template<class A, class B>
@@ -176,6 +177,14 @@ class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {
    typedef typename Mult<N,SBigInt<S,NList,Base> >::Result Numer;
 public:
    typedef SFraction<Numer,D> Result;
+};
+
+/////////////////////////////////////////////////////////////
+
+template<class Numer, class Denom>
+struct Negate<SFraction<Numer,Denom> > {
+   typedef typename Negate<Numer>::Result NewNumer;
+   typedef SFraction<NewNumer,Denom> Result;
 };
 
 /////////////////////////////////////////////////////////////
