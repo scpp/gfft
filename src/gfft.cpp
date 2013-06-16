@@ -163,8 +163,8 @@ cout.precision(20);
 // cout << (int)NL::Compare<BI2, S>::value << endl;
 // cout << (int)NL::Compare<BI2, SS>::value << endl;
 //cout << (int)GCD<BI2, BI2>::Result::value << endl;
-typedef Pi<20>::Result TPi;
-//typedef Simplify<Pi<14>::Result>::Result TPi;
+//typedef Pi<13>::Result TPi;
+typedef Simplify<EX::Pi<14>::Result>::Result TPi;
 // typedef GCD<TPi::Numer, TPi::Denom>::Result G1;
 // cout << ">>>>>>> " << Evaluate2Int<G1,RetType>::Value << endl;
 // typedef Div<TPi::Numer, TPi::Denom>::ModResult M1;
@@ -182,9 +182,10 @@ const RetType numer = Evaluate2Float<TPi::Numer,RetType>::value();
 const RetType denom = Evaluate2Float<TPi::Denom,RetType>::value();
 cout<< numer << "/" << denom << " = " << (double)numer/denom << endl;
 
-typedef FractionToDecimal<TPi,30,10>::Result TPiDec;
+typedef EX::FractionToDecimal<TPi,22,10>::Result TPiDec;
+//typedef Print<TPiDec::Num>::Result TT2;
 cout << " ";
-Cout<TPiDec::Num>::apply(cout);
+Cout<Translate<TPiDec::Num,1000000000>::Result>::apply(cout);
 cout << endl << M_PI << endl;
 //cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
 

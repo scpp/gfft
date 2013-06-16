@@ -31,10 +31,13 @@
 #include <iostream>
 
 typedef unsigned int base_t;
-typedef int IntT;
+typedef long IntT;
 
 //static const base_t DefaultBase = (1<<(sizeof(IntT)*4));
-static const base_t DefaultBase = 10000;
+// for 32bit
+//static const base_t DefaultBase = 65536;
+// for 64bit
+static const base_t DefaultBase = 2147483648;
 
 /// \brief Big integer number metacontainer.
 /// \param S sign of the big integer
@@ -560,21 +563,21 @@ template<class H, class T, class NList2, base_t Base, IntT I>
 class __Div<Loki::Typelist<H,T>,NList2,Base,I> {
    typedef __Div<T,NList2,Base,I-1> Next;
    typedef Loki::Typelist<H,typename Next::UList> NList1;
-   static const IntT L1 = Loki::TL::Length<NList1>::value;
-   static const IntT L2 = Loki::TL::Length<NList2>::value;
-   static const IntT V1 = Loki::TL::TypeAt<NList2,L2-1>::Result::value;
-   static const IntT V2 = Loki::TL::TypeAt<NList2,L2-2>::Result::value;
-   static const IntT U0 = Loki::TL::TypeAtNonStrict<NList1,L1-I,SInt<0> >::Result::value;
-   static const IntT U1 = Loki::TL::TypeAtNonStrict<NList1,L1-I-1,SInt<0> >::Result::value;
-   static const IntT U2 = Loki::TL::TypeAtNonStrict<NList1,L1-I-2,SInt<0> >::Result::value;
-   static const IntT U = U0*Base+U1;
-   static const IntT Q = U/V1;  // trial quotient
-   static const IntT R = U%V1;  // trial reminder
+   static const unsigned int L1 = Loki::TL::Length<NList1>::value;
+   static const unsigned int L2 = Loki::TL::Length<NList2>::value;
+   static const int_t V1 = Loki::TL::TypeAt<NList2,L2-1>::Result::value;
+   static const int_t V2 = Loki::TL::TypeAt<NList2,L2-2>::Result::value;
+   static const int_t U0 = Loki::TL::TypeAtNonStrict<NList1,L1-I,SInt<0> >::Result::value;
+   static const int_t U1 = Loki::TL::TypeAtNonStrict<NList1,L1-I-1,SInt<0> >::Result::value;
+   static const int_t U2 = Loki::TL::TypeAtNonStrict<NList1,L1-I-2,SInt<0> >::Result::value;
+   static const int_t U = U0*Base+U1;
+   static const int_t Q = U/V1;  // trial quotient
+   static const int_t R = U%V1;  // trial reminder
    // Test trial Q
-   static const IntT Q1 = ((Q==Base) || (Q*V2>R*Base+U2)) ? Q-1 : Q;
-   static const IntT R1 = (Q1<Q) ? R+V1 : R;
+   static const int_t Q1 = ((Q==Base) || (Q*V2>R*Base+U2)) ? Q-1 : Q;
+   static const int_t R1 = (Q1<Q) ? R+V1 : R;
    // Repeat, if (R1<Base)
-   static const IntT Q2 = ((R1<(IntT)Base) && ((Q1==(IntT)Base) || (Q1*V2>R1*Base+U2))) ? Q1-1 : Q1;
+   static const int_t Q2 = ((R1<Base) && ((Q1==Base) || (Q1*V2>R1*Base+U2))) ? Q1-1 : Q1;
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
    typedef typename Sub<BI1,typename Mult<BI2,SInt<Q2> >::Result>::Result Dif;
@@ -770,7 +773,7 @@ class Translate;
 
 template<bool S, class H, class T, base_t Base, base_t NewBase>
 class Translate<SBigInt<S,Loki::Typelist<H,T>,Base>,NewBase> {
-   typedef SBigInt<S,T,NewBase> BI;
+   typedef SBigInt<S,T,Base> BI;
    typedef typename Translate<BI,NewBase>::Result Next;
 public:
    typedef typename Add<typename Mult<Next,SInt<Base> >::Result,H>::Result Result;

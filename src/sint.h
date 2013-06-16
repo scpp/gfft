@@ -19,7 +19,7 @@
 #ifndef __sint_h
 #define __sint_h
 
-typedef unsigned int int_t;
+typedef unsigned long int_t;
 typedef unsigned short short_t;
 
 /// Integer number metacontainer.

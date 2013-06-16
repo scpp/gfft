@@ -255,6 +255,7 @@ struct Sqrt<N, long double> {
    }
 };
 
+
 template<int K = 10>
 struct Pi
 {
@@ -263,20 +264,6 @@ struct Pi
   static const int_t K2 = 4*K+2;
   static const int_t K3 = 8*K+5;
   static const int_t K4 = 8*K+6;
-  
-  typedef typename IPowBig<16,K>::Result PBig;
-  typedef SInt<K1> TK1;
-  typedef SInt<K2> TK2;
-  typedef SInt<K3> TK3;
-  typedef SInt<K4> TK4;
-  typedef typename Mult<typename Mult<typename Mult<TK1,TK2>::Result, 
-                        typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
-  typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
-  
-//   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
-  typedef SFraction<Numer,Denom> Fraction;
-//  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
-  typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
   
   typedef double T;
   static T value() 
@@ -289,14 +276,14 @@ struct Pi
 template<>
 struct Pi<0>
 {
-  typedef SFraction<SInt<47>, SInt<15> > Result;
-  
   static double value() { return 47./15.; }
 };
 
 
-/////////////////////////////////////////////////////
 
+
+namespace EX {
+  
 template<class Fraction, int_t NDigits, base_t DecBase>
 struct FractionToDecimal;
 
@@ -308,6 +295,34 @@ struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
   typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
 };
 
+/////////////////////////////////////////////////////
+
+template<int K = 10>
+struct Pi
+{
+  typedef typename IPowBig<16,K>::Result PBig;
+  typedef SInt<8*K+1> TK1;
+  typedef SInt<4*K+2> TK2;
+  typedef SInt<8*K+5> TK3;
+  typedef SInt<8*K+6> TK4;
+  typedef typename Mult<typename Mult<typename Mult<TK1,TK2>::Result, 
+                        typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
+  typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
+  
+//   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
+  typedef SFraction<Numer,Denom> Fraction;
+  typedef typename Add<typename Pi<K-1>::Result, Fraction>::Result Result;
+  //typedef typename Simplify<typename Add<typename Pi<K-1>::Result, Fraction>::Result>::Result Result;
+};
+
+template<>
+struct Pi<0>
+{
+  typedef SFraction<SInt<47>, SInt<15> > Result;
+};
+
+
+} // namespcae EX
 
 } // namespace MF
 
