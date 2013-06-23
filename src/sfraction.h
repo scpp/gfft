@@ -23,6 +23,8 @@ struct SFraction {
    typedef Den Denom;
 };
 
+typedef SFraction<SInt<1>,SInt<1> > UnitFraction;
+
 template<class BigInt, int_t NDecPlaces, base_t DecBase>
 struct SDecimalFraction {
    typedef BigInt Num;
@@ -150,8 +152,8 @@ struct GCD<SInt<N>, SInt<0>, 1> {
 template<class N, class D>
 class Simplify<SFraction<N,D> > {
    typedef typename GCD<N,D>::Result T;
-   typedef typename Div<N,T>::DivResult Num;
-   typedef typename Div<D,T>::DivResult Den;
+   typedef typename Simplify<typename Div<N,T>::DivResult>::Result Num;
+   typedef typename Simplify<typename Div<D,T>::DivResult>::Result Den;
 public:
    typedef SFraction<Num,Den> Result;
 };
@@ -165,12 +167,15 @@ public:
    typedef SFraction<Num,Den> Result;
 };
 
-template<class N, class D, int Num>
+template<class N, class D, int_t Num>
 class Mult<SFraction<N,D>,SInt<Num> > {
    typedef typename Mult<N,SInt<Num> >::Result Numer;
 public:
    typedef SFraction<Numer,D> Result;
 };
+
+template<class N, class D, int_t Num>
+class Mult<SInt<Num>, SFraction<N,D> > : public Mult<SFraction<N,D>,SInt<Num> > {};
 
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {

@@ -284,6 +284,8 @@ struct Pi<0>
 
 namespace EX {
   
+// Works with SFraction of decimal bases (10^n) only
+// TODO: change that
 template<class Fraction, int_t NDigits, base_t DecBase>
 struct FractionToDecimal;
 
@@ -304,9 +306,10 @@ int_t Count, int_t Start = 0, class PrevStep = Loki::NullType>
 struct FuncSeries
 {
   typedef typename FuncStep<Start,X,PrevStep>::Result Step;
+  typedef FuncSeries<X,FuncStep,Accum,Count-1,Start+1,Step> NextIter;
+  typedef typename NextIter::LastStep LastStep;
 
-  typedef typename Accum<Step, 
-          typename FuncSeries<X,FuncStep,Accum,Count-1,Start+1,Step>::Result>::Result Result;
+  typedef typename Accum<Step,typename NextIter::Result>::Result Result;
 };
 
 template<class X,
@@ -316,6 +319,7 @@ int_t Start,class PrevStep>
 struct FuncSeries<X,FuncStep,Accum,1,Start,PrevStep>
 {
   typedef typename FuncStep<Start,X,PrevStep>::Result Result;
+  typedef Result LastStep;
 };
 
 template<class X,
@@ -325,52 +329,19 @@ int_t Start,class PrevStep>
 struct FuncSeries<X,FuncStep,Accum,0,Start,PrevStep> {};  // Error
 
 
-/*
-template<class X,
-template<int,class> class FuncStep,
-template<class,class> class Accum,
-int_t Count, int_t Start = 0> 
-struct FuncSeries1
-{
-  typedef typename FuncStep<Start,X>::Result Step;
-
-  typedef typename Accum<Step, 
-          typename FuncSeries1<X,FuncStep,Accum,Count-1,Start+1>::Result>::Result Fraction;
-  typedef typename Add<typename Fraction::Denom,typename Fraction::Numer>::Result NewNumer;
-  typedef SFraction<NewNumer,typename Fraction::Denom> Result;
-};
-
-template<class X,
-template<int,class> class FuncStep,
-template<class,class> class Accum,
-int_t Start> 
-struct FuncSeries1<X,FuncStep,Accum,1,Start>
-{
-  typedef typename FuncStep<Start,X>::Result Fraction;
-  typedef typename Add<typename Fraction::Denom,typename Fraction::Numer>::Result NewNumer;
-  typedef SFraction<NewNumer,typename Fraction::Denom> Result;
-};
-
-template<class X,
-template<int,class> class FuncStep,
-template<class,class> class Accum,
-int_t Start> 
-struct FuncSeries1<X,FuncStep,Accum,0,Start> {};  // Error
-*/
-
 
 template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
 int Accuracy, int I, class Value, class Dec1, class Dec2,
 bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
-class FuncLoop;
+class FuncAccuracyLoop;
 
 template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
 int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct FuncLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,true>
+struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,true>
 {
   typedef Value Result;
 };
@@ -379,32 +350,86 @@ template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
 int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct FuncLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,false>
+struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,false>
 {
   typedef typename Accum<typename FuncStep<I,X,Value>::Result,Value>::Result NextValue;
   typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
-  typedef typename FuncLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
+  typedef typename FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
 };
 
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Len, int I, class Value1, class Value2, class LastStep,
+bool C = (NL::Length<typename Value2::Numer>::value > Len 
+       || NL::Length<typename Value2::Denom>::value > Len)>
+class FuncLengthLoop;
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Len, int I, class Value1, class Value2, class LastStep>
+struct FuncLengthLoop<X,FuncStep,Accum,Len,I,Value1,Value2,LastStep,true>
+{
+  typedef Value1 Result;
+};
+
+template<class X,
+template<int,class,class> class FuncStep,
+template<class,class> class Accum,
+int Len, int I, class Value1, class Value2, class LastStep>
+struct FuncLengthLoop<X,FuncStep,Accum,Len,I,Value1,Value2,LastStep,false>
+{
+  typedef typename FuncStep<I,X,LastStep>::Result NextStep;
+//   typedef typename NL::Print<LastStep>::Result TT2;
+  
+  typedef typename Simplify<typename Accum<Value2,NextStep>::Result>::Result NextValue;
+  typedef typename FuncLengthLoop<X,FuncStep,Accum,Len,I+1,Value2,NextValue,NextStep>::Result Result;
+  //typedef NextValue Result;
+};
 
 
 template<class X,
 template<int,class,class> class FuncStep,  // One step of the series to compute the function
 template<class,class> class Accumulator,      // How the steps are accumulated, normally Add or Mult
-int Accuracy = 2,    // in powers of DefaultBase
-int NStartingSteps = 10>          //
-struct GenericMetaFunc
+int Accuracy,                 // in powers of DefaultBase
+int NStartingSteps>
+struct GenericAccuracyBasedFunc
 {
-  typedef typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0>::Result StartValue;
+  typedef typename Simplify<
+          typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0,UnitFraction>::Result>::Result StartValue;
+//   typedef typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0>::Result StartValue;
   typedef typename FractionToDecimal<StartValue,Accuracy,DefaultBase>::AllDecimals StartDecimal;
 
   typedef typename FuncStep<NStartingSteps,X,StartValue>::Result NextStep;
   typedef typename Accumulator<NextStep,StartValue>::Result NextValue;
   typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
   
-  typedef typename FuncLoop<X,FuncStep,Accumulator,Accuracy,NStartingSteps+1,NextValue,StartDecimal,NextDecimal>::Result Result;
+  typedef typename FuncAccuracyLoop<X,FuncStep,Accumulator,Accuracy,
+          NStartingSteps+1,NextValue,StartDecimal,NextDecimal>::Result Result;
 };
 
+
+template<class X,
+template<int,class,class> class FuncStep,  // One step of the series to compute the function
+template<class,class> class Accumulator,      // How the steps are accumulated, normally Add or Mult
+int Length,    // in digits of DefaultBase
+int NStartingSteps>
+struct GenericLengthBasedFunc
+{
+  typedef FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0,UnitFraction> Sum;
+  typedef typename Simplify<typename Sum::Result>::Result StartValue;
+  typedef typename Sum::LastStep PrevStep;
+//  typedef typename NL::Print<PrevStep>::Result TT2;
+//   typedef typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0>::Result StartValue;
+
+  typedef typename FuncStep<NStartingSteps,X,PrevStep>::Result NextStep;
+  typedef typename Simplify<typename Accumulator<NextStep,StartValue>::Result>::Result NextValue;
+
+  typedef typename FuncLengthLoop<X,FuncStep,Accumulator,Length,NStartingSteps+1,StartValue,NextValue,NextStep>::Result Result;
+  //typedef NextValue Result;
+};
 
 
 template<int K,class C,class Aux>
@@ -428,65 +453,17 @@ struct PiFraction<0,C,Aux>
 {
   typedef SFraction<SInt<47>, SInt<15> > Result;
 };
-/*
-template<int_t Count, int_t Start = 0> 
-struct PiSum
-{
-  typedef typename PiFraction<Start>::Result Fraction;
-
-  typedef typename Add<typename PiSum<Count-1,Start+1>::Result, Fraction>::Result Result;
-  //typedef typename Simplify<typename Add<typename Pi<K,I+1>::Result, Fraction>::Result>::Result Result;
-};
-
-template<int_t Start> 
-struct PiSum<1,Start>
-{
-  typedef typename PiFraction<Start>::Result Result;
-};
-
-template<int_t Start> 
-struct PiSum<0,Start> {};  // Error
-
-
-
-template<int Accuracy, int I, class Value, class Dec1, class Dec2,
-bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
-class PiLoop;
-
-template<int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct PiLoop<Accuracy,I,Value,Dec1,Dec2,true>
-{
-  typedef Value Result;
-};
-
-template<int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct PiLoop<Accuracy,I,Value,Dec1,Dec2,false>
-{
-  typedef typename Add<typename PiFraction<I>::Result,Value>::Result NextValue;
-  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
-  typedef typename PiLoop<Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
-};
 
 
 template<int Accuracy = 2,    // in powers of DefaultBase
-int I = 12>  
-struct Pi
-{
-  typedef typename PiSum<I,0>::Result StartValue;
-  typedef typename FractionToDecimal<StartValue,Accuracy,DefaultBase>::AllDecimals StartDecimal;
-
-  typedef typename Add<typename PiFraction<I>::Result,StartValue>::Result NextValue;
-  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
-  
-  typedef typename PiLoop<Accuracy,I+1,NextValue,StartDecimal,NextDecimal>::Result Result;
-};
-*/
-
-template<int Accuracy = 2,    // in powers of DefaultBase
-int NStartingSteps = 12>  
-struct Pi : public GenericMetaFunc<Loki::NullType,PiFraction,Add,Accuracy,NStartingSteps> 
+int NStartingSteps = 6>  
+struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiFraction,Add,Accuracy,NStartingSteps> 
 {};
 
+template<int Len = 2,    // in powers of DefaultBase
+int NStartingSteps = 4>  
+struct PiLen : public GenericLengthBasedFunc<Loki::NullType,PiFraction,Add,Len,NStartingSteps> 
+{};
 
 /*
 template<unsigned M, unsigned N, unsigned B, unsigned A>
@@ -503,19 +480,20 @@ struct SinCosSeriesFraction<N,N,B,A> {
 template<int K, class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
 struct SinCosFraction 
 {
-  static const int_t M = 2*K+D;
+  static const int_t M = 2*(K-1)+D;
   typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
   typedef typename Mult<typename Mult<X,X>::Result,Divider>::Result XX;
 //   typedef typename Loki::Select<Loki::IsSameType<Aux,Loki::NullType>::value, XX,
 //           typename Mult<XX,Aux>::Result>::Result XP;
   typedef typename Mult<XX,Aux>::Result XP;
   typedef typename Negate<XP>::Result Result;
+//  typedef typename NL::Print<Result>::Result TT2;
 };
 
 template<class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
 struct SinCosFraction<0,X,Aux,D>
 {
-  typedef SFraction<SInt<1>,SInt<1> > Result;
+  typedef UnitFraction Result;
 };
 
 
@@ -527,10 +505,15 @@ struct SinFraction : public SinCosFraction<K,X,Aux,2> {};
 
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
-int NStartingSteps = 10>  
-struct Cos : public GenericMetaFunc<X,CosFraction,Mult,Accuracy,NStartingSteps> 
+int NStartingSteps = 4>  
+struct CosAcc : public GenericAccuracyBasedFunc<X,CosFraction,Add,Accuracy,NStartingSteps> 
 {};
 
+template<class X, 
+int Len = 2,    // in powers of DefaultBase
+int NStartingSteps = 4>  
+struct CosLen : public GenericLengthBasedFunc<X,CosFraction,Add,Len,NStartingSteps> 
+{};
 
 } // namespcae EX
 

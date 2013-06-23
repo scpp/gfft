@@ -164,10 +164,6 @@ cout.precision(20);
 // cout << (int)NL::Compare<BI2, SS>::value << endl;
 //cout << (int)GCD<BI2, BI2>::Result::value << endl;
 //typedef Pi<13>::Result TPi;
-
-typedef EX::Pi<1> MetaPi;
-typedef Simplify<MetaPi::Result>::Result TPi;
-
 // typedef GCD<TPi::Numer, TPi::Denom>::Result G1;
 // cout << ">>>>>>> " << Evaluate2Int<G1,RetType>::Value << endl;
 // typedef Div<TPi::Numer, TPi::Denom>::ModResult M1;
@@ -185,19 +181,37 @@ typedef Simplify<MetaPi::Result>::Result TPi;
 //const RetType denom = Evaluate2Float<TPi::Denom,RetType>::value();
 //cout<< numer << "/" << denom << " = " << (double)numer/denom << endl;
 
-typedef EX::FractionToDecimal<TPi,30,10>::Result TPiDec;
-//typedef Print<TPiDec::Num>::Result TT2;
-cout << " ";
-//Cout<Translate<TPiDec::Num,1000000000>::Result>::apply(cout);
-Cout<TPiDec::Num>::apply(cout);
-cout << endl << M_PI << endl;
-//cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
-
-// typedef Simplify<EX::Cos<TPi,1>::Result>::Result CosPi;
-// typedef EX::FractionToDecimal<CosPi,30,10>::Result CosPiDec;
-// cout << " ";
-// Cout<CosPiDec::Num>::apply(cout);
+typedef EX::PiLen<1> MetaPi;
+typedef Simplify<MetaPi::Result>::Result TPi;
+// //typedef MetaPi::Result TPi;
+// typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
+//typedef Print<TPi::Num>::Result TT2;
+//cout << " ";
+// Cout<Translate<TPiDec::Num,DefaultDecimalBase>::Result>::apply(cout);
+//Cout<TPiDec::Num>::apply(cout);
 //cout << endl << M_PI << endl;
+//cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
+// Cout<TPi1::Numer>::apply(cout);
+// cout << " / " << endl;
+// Cout<TPi1::Denom>::apply(cout);
+// cout << endl;
+// Cout<TPi::Numer>::apply(cout);
+// cout << " / " << endl;
+// Cout<TPi::Denom>::apply(cout);
+// cout << endl;
+// cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
+
+//typedef SInt<1> X;
+typedef TPi X;
+//typedef EX::SinCosFraction<2, X, UnitFraction, 1>::Result T;
+//typedef EX::FuncSeries<X,EX::CosFraction,Add,10,0,UnitFraction>::Result CosPi;
+typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
+typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
+cout << cos(1) << endl;
+cout << "  ";
+Cout<CosPiDec::Num>::apply(cout);
+//Cout<T>::apply(cout);
+cout << endl;
 
 }
 
