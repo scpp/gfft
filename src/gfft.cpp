@@ -201,13 +201,13 @@ typedef Simplify<MetaPi::Result>::Result TPi;
 // cout << endl;
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
-//typedef SInt<1> X;
+//typedef SInt<2> X;
 typedef TPi X;
 //typedef EX::SinCosFraction<2, X, UnitFraction, 1>::Result T;
 //typedef EX::FuncSeries<X,EX::CosFraction,Add,10,0,UnitFraction>::Result CosPi;
 typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
 typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
-cout << cos(1) << endl;
+cout << cos(2) << endl;
 cout << "  ";
 Cout<CosPiDec::Num>::apply(cout);
 //Cout<T>::apply(cout);

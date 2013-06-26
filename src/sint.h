@@ -20,6 +20,7 @@
 #define __sint_h
 
 typedef long int_t;
+typedef unsigned long uint_t;
 typedef unsigned short short_t;
 
 /// Integer number metacontainer.

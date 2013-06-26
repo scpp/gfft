@@ -81,6 +81,8 @@ class Mod;
 template<class F>
 class Abs;
 
+template<class F>
+class Sign;
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -321,9 +323,8 @@ struct Mod<SInt<N1>, SInt<N2> > {
 /// \return container class representing absolute value of N.
 ////////////////////////////////////////////////////////////
 template<IntT N>
-class Abs<SInt<N> > {
+struct Abs<SInt<N> > {
    static const IntT AN = (N>0) ? N : -N ;
-public:
    typedef SInt<AN> Result;
 };
 
@@ -351,80 +352,27 @@ struct Negate<SBigInt<S,NList,Base> > {
 };
 
 //////////////////////////////////////////////////////
-template<typename NList>
-struct NZeros;
-
-template<int_t N, typename Tail>
-struct NZeros<Loki::Typelist<SInt<N>,Tail> > {
-  static const int_t Value = NZeros<Tail>::Value;
+template<int_t N>
+struct Sign<SInt<N> > {
+   static const int value = (N>0) ? 1 : ((N<0) ? -1 : 0);
 };
 
-template<typename Tail>
-struct NZeros<Loki::Typelist<SInt<0>,Tail> > {
-  static const int_t Value = NZeros<Tail>::Value + 1;
+template<bool S, class NList, base_t Base>
+struct Sign<SBigInt<S,NList,Base> > {
+   static const int value = S ? 1 : -1;
 };
 
-template<>
-struct NZeros<Loki::NullType> {
-  static const int_t Value = 0;
+template<bool S, base_t Base>
+struct Sign<SBigInt<S,Loki::NullType,Base> > {
+   static const int value = 0;
 };
-
-
-template<class NList>
-struct SimplifyLoop;
-
-template<class H, class Tail>
-struct SimplifyLoop<Loki::Typelist<H,Tail> > {
-  typedef Loki::Typelist<H, typename SimplifyLoop<Tail>::Result> Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-		    Loki::Typelist<SInt<0>,Loki::NullType> > > > > > {
-  typedef Loki::NullType Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-		    Loki::Typelist<SInt<0>,Loki::NullType> > > > > {
-  typedef Loki::NullType Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,
-		    Loki::Typelist<SInt<0>,Loki::NullType> > > > {
-  typedef Loki::NullType Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::Typelist<SInt<0>,
-                    Loki::Typelist<SInt<0>,Loki::NullType> > > {
-  typedef Loki::NullType Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::Typelist<SInt<0>,Loki::NullType> > {
-  typedef Loki::NullType Result;
-};
-
-template<>
-struct SimplifyLoop<Loki::NullType> {
-  typedef Loki::NullType Result;
-};
-
 
 template<class C>
 struct Simplify;
 
 template<bool S, typename NList, base_t Base>
 struct Simplify<SBigInt<S,NList,Base> > {
-   typedef SBigInt<S,typename SimplifyLoop<NList>::Result,Base> Result;
+   typedef SBigInt<S,typename NL::CutLeadingZeros<NList>::Result,Base> Result;
 };
 
 // template<IntT N>

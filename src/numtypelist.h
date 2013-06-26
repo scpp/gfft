@@ -414,6 +414,47 @@ struct Print<Typelist<Head,Tail> > {
             typedef Typelist<_Min,typename Sort<temp>::Result> Result;
         };
 
+
+template<typename NList>
+struct NZeros;
+
+template<int_t N, typename Tail>
+struct NZeros<Loki::Typelist<SInt<N>,Tail> > {
+  static const int_t Value = NZeros<Tail>::Value;
+};
+
+template<typename Tail>
+struct NZeros<Loki::Typelist<SInt<0>,Tail> > {
+  static const int_t Value = NZeros<Tail>::Value + 1;
+};
+
+template<>
+struct NZeros<Loki::NullType> {
+  static const int_t Value = 0;
+};
+
+
+template<class NList>
+struct CutLeadingZeros;
+
+template<class H, class Tail>
+struct CutLeadingZeros<Loki::Typelist<H,Tail> > {
+  typedef Loki::Typelist<H, typename CutLeadingZeros<Tail>::Result> Result;
+};
+
+template<class Tail>
+struct CutLeadingZeros<Loki::Typelist<SInt<0>,Tail> > {
+  static const int Len = TL::Length<Tail>::value;
+  static const int NZ  = NZeros<Tail>::Value;
+  typedef typename Select<(Len == NZ), Loki::NullType,
+          Loki::Typelist<SInt<0>, typename CutLeadingZeros<Tail>::Result> >::Result Result;
+};
+
+template<>
+struct CutLeadingZeros<Loki::NullType> {
+  typedef Loki::NullType Result;
+};
+	
 } // namespace NL
 
 #endif

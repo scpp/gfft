@@ -151,9 +151,14 @@ struct GCD<SInt<N>, SInt<0>, 1> {
 
 template<class N, class D>
 class Simplify<SFraction<N,D> > {
-   typedef typename GCD<N,D>::Result T;
-   typedef typename Simplify<typename Div<N,T>::DivResult>::Result Num;
+   typedef typename Abs<N>::Result AN;
+   typedef typename GCD<AN,D>::Result T;
+   typedef typename Simplify<typename Div<AN,T>::DivResult>::Result AbsNum;
    typedef typename Simplify<typename Div<D,T>::DivResult>::Result Den;
+
+   static const int SN = Sign<N>::value;
+   typedef typename Loki::Select<(SN >= 0), AbsNum,
+           typename Negate<AbsNum>::Result>::Result Num;
 public:
    typedef SFraction<Num,Den> Result;
 };
