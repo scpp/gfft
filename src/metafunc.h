@@ -333,15 +333,16 @@ struct FuncSeries<X,FuncStep,Accum,0,Start,PrevStep> {};  // Error
 template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
-int Accuracy, int I, class Value, class Dec1, class Dec2,
+int Accuracy, int I, 
+class Value, class Dec1, class Dec2, class LastStep,
 bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
 class FuncAccuracyLoop;
 
 template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
-int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,true>
+int Accuracy, int I, class Value, class Dec1, class Dec2, class LastStep>
+struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,LastStep,true>
 {
   typedef Value Result;
 };
@@ -349,12 +350,16 @@ struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,true>
 template<class X,
 template<int,class,class> class FuncStep,
 template<class,class> class Accum,
-int Accuracy, int I, class Value, class Dec1, class Dec2>
-struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,false>
+int Accuracy, int I, class Value, class Dec1, class Dec2, class LastStep>
+struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,LastStep,false>
 {
-  typedef typename Accum<typename FuncStep<I,X,Value>::Result,Value>::Result NextValue;
+  typedef typename FuncStep<I,X,LastStep>::Result NextStep;
+  typedef typename Accum<Value,NextStep>::Result NextValue;
+  //typedef typename NL::Print<NextValue>::Result TT2;
+//   typedef typename Check<NextValue>::Result c1;
   typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
-  typedef typename FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal>::Result Result;
+  //typedef typename Check<NextDecimal>::Result c2;
+  typedef typename FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal,NextStep>::Result Result;
 };
 
 
@@ -382,11 +387,9 @@ int Len, int I, class Value1, class Value2, class LastStep>
 struct FuncLengthLoop<X,FuncStep,Accum,Len,I,Value1,Value2,LastStep,false>
 {
   typedef typename FuncStep<I,X,LastStep>::Result NextStep;
-//   typedef typename NL::Print<LastStep>::Result TT2;
   
   typedef typename Simplify<typename Accum<Value2,NextStep>::Result>::Result NextValue;
   typedef typename FuncLengthLoop<X,FuncStep,Accum,Len,I+1,Value2,NextValue,NextStep>::Result Result;
-  //typedef NextValue Result;
 };
 
 
@@ -397,17 +400,19 @@ int Accuracy,                 // in powers of DefaultBase
 int NStartingSteps>
 struct GenericAccuracyBasedFunc
 {
-  typedef typename Simplify<
-          typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0,UnitFraction>::Result>::Result StartValue;
+  typedef FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0,UnitFraction> Sum;
+  typedef typename Simplify<typename Sum::Result>::Result StartValue;
+  typedef typename Sum::LastStep PrevStep;
 //   typedef typename FuncSeries<X,FuncStep,Accumulator,NStartingSteps,0>::Result StartValue;
   typedef typename FractionToDecimal<StartValue,Accuracy,DefaultBase>::AllDecimals StartDecimal;
 
-  typedef typename FuncStep<NStartingSteps,X,StartValue>::Result NextStep;
+  typedef typename FuncStep<NStartingSteps,X,PrevStep>::Result NextStep;
   typedef typename Accumulator<NextStep,StartValue>::Result NextValue;
+  //typedef typename Check<NextValue>::Result c1;
   typedef typename FractionToDecimal<NextValue,Accuracy,DefaultBase>::AllDecimals NextDecimal;
   
   typedef typename FuncAccuracyLoop<X,FuncStep,Accumulator,Accuracy,
-          NStartingSteps+1,NextValue,StartDecimal,NextDecimal>::Result Result;
+          NStartingSteps+1,NextValue,StartDecimal,NextDecimal,NextStep>::Result Result;
 };
 
 
@@ -427,7 +432,8 @@ struct GenericLengthBasedFunc
   typedef typename FuncStep<NStartingSteps,X,PrevStep>::Result NextStep;
   typedef typename Simplify<typename Accumulator<NextStep,StartValue>::Result>::Result NextValue;
 
-  typedef typename FuncLengthLoop<X,FuncStep,Accumulator,Length,NStartingSteps+1,StartValue,NextValue,NextStep>::Result Result;
+  typedef typename FuncLengthLoop<X,FuncStep,Accumulator,Length,
+          NStartingSteps+1,StartValue,NextValue,NextStep>::Result Result;
   //typedef NextValue Result;
 };
 
@@ -505,17 +511,113 @@ struct SinFraction : public SinCosFraction<K,X,Aux,2> {};
 
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
-int NStartingSteps = 4>  
+int NStartingSteps = 7>  
 struct CosAcc : public GenericAccuracyBasedFunc<X,CosFraction,Add,Accuracy,NStartingSteps> 
 {};
 
 template<class X, 
 int Len = 2,    // in powers of DefaultBase
-int NStartingSteps = 4>  
+int NStartingSteps = 7>  
 struct CosLen : public GenericLengthBasedFunc<X,CosFraction,Add,Len,NStartingSteps> 
 {};
 
 } // namespcae EX
+
+////////////////////////////////////////////////////////
+
+template<class T>
+struct Cout;
+
+template<bool S, class H, class T, base_t Base>
+struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> > 
+{
+  static const int_t W = NDigits<Base-1,10>::value;
+  typedef Cout<SBigInt<S,T,Base> > Next;
+  
+  static void apply(std::ostream& os) { 
+    Next::apply(os);
+    os.fill('0');
+    os.width(W);
+    os << std::right << H::value /*<< " "*/;
+  }
+};
+
+template<bool S, class H, base_t Base>
+struct Cout<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base> > {
+  static void apply(std::ostream& os) { 
+//     os << H::Value << " ";
+    if (!S)
+      os << "-";
+    os << H::value;
+  }
+};
+
+template<class N, class D>
+struct Cout<SFraction<N,D> > 
+{
+  typedef Cout<N> CN;
+  typedef Cout<D> CD;
+  
+  static void apply(std::ostream& os) { 
+    CN::apply(os);
+    os << " / ";
+    CD::apply(os);
+  }
+};
+
+//////////////////////////////////////////
+
+template<bool S, class H, class T, base_t Base, int_t NDecPlaces, base_t DecBase>
+struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecBase> >
+{
+  static const int_t W = NDigits<Base-1,10>::value;
+  static const int_t DW = NDigits<DecBase-1,10>::value;
+  static const int_t Len = NL::Length<SBigInt<S,Loki::Typelist<H,T>,Base> >::value;
+  typedef Cout<SDecimalFraction<SBigInt<S,T,Base>,NDecPlaces,DecBase> > Next;
+  
+  static void apply(std::ostream& os, const int_t len = 0) { 
+    Next::apply(os,len+W);
+    os.fill('0');
+    if (NDecPlaces < len+W && NDecPlaces > len) {
+      int_t d = 1;
+      for (int i = 0; i < NDecPlaces-len; ++i) d *= 10;
+      os.width(W-NDecPlaces+len);
+      os << std::right << H::value/d << "." << H::value%d;
+    }
+    else {
+      os.width(W);
+      os << std::right << H::value;
+    }
+    if (NDecPlaces == len)
+      os << ".";
+  }
+};
+
+template<bool S, class H, base_t Base, int_t NDecPlaces, base_t DecBase>
+struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces,DecBase> > 
+{
+  static const int_t HW = NDigits<H::value,10>::value;
+  static void apply(std::ostream& os, const int_t len = 0) { 
+    if (!S)
+      os << "-";
+    if (NDecPlaces >= len+HW) {
+      os << "0.";
+      os.fill('0');
+      os.width(NDecPlaces-len);
+      os << std::right << H::value;
+    }
+    else if (NDecPlaces < len+HW && NDecPlaces > len) {
+      int_t d = 1;
+      for (int i = 0; i < NDecPlaces-len; ++i) d *= 10;
+      os << H::value/d << "." << H::value%d;
+    }
+    else
+      os << H::value;
+    if (NDecPlaces == len)
+      os << ".";
+  }
+};
+
 
 } // namespace MF
 

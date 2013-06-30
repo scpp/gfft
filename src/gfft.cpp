@@ -18,6 +18,8 @@
 
 #include <iostream>
 
+#include "loki/static_check.h"
+
 #include "gfft.h"
 
 using namespace std;
@@ -135,18 +137,21 @@ int main(int argc, char *argv[])
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
 //    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 
-typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;
-typedef TYPELIST_2(SInt<7>,SInt<2>) LL2;
-typedef TYPELIST_2(SInt<2>,SInt<1>) LL3;
-typedef SBigInt<true,LL1,10> BI1;
-typedef SBigInt<true,LL2,10> BI2;
-typedef SBigInt<true,LL3,10> BI3;
-typedef Mult<BI1,BI2>::Result M;
-typedef Div<BI2,SInt<3> >::DivResult DD;
-typedef Simplify<Div<BI2,SInt<30> >::ModResult>::Result DM;
-typedef Add<BI1,BI2>::Result A;
-typedef Sub<BI1,BI2>::Result S;
-typedef Sub<S,BI2>::Result SS;
+// typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;
+// typedef TYPELIST_2(SInt<999999999>,SInt<999999999>) LL2;
+// typedef TYPELIST_2(SInt<999999999>,SInt<999999999>) LL3;
+// typedef SBigInt<true,LL1,10> BI1;
+// typedef SBigInt<true,LL2,DefaultBase> BI2;
+// typedef Check<BI2>::Result a;
+// typedef SBigInt<true,LL3,DefaultBase> BI3;
+// typedef Mult<BI2,BI3>::Result M;
+// Cout<M>::apply(cout);
+
+// typedef Div<BI2,SInt<3> >::DivResult DD;
+// typedef Simplify<Div<BI2,SInt<30> >::ModResult>::Result DM;
+// typedef Add<BI1,BI2>::Result A;
+// typedef Sub<BI1,BI2>::Result S;
+// typedef Sub<S,BI2>::Result SS;
 //typedef Simplify<Div<M,BI2>::ModResult>::Result D;
 //typedef Print<DM>::Result TTT;
 
@@ -158,7 +163,7 @@ typedef long double RetType;
 // cout<< Evaluate2Int<D,int_t>::value << endl; 
 // cout<< Evaluate2Float<M,double>::value() << endl; 
 // cout<< Evaluate2Float<D,double>::value() << endl; 
-cout.precision(20);
+cout.precision(16);
 // cout << (int)NL::Compare<BI1, BI2>::value << endl;
 // cout << (int)NL::Compare<BI2, S>::value << endl;
 // cout << (int)NL::Compare<BI2, SS>::value << endl;
@@ -183,6 +188,7 @@ cout.precision(20);
 
 typedef EX::PiLen<1> MetaPi;
 typedef Simplify<MetaPi::Result>::Result TPi;
+
 // //typedef MetaPi::Result TPi;
 // typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 //typedef Print<TPi::Num>::Result TT2;
@@ -201,16 +207,14 @@ typedef Simplify<MetaPi::Result>::Result TPi;
 // cout << endl;
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
-//typedef SInt<2> X;
+//typedef SFraction<SInt<157>,SInt<100> > X;
+//typedef SInt<3> X;
 typedef TPi X;
-//typedef EX::SinCosFraction<2, X, UnitFraction, 1>::Result T;
-//typedef EX::FuncSeries<X,EX::CosFraction,Add,10,0,UnitFraction>::Result CosPi;
-typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
+
+typedef Simplify<EX::CosAcc<X,1>::Result>::Result CosPi;
 typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
-cout << cos(2) << endl;
-cout << "  ";
-Cout<CosPiDec::Num>::apply(cout);
-//Cout<T>::apply(cout);
+cout << cos(M_PI) << endl;
+Cout<CosPiDec>::apply(cout);
 cout << endl;
 
 }

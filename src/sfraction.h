@@ -209,7 +209,7 @@ public:
    typedef SFraction<Num,Den> Result;
 };
 
-template<class N, class D, int Num>
+template<class N, class D, int_t Num>
 class Add<SFraction<N,D>,SInt<Num> > {
    typedef SInt<Num> T;
    typedef typename Add<
@@ -227,6 +227,14 @@ public:
    typedef SFraction<Numer,D> Result;
 };
 
+///////////////////////////////////////////////
 
+template<class N, class D>
+struct Check<SFraction<N,D> >
+{
+  typedef typename Check<N>::Result CheckN;
+  typedef typename Check<D>::Result CheckD;
+  typedef SFraction<CheckN,CheckD> Result;
+};
 
 #endif

@@ -435,23 +435,23 @@ struct NZeros<Loki::NullType> {
 
 
 template<class NList>
-struct CutLeadingZeros;
+struct CutTrailingZeros;
 
 template<class H, class Tail>
-struct CutLeadingZeros<Loki::Typelist<H,Tail> > {
-  typedef Loki::Typelist<H, typename CutLeadingZeros<Tail>::Result> Result;
+struct CutTrailingZeros<Loki::Typelist<H,Tail> > {
+  typedef Loki::Typelist<H, typename CutTrailingZeros<Tail>::Result> Result;
 };
 
 template<class Tail>
-struct CutLeadingZeros<Loki::Typelist<SInt<0>,Tail> > {
+struct CutTrailingZeros<Loki::Typelist<SInt<0>,Tail> > {
   static const int Len = TL::Length<Tail>::value;
   static const int NZ  = NZeros<Tail>::Value;
   typedef typename Select<(Len == NZ), Loki::NullType,
-          Loki::Typelist<SInt<0>, typename CutLeadingZeros<Tail>::Result> >::Result Result;
+          Loki::Typelist<SInt<0>, typename CutTrailingZeros<Tail>::Result> >::Result Result;
 };
 
 template<>
-struct CutLeadingZeros<Loki::NullType> {
+struct CutTrailingZeros<Loki::NullType> {
   typedef Loki::NullType Result;
 };
 	

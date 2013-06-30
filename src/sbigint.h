@@ -89,19 +89,29 @@ class Sign;
 // bool isInt = Loki::TypeTraits<RetType>::isIntegral,
 // bool isFloat = Loki::TypeTraits<RetType>::isFloat
 template<class BInt, class RetType, unsigned long AccumBase = 1>
-struct Evaluate2Int;
+struct Evaluate2IntLoop;
 
 template<bool S, class H, class T, base_t Base, class RetType, unsigned long AccumBase>
-struct Evaluate2Int<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType,AccumBase>
+struct Evaluate2IntLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType,AccumBase>
 {
-  static const RetType Next = Evaluate2Int<SBigInt<S,T,Base>,RetType,AccumBase*Base>::Value;
+  static const RetType Next = Evaluate2IntLoop<SBigInt<S,T,Base>,RetType,AccumBase*Base>::Value;
   static const RetType Value = H::Value*AccumBase + Next;
 };
 
 template<bool S, base_t Base, class RetType, unsigned long AccumBase>
-struct Evaluate2Int<SBigInt<S,Loki::NullType,Base>,RetType,AccumBase>
+struct Evaluate2IntLoop<SBigInt<S,Loki::NullType,Base>,RetType,AccumBase>
 {
   static const RetType Value = 0;
+};
+
+template<class BInt, class RetType>
+struct Evaluate2Int;
+
+template<bool S, class NList, base_t Base, class RetType>
+struct Evaluate2Int<SBigInt<S,NList,Base>,RetType>
+{
+  static const RetType v = Evaluate2IntLoop<SBigInt<S,NList,Base>,RetType>::Value;
+  static const RetType Value = S ? v : -v;
 };
 
 template<int_t N, class RetType>
@@ -112,27 +122,41 @@ struct Evaluate2Int<SInt<N>, RetType>
 
 
 template<class BInt, class RetType>
-struct Evaluate2Float;
+struct Evaluate2FloatLoop;
 
 template<bool S, class H, class T, base_t Base, class RetType>
-struct Evaluate2Float<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
+struct Evaluate2FloatLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
 {
   static RetType value(const RetType AccumBase = 1) 
   {
-    return (RetType)H::Value*AccumBase + Evaluate2Float<SBigInt<S,T,Base>,RetType>::value(AccumBase*Base);
+    return (RetType)H::Value*AccumBase + Evaluate2FloatLoop<SBigInt<S,T,Base>,RetType>::value(AccumBase*Base);
   }
 };
 
 template<bool S, base_t Base, class RetType>
-struct Evaluate2Float<SBigInt<S,Loki::NullType,Base>,RetType>
+struct Evaluate2FloatLoop<SBigInt<S,Loki::NullType,Base>,RetType>
 {
   static RetType value(const RetType AccumBase = 1) { return 0; }
+};
+
+
+template<class BInt, class RetType>
+struct Evaluate2Float;
+
+template<bool S, class NList, base_t Base, class RetType>
+struct Evaluate2Float<SBigInt<S,NList,Base>,RetType> 
+{
+  static RetType value() 
+  { 
+    RetType v = Evaluate2FloatLoop<SBigInt<S,NList,Base>,RetType>::value();
+    return S ? v : -v; 
+  }
 };
 
 template<int_t N, class RetType>
 struct Evaluate2Float<SInt<N>,RetType>
 {
-  static RetType value(const RetType AccumBase = 1) { return N; }
+  static RetType value() { return N; }
 };
 
 
@@ -218,7 +242,8 @@ struct Align<Loki::NullType,Base,0> {
 
 /////////////////////////////////////////////////////////////
 
-template<IntT N, bool isSmallEnough=(N<DefaultBase)>
+template<IntT N, 
+bool isSmallEnough=((N>=0 && N<DefaultBase) || (N<0 && -N<DefaultBase))>
 struct __SwitchToBigInt;
 
 template<IntT N>
@@ -230,8 +255,9 @@ template<IntT N>
 struct __SwitchToBigInt<N,false> {
    static const bool S = (N>=0);
    static const base_t Base = DefaultBase;
+   typedef typename Abs<SInt<N> >::Result AN;
    typedef typename Align<
-      Loki::Typelist<SInt<N>,Loki::NullType>,Base>::Result NList;
+      Loki::Typelist<AN,Loki::NullType>,Base>::Result NList;
    typedef SBigInt<S,NList,Base> Result;
 };
 
@@ -256,10 +282,7 @@ struct Add<SInt<N1>, SInt<N2> > {
 /// \return container class representing difference of N1 and N2.
 ////////////////////////////////////////////////////////////
 template<IntT N1, IntT N2>
-class Sub<SInt<N1>, SInt<N2> > {
-public:
-   typedef SInt<N1-N2> Result;
-};
+struct Sub<SInt<N1>, SInt<N2> > : public Add<SInt<N1>, SInt<-N2> > {};
 
 /// \brief Compile-time negation of an integer.
 /// \param N an integer
@@ -372,7 +395,7 @@ struct Simplify;
 
 template<bool S, typename NList, base_t Base>
 struct Simplify<SBigInt<S,NList,Base> > {
-   typedef SBigInt<S,typename NL::CutLeadingZeros<NList>::Result,Base> Result;
+   typedef SBigInt<S,typename NL::CutTrailingZeros<NList>::Result,Base> Result;
 };
 
 // template<IntT N>
@@ -388,11 +411,11 @@ struct Simplify<SInt<N> > {
 ///////////////////////////////////////////////////////
 
 template<class B1, class B2,
-         bool C=(NL::Compare<typename B1::Num,typename B2::Num>::value>=0)>
+         char C = NL::Compare<B1,B2>::value>
 class __Add;
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<true,NList1,Base>,SBigInt<true,NList2,Base>,true> {
+class __Add<SBigInt<true,NList1,Base>,SBigInt<true,NList2,Base>,1> {
    typedef typename NL::Add<NList1,NList2>::Result Sum;
    typedef typename Align<Sum,Base>::Result ASum;
 public:
@@ -400,7 +423,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<true,NList1,Base>,SBigInt<false,NList2,Base>,true> {
+class __Add<SBigInt<true,NList1,Base>,SBigInt<false,NList2,Base>,1> {
    static const IntT L = Loki::TL::Length<NList1>::value;
    typedef typename NL::AddAt<
            typename NL::AddConst<NList1,SInt<Base-1> >::Result,0,SInt<1> >::Result NList12;
@@ -412,7 +435,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<false,NList1,Base>,SBigInt<true,NList2,Base>,true> {
+class __Add<SBigInt<false,NList1,Base>,SBigInt<true,NList2,Base>,1> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<false,NList2,Base> BI2;
 public:
@@ -421,7 +444,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<false,NList1,Base>,SBigInt<false,NList2,Base>,true> {
+class __Add<SBigInt<false,NList1,Base>,SBigInt<false,NList2,Base>,1> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
 public:
@@ -430,11 +453,17 @@ public:
 };
 
 template<bool S1, bool S2, class NList1, class NList2, base_t Base>
-class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,false> {
+class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,-1> {
    typedef SBigInt<S1,NList1,Base> BI1;
    typedef SBigInt<S2,NList2,Base> BI2;
 public:
    typedef typename __Add<BI2,BI1>::Result Result;
+};
+
+template<bool S1, bool S2, class NList1, class NList2, base_t Base>
+class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,0> {
+public:
+   typedef SInt<0> Result;
 };
 
 //////////////////////////////////////////////////////////
@@ -751,7 +780,7 @@ public:
 };
 
 ////////////////////////////////////////////////////////
-
+/*
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Mod<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
 
@@ -767,7 +796,7 @@ class Mod<SInt<N>,SBigInt<S,NList,Base> > {
 public:
    typedef typename Mod<SBigInt<S,NList,Base>,SInt<N> >::Result Result;
 };
-
+*/
 ////////////////////////////////////////////////////////
 
 template<class B, base_t NewBase>
@@ -787,36 +816,38 @@ public:
    typedef SBigInt<S,Loki::NullType,NewBase> Result;
 };
 
-
 ////////////////////////////////////////////////////////
 
-template<class BigInt>
-struct Cout;
+template<class H, base_t Base, 
+bool C = (Abs<H>::Result::value < Base)>
+struct CheckStep;
+
+template<class H, base_t Base>
+struct CheckStep<H,Base,true> {
+  typedef H Result;
+};
+
+template<class H, base_t Base>
+struct CheckStep<H,Base,false> { }; // error
+
+
+template<class T>
+struct Check;
 
 template<bool S, class H, class T, base_t Base>
-struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> > 
+struct Check<SBigInt<S,Loki::Typelist<H,T>,Base> >
 {
-  typedef Cout<SBigInt<S,T,Base> > Next;
-  
-  static void apply(std::ostream& os, const int_t width = 0) { 
-    int_t w = width;
-    if (w == 0) {
-      base_t b = Base-1;
-      while (b > 0) { b/=10; ++w; }
-    }
-    Next::apply(os,w);
-    os.fill('0');
-    os.width(w);
-    os << std::right << H::Value /*<< " "*/;
-  }
+  typedef Loki::Typelist<typename CheckStep<H,Base>::Result, 
+                         typename Check<SBigInt<S,T,Base> >::Result> Result;
 };
 
-template<bool S, class H, base_t Base>
-struct Cout<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base> > {
-  static void apply(std::ostream& os, const int_t width = 0) { 
-//     os << H::Value << " ";
-    os << H::Value;
-  }
+template<bool S, base_t Base>
+struct Check<SBigInt<S,Loki::NullType,Base> >
+{
+  typedef Loki::NullType Result;
 };
+
+template<int_t N>
+struct Check<SInt<N> > : public CheckStep<SInt<N>,DefaultBase> {};
 
 #endif
