@@ -411,11 +411,12 @@ struct Simplify<SInt<N> > {
 ///////////////////////////////////////////////////////
 
 template<class B1, class B2,
-         char C = NL::Compare<B1,B2>::value>
+         bool C = (NL::Compare<typename B1::Num,typename B2::Num>::value>=0)>
+//         char C = NL::Compare<B1,B2>::value>
 class __Add;
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<true,NList1,Base>,SBigInt<true,NList2,Base>,1> {
+class __Add<SBigInt<true,NList1,Base>,SBigInt<true,NList2,Base>,true> {
    typedef typename NL::Add<NList1,NList2>::Result Sum;
    typedef typename Align<Sum,Base>::Result ASum;
 public:
@@ -423,7 +424,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<true,NList1,Base>,SBigInt<false,NList2,Base>,1> {
+class __Add<SBigInt<true,NList1,Base>,SBigInt<false,NList2,Base>,true> {
    static const IntT L = Loki::TL::Length<NList1>::value;
    typedef typename NL::AddAt<
            typename NL::AddConst<NList1,SInt<Base-1> >::Result,0,SInt<1> >::Result NList12;
@@ -435,7 +436,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<false,NList1,Base>,SBigInt<true,NList2,Base>,1> {
+class __Add<SBigInt<false,NList1,Base>,SBigInt<true,NList2,Base>,true> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<false,NList2,Base> BI2;
 public:
@@ -444,7 +445,7 @@ public:
 };
 
 template<class NList1, class NList2, base_t Base>
-class __Add<SBigInt<false,NList1,Base>,SBigInt<false,NList2,Base>,1> {
+class __Add<SBigInt<false,NList1,Base>,SBigInt<false,NList2,Base>,true> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
 public:
@@ -453,18 +454,18 @@ public:
 };
 
 template<bool S1, bool S2, class NList1, class NList2, base_t Base>
-class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,-1> {
+class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,false> {
    typedef SBigInt<S1,NList1,Base> BI1;
    typedef SBigInt<S2,NList2,Base> BI2;
 public:
    typedef typename __Add<BI2,BI1>::Result Result;
 };
 
-template<bool S1, bool S2, class NList1, class NList2, base_t Base>
-class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,0> {
-public:
-   typedef SInt<0> Result;
-};
+// template<bool S1, bool S2, class NList1, class NList2, base_t Base>
+// class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,0> {
+// public:
+//    typedef SInt<0> Result;
+// };
 
 //////////////////////////////////////////////////////////
 

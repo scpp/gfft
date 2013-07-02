@@ -82,7 +82,7 @@ struct GCD<SInt<N>, SInt<0> > {
 */
 
 template<class A, class B,
-int C = (int)NL::Compare<A,B>::value>
+char C = NL::Compare<A,B>::value>
 struct GCD;
 
 template<class A, class B>
