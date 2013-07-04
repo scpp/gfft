@@ -490,8 +490,6 @@ struct SinCosFraction
   static const int_t M = 2*(K-1)+D;
   typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
   typedef typename Mult<typename Mult<X,X>::Result,Divider>::Result XX;
-//   typedef typename Loki::Select<Loki::IsSameType<Aux,Loki::NullType>::value, XX,
-//           typename Mult<XX,Aux>::Result>::Result XP;
   typedef typename Mult<XX,Aux>::Result XP;
   typedef typename Negate<XP>::Result Result;
 //  typedef typename NL::Print<Result>::Result TT2;
@@ -547,7 +545,7 @@ struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> >
     Next::apply(os);
     os.fill('0');
     os.width(W);
-    os << std::right << H::value /*<< " "*/;
+    os << std::right << H::value;
   }
 };
 

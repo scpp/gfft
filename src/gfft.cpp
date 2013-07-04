@@ -229,30 +229,35 @@ cout.precision(16);
 //    typedef typename Add<T1,T2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
   
-typedef EX::PiLen<1> MetaPi;
+typedef EX::PiAcc<2> MetaPi;
 typedef Simplify<MetaPi::Result>::Result TPi;
+typedef EX::FractionToDecimal<TPi,17,10>::Result TPiDec;
+typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
+//typedef Loki::TL::Print<TPiD>::Result PF;
+typedef typename IPowBig<10,17>::Result TPiDen;
+typedef SFraction<TPiNum,TPiDen> TPiShort;
 
 //typedef SFraction<SInt<157>,SInt<100> > X;
-//typedef SInt<3> X;
-typedef TPi X;
+typedef SInt<3> X;
+//typedef TPi X;
+//typedef TPiShort X;
 
   //typedef Loki::TL::Print<T1>::Result PF;
   
-typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
+//typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
+//typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
 
-typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
-typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
 // typedef EX::FractionToDecimal<Last,20,10>::Result LastDec;
 // typedef EX::FractionToDecimal<Step,20,10>::Result StepDec;
 // typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
 // typedef EX::FractionToDecimal<F,20,10>::Result FDec;
 cout << M_PI << endl;
-Cout<TPiDec>::apply(cout);
+Cout<TPi>::apply(cout);
 cout << endl;
-cout << cos(M_PI) << endl;
-Cout<CosPiDec>::apply(cout);
+Cout<TPiShort>::apply(cout);
 cout << endl;
-Cout<CosPiDec::Num>::apply(cout);
-cout << endl;
+// cout << cos(3) << endl;
+// Cout<CosPiDec>::apply(cout);
+// cout << endl;
 }
 
