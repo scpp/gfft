@@ -49,7 +49,7 @@ struct __GCD<SBigInt<S1,N1,B>, SBigInt<S2,N2,B>, 1> {
   typedef SBigInt<S1,N1,B> TN1;
   typedef SBigInt<S2,N2,B> TN2;
   typedef typename Div<TN1,TN2>::ModResult Mod;
-  static const char C = NL::Compare<TN2,Mod>::value;
+  static const int C = NL::Compare<TN2,Mod>::value;
   typedef typename __GCD<TN2,Mod,C>::Result Result;
 };
 
@@ -60,7 +60,7 @@ struct __GCD<SBigInt<S1,N1,B1>, SBigInt<S2,N2,B2>, -1>
 template<bool S, class N1, base_t Base, int_t N2>
 struct __GCD<SBigInt<S,N1,Base>, SInt<N2>, 1> {
   typedef typename Div<SBigInt<S,N1,Base>,SInt<N2> >::ModResult Mod;
-  static const char C = NL::Compare<SInt<N2>,Mod>::value;
+  static const int C = NL::Compare<SInt<N2>,Mod>::value;
   typedef typename __GCD<SInt<N2>,Mod,C>::Result Result;
 };
 
@@ -72,7 +72,7 @@ template<bool S, class N1, base_t Base, int_t N2>
 struct __GCD<SInt<N2>, SBigInt<S,N1,Base>, 1> 
 {
    static const int_t N = Evaluate2Int<SBigInt<S,N1,Base>, int_t>::Value;
-   static const char C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
+   static const int C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
    typedef typename __GCD<SInt<N2>,SInt<N>,C>::Result Result;
 };
 
@@ -83,7 +83,7 @@ struct __GCD<SInt<N2>, SBigInt<S,N1,Base>, -1>
 template<int_t N1, int_t N2>
 struct __GCD<SInt<N1>, SInt<N2>, 1> {
    static const int_t N = N1%N2;
-   static const char C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
+   static const int C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
    typedef typename __GCD<SInt<N2>,SInt<N>,C>::Result Result;
 };
 
@@ -103,7 +103,7 @@ struct __GCD<SBigInt<S,N,Base>, SInt<0>, 1> {
 
 template<int_t N>
 struct __GCD<SInt<N>, SInt<0>, 1> {
-   typedef SInt<N> Result;
+   typedef typename __SwitchToBigInt<N>::Result Result;
 };
 
 
@@ -121,23 +121,49 @@ template<class N, class D>
 class Simplify<SFraction<N,D> > {
    typedef typename Abs<N>::Result AN;
    typedef typename GCD<AN,D>::Result T;
-   typedef typename Div<AN,T>::DivResult AbsNum;
+   typedef typename Div<N,T>::DivResult Num;
    typedef typename Div<D,T>::DivResult Den;
 
-   static const int SN = Sign<N>::value;
-   typedef typename Loki::Select<(SN >= 0), AbsNum,
-           typename Negate<AbsNum>::Result>::Result Num;
+//    static const int SN = Sign<N>::value;
+//    typedef typename Loki::Select<(SN >= 0), AbsNum,
+//            typename Negate<AbsNum>::Result>::Result Num;
 public:
    typedef SFraction<Num,Den> Result;
 };
 
 /// Multiplication of two compile-time Fractions
+// template<class N1, class D1, class N2, class D2>
+// class Mult<SFraction<N1,D1>, SFraction<N2,D2> > {
+//    typedef typename Mult<N1,N2>::Result Num;
+//    typedef typename Mult<D1,D2>::Result Den;
+// public:
+// //    typedef SFraction<Num,Den> Result;
+//    typedef typename Simplify<SFraction<Num,Den> >::Result Result;
+// };
+
 template<class N1, class D1, class N2, class D2>
 class Mult<SFraction<N1,D1>, SFraction<N2,D2> > {
-   typedef typename Mult<N1,N2>::Result Num;
-   typedef typename Mult<D1,D2>::Result Den;
+   typedef typename GCD<N1,D2>::Result G1;
+   typedef typename GCD<N2,D1>::Result G2;
+   typedef typename Div<N1,G1>::DivResult NN1;
+   typedef typename Div<N2,G2>::DivResult NN2;
+   typedef typename Div<D2,G1>::DivResult DD2;
+   typedef typename Div<D1,G2>::DivResult DD1;
+   typedef typename Mult<NN1,NN2>::Result Num;
+   typedef typename Mult<DD1,DD2>::Result Den;
 public:
    typedef SFraction<Num,Den> Result;
+};
+
+template<int_t N1, int_t D1, int_t N2, int_t D2>
+class Mult<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
+   static const int_t Num = N1*N2;
+   static const int_t Den = D1*D2;
+   typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
+   typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
+   typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
+public:
+   typedef SFraction<NumT,DenT> Result;
 };
 
 template<class N, class D, int_t Num>
@@ -174,7 +200,19 @@ class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
    typedef typename Add<T1,T2>::Result Num;
    typedef typename Mult<D1,D2>::Result Den;
 public:
-   typedef SFraction<Num,Den> Result;
+//    typedef SFraction<Num,Den> Result;
+   typedef typename Simplify<SFraction<Num,Den> >::Result Result;
+};
+
+template<int_t N1, int_t D1, int_t N2, int_t D2>
+class Add<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
+   static const int_t Num = N1*D2 + N2*D1;   // Should still fit into int_t
+   static const int_t Den = D1*D2;
+   typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
+   typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
+   typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
+public:
+   typedef SFraction<NumT,DenT> Result;
 };
 
 template<class N, class D, int_t Num>

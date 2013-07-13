@@ -167,28 +167,28 @@ namespace NL
 template<bool S1, class N1, bool S2, class N2, base_t B>
 struct Compare<SBigInt<S1,N1,B>, SBigInt<S2,N2,B> > 
 {
-   static const char c = Compare<N1,N2>::value;
-   static const char value = (S1 && S2) ? c : (!S1 && !S2) ? -c 
+   static const int c = Compare<N1,N2>::value;
+   static const int value = (S1 && S2) ? c : (!S1 && !S2) ? -c 
                         : (S1 && !S2) ? 1 : -1;
 };
   
 template<int_t N1, int_t N2>
 struct Compare<SInt<N1>, SInt<N2> > 
 {
-   static const char value = (N1 > N2) ? 1 : (N1 < N2) ? -1 : 0; 
+   static const int value = (N1 > N2) ? 1 : (N1 < N2) ? -1 : 0; 
 };
   
 template<bool S1, class N1, base_t Base, int_t N2>
 struct Compare<SBigInt<S1,N1,Base>, SInt<N2> > 
 {
   typedef typename CreateBigInt<SInt<N2> >::Result BI;
-  static const char value = Compare<SBigInt<S1,N1,Base>,BI>::value;
+  static const int value = Compare<SBigInt<S1,N1,Base>,BI>::value;
 };
 
 template<bool S1, class N1, base_t B1, int_t N2>
 struct Compare<SInt<N2>, SBigInt<S1,N1,B1> > 
 {
-   static const char value = -Compare<SBigInt<S1,N1,B1>, SInt<N2> >::value;
+   static const int value = -Compare<SBigInt<S1,N1,B1>, SInt<N2> >::value;
 };
   
 template<class N1, class N2>
@@ -276,6 +276,24 @@ struct __SwitchToBigInt<N,true> {
 template<int_t N>
 struct __SwitchToBigInt<N,false> {
    typedef typename CreateBigInt<SInt<N> >::Result Result;
+};
+
+/////////////////////////////////////////////////////////////
+
+template<class N, 
+int_t L = NL::Length<N>::value>
+struct __SwitchToInt {
+  typedef N Result;
+};
+
+template<class N>
+struct __SwitchToInt<N,1> {
+   typedef SInt<Evaluate2Int<N,int_t>::Value> Result;
+};
+
+template<class N>
+struct __SwitchToInt<N,0> {
+   typedef SInt<0> Result;
 };
 
 /// \brief Compile-time addition of two integers.
@@ -394,17 +412,18 @@ struct Simplify;
 
 template<bool S, typename NList, base_t Base>
 struct Simplify<SBigInt<S,NList,Base> > {
-   typedef SBigInt<S,typename NL::CutTrailingZeros<NList>::Result,Base> Result;
+  typedef typename NL::CutTrailingZeros<NList>::Result NewList;
+  typedef typename __SwitchToInt<SBigInt<S,NewList,Base> >::Result Result;
 };
 
 template<int_t N>
 struct Simplify<SInt<N> > {
-   typedef SInt<N> Result;
+  typedef SInt<N> Result;
 };
 
 ///////////////////////////////////////////////////////
 
-template<class B1, class B2, char Comparison>
+template<class B1, class B2, int Comparison>
 class __Add;
 
 template<class NList1, class NList2, base_t Base>
@@ -431,7 +450,7 @@ template<class NList1, class NList2, base_t Base>
 class __Add<SBigInt<false,NList1,Base>,SBigInt<true,NList2,Base>,1> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<false,NList2,Base> BI2;
-   static const char C = NL::Compare<NList1,NList2>::value;
+   static const int C = NL::Compare<NList1,NList2>::value;
 public:
    typedef typename Negate<
            typename __Add<BI1,BI2,C>::Result>::Result Result;
@@ -441,7 +460,7 @@ template<class NList1, class NList2, base_t Base>
 class __Add<SBigInt<false,NList1,Base>,SBigInt<false,NList2,Base>,1> {
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
-   static const char C = NL::Compare<NList1,NList2>::value;
+   static const int C = NL::Compare<NList1,NList2>::value;
 public:
    typedef typename Negate<
            typename __Add<BI1,BI2,C>::Result>::Result Result;
@@ -451,7 +470,7 @@ template<bool S1, bool S2, class NList1, class NList2, base_t Base>
 class __Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,-1> {
    typedef SBigInt<S1,NList1,Base> BI1;
    typedef SBigInt<S2,NList2,Base> BI2;
-   static const char C = NL::Compare<NList2,NList1>::value;
+   static const int C = NL::Compare<NList2,NList1>::value;
 public:
    typedef typename __Add<BI2,BI1,C>::Result Result;
 };
@@ -495,9 +514,9 @@ public:
 
 template<bool S, class NList, base_t Base, int_t N>
 class Add<SBigInt<S,NList,Base>,SInt<N> > {
-   static const char C = NL::Compare<SBigInt<true,NList,Base>,typename Abs<SInt<N> >::Result>::value;
+   static const int C = NL::Compare<SBigInt<true,NList,Base>,typename Abs<SInt<N> >::Result>::value;
    typedef SBigInt<S,NList,Base> BI1;
-   typedef typename __SwitchToBigInt<N,C>::Result BI2;
+   typedef typename CreateBigInt<SInt<N> >::Result BI2;
 public:
    typedef typename __Add<BI1,BI2,C>::Result Result;
 };
@@ -505,6 +524,19 @@ public:
 template<bool S, class NList, base_t Base, int_t N>
 class Add<SInt<N>,SBigInt<S,NList,Base> > : public Add<SBigInt<S,NList,Base>,SInt<N> > {};
 
+template<bool S, class NList, base_t Base>
+class Add<SBigInt<S,NList,Base>,SInt<0> > {
+public:
+  typedef SBigInt<S,NList,Base> Result;
+};
+
+template<bool S, base_t Base, int_t N>
+class Add<SBigInt<S,Loki::NullType,Base>,SInt<N> > {
+public:
+  typedef SInt<N> Result;
+};
+
+  
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Sub<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
    typedef SBigInt<S1,NList1,Base> BI1;
@@ -571,6 +603,20 @@ public:
 
 ////////////////////////////////////////////////////////
 
+template<class C>
+struct SelectUList;
+
+template<>
+struct SelectUList<SInt<0> > {
+  typedef Loki::NullType Result;
+};
+
+template<bool S, class NList, base_t Base>
+struct SelectUList<SBigInt<S,NList,Base> > {
+  typedef NList Result;
+};
+
+
 template<class NList1, class NList2, base_t Base, int_t I>
 class __Div;
 
@@ -586,22 +632,23 @@ class __Div<Loki::Typelist<H,T>,NList2,Base,I> {
    static const int_t U1 = Loki::TL::TypeAtNonStrict<NList1,L1-I-1,SInt<0> >::Result::value;
    static const int_t U2 = Loki::TL::TypeAtNonStrict<NList1,L1-I-2,SInt<0> >::Result::value;
    static const int_t U = U0*Base+U1;
-   static const int_t Q = U/V1;  // trial quotient
-   static const int_t R = U%V1;  // trial reminder
+   static const uint_t Q = U/V1;  // trial quotient
+   static const uint_t R = U%V1;  // trial reminder
    // Test trial Q
-   static const int_t Q1 = ((Q==Base) || (Q*V2>R*Base+U2)) ? Q-1 : Q;
-   static const int_t R1 = (Q1<Q) ? R+V1 : R;
+   static const uint_t Q1 = ((Q==Base) || (Q*V2>R*Base+U2)) ? Q-1 : Q;
+   static const uint_t R1 = (Q1<Q) ? R+V1 : R;
    // Repeat, if (R1<Base)
    static const int_t Q2 = ((R1<Base) && ((Q1==Base) || (Q1*V2>R1*Base+U2))) ? Q1-1 : Q1;
    typedef SBigInt<true,NList1,Base> BI1;
    typedef SBigInt<true,NList2,Base> BI2;
-   typedef typename __SwitchToBigInt<Q2>::Result Q2T;
-   typedef typename Sub<BI1,typename Mult<BI2,Q2T>::Result>::Result Dif;
+   //typedef typename __SwitchToBigInt<Q2>::Result Q2T;
+   //typedef typename Sub<BI1,typename Mult<BI2,Q2T>::Result>::Result Dif;
+   typedef typename Sub<BI1,typename Mult<BI2,SInt<Q2> >::Result>::Result Dif;
 public:
 //typedef typename Loki::Print<T1>::Result DBG;
 //typedef typename Loki::Print<SInt<Q> >::Result DBG;
    typedef Loki::Typelist<SInt<Q2>,typename Next::DivList> DivList;
-   typedef typename Dif::Num UList;
+   typedef typename SelectUList<Dif>::Result UList;
 };
 
 template<class H, class T, class NList2, base_t Base>
@@ -617,39 +664,47 @@ template<class B1, class B2>
 class BigDiv;
 
 
-template<class B1, class B2,
-int_t L1 = Loki::TL::Length<typename B1::Num>::value,
-int_t L2 = Loki::TL::Length<typename B2::Num>::value>
-struct DivSelect {
-  typedef BigDiv<B1,B2> T;
+template<class B1, class B2, int_t L1, int_t L2, char C>
+struct DivSelect;
+
+template<class B1, class B2, int_t L1, int_t L2>
+struct DivSelect<B1,B2,L1,L2,1> {
+  typedef typename Simplify<B1>::Result BS1;
+  typedef typename Simplify<B2>::Result BS2;
+  typedef BigDiv<BS1,BS2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
+};
+
+template<class B1, class B2, int_t L1, int_t L2>
+struct DivSelect<B1,B2,L1,L2,-1> {
+  typedef SInt<0> DivResult;
+  typedef B1 ModResult;         //<<< TODO: modify for negative B1
+};
+
+template<class B1, class B2, int_t L1, int_t L2>
+struct DivSelect<B1,B2,L1,L2,0> {
+  typedef SInt<1> DivResult;
+  typedef SInt<0> ModResult;               
 };
 
 template<class B1, class B2, int_t L>
-struct DivSelect<B1,B2,1,L> {
-  typedef SInt<Evaluate2Int<B1,int_t>::Value> I1;
-  typedef Div<I1,B2> T;
-  typedef typename T::DivResult DivResult;
-  typedef typename T::ModResult ModResult;
-};
-
-template<class B1, class B2, int_t L>
-struct DivSelect<B1,B2,L,1> {
-  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
-  typedef Div<B1,I2> T;
-  typedef typename T::DivResult DivResult;
-  typedef typename T::ModResult ModResult;
-};
-
-template<class B1, class B2>
-struct DivSelect<B1,B2,1,1> {
+struct DivSelect<B1,B2,2,L,1> {
   typedef SInt<Evaluate2Int<B1,int_t>::Value> I1;
   typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
   typedef Div<I1,I2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
 };
+
+template<class B1, class B2, int_t L>
+struct DivSelect<B1,B2,L,1,1> {
+  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
+  typedef Div<B1,I2> T;
+  typedef typename T::DivResult DivResult;
+  typedef typename T::ModResult ModResult;
+};
+
 
 
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
@@ -661,31 +716,55 @@ public:
    static const unsigned L2 = Loki::TL::Length<NList2>::value;
    // Normalization
    static const int_t D = Base/(Loki::TL::TypeAt<NList2,L2-1>::Result::value+1);
-   typedef typename Mult<BI1,SInt<D> >::Result U;
+   typedef typename Loki::Select<(D > 1),typename Mult<BI1,SInt<D> >::Result,BI1>::Result U;
    static const unsigned ULen = Loki::TL::Length<typename U::Num>::value;
    typedef typename Loki::Select<(ULen==L1),
            typename Loki::TL::Append<typename U::Num,SInt<0> >::Result,
            typename U::Num>::Result UList;
-   typedef typename Mult<BI2,SInt<D> >::Result V;
+   typedef typename Loki::Select<(D > 1),typename Mult<BI2,SInt<D> >::Result,BI2>::Result V;
    // Loop
    typedef __Div<UList,typename V::Num,Base,L1-L2+1> Loop;
    //typedef SInt<Evaluate2Int<BI2,int_t>::Value> I2;
 
 /*  typedef typename Div<SBigInt<true,
            typename Loki::Range<NList1,0,L2-1>::Result,Base>,SInt<D> >::DivResult ModResult;*/
-   typedef typename Div<SBigInt<true,typename Loop::UList,Base>,SInt<D> >::DivResult ModResult;
+   typedef SBigInt<true,typename Loop::UList,Base> ModT;
+   typedef typename Loki::Select<(D > 1),typename Div<ModT,SInt<D> >::DivResult,ModT>::Result ModResult;
 	     
    typedef SBigInt<(S1==S2),typename Loop::DivList,Base> DivResult;
 //   typedef SBigInt<true,typename Loop::ModList,Base> ModResult;
 };
 
+template<class List, class N, base_t Base>
+struct __DivN;
 
+template<class H, class T, int_t N, base_t Base>
+struct __DivN<Loki::Typelist<H,T>,SInt<N>,Base> {
+   typedef __DivN<T,SInt<N>,Base> Next;
+   static const int_t AN = (N>0) ? N : -N;
+   static const int_t B = Next::Q*Base + H::Value;
+   static const int_t R = B/AN;
+   static const int_t Q = B%AN;
+   typedef Loki::Typelist<SInt<R>,typename Next::Result> Result;
+};
+
+template<int_t N, base_t Base>
+struct __DivN<Loki::NullType,SInt<N>,Base> {
+   static const int_t Q = 0;
+   typedef Loki::NullType Result;
+};
+
+//////////////////
 
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Div<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > 
 {
+  static const int_t L1 = Loki::TL::Length<NList1>::value;
+  static const int_t L2 = Loki::TL::Length<NList2>::value;
+  static const char C = NL::Compare<NList1,NList2>::value;
+  
+  typedef DivSelect<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,L1,L2,C> T;
 public:
-  typedef DivSelect<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > T;
   typedef typename Simplify<typename T::DivResult>::Result DivResult;
   typedef typename Simplify<typename T::ModResult>::Result ModResult;
 };
@@ -694,7 +773,6 @@ public:
 template<bool S1, bool S2, class NList2, base_t Base>
 class Div<SBigInt<S1,Loki::NullType,Base>,SBigInt<S2,NList2,Base> > {
 public:
-//    typedef SBigInt<true,Loki::NullType,Base> Result;
    typedef SInt<0> ModResult;
    typedef SInt<0> DivResult;
 };
@@ -706,26 +784,28 @@ class Div<SBigInt<S1,NList1,Base>,SBigInt<S2,Loki::NullType,Base> > {}; // error
 
 template<bool S, class H, class T, base_t Base, int_t N>
 class Div<SBigInt<S,Loki::Typelist<H,T>,Base>,SInt<N> > {
-   typedef Div<SBigInt<S,T,Base>,SInt<N> > Next;
-   static const int_t AN = (N>0) ? N : -N;
-   static const int_t B = Next::Q*Base + H::Value;
-   static const int_t R = B/AN;
+  typedef __DivN<Loki::Typelist<H,T>,typename Abs<SInt<N> >::Result,Base> DivLoop;
+  typedef SBigInt<(S==(N>0)),typename DivLoop::Result,Base> BI;
 public:
-   static const int_t Q = B%AN;
-   typedef SBigInt<(S==(N>0)),Loki::Typelist<SInt<R>,
-     typename Next::DivResult::Num>,Base> DivResult;
-   typedef SInt<Q> ModResult;
+   typedef typename Simplify<BI>::Result DivResult;
+   typedef SInt<DivLoop::Q> ModResult;
 };
+
+template<bool S, class H, class T, base_t Base>
+class Div<SBigInt<S,Loki::Typelist<H,T>,Base>,SInt<1> > {
+public:  
+   typedef SBigInt<S,Loki::Typelist<H,T>,Base> DivResult;
+   typedef SInt<0> ModResult;
+};
+
 template<bool S, class H, class T, base_t Base>
 class Div<SBigInt<S,Loki::Typelist<H,T>,Base>,SInt<0> > {};
 
 template<bool S, base_t Base, int_t N>
 class Div<SBigInt<S,Loki::NullType,Base>,SInt<N> > {
 public:
-   static const int_t Q = 0;
-   typedef SBigInt<true,Loki::NullType,Base> DivResult;
-//    typedef SInt<0> ModResult;
-//    typedef SInt<0> DivResult;
+   typedef SInt<0> DivResult;
+   typedef SInt<0> ModResult;
 };
 
 template<bool S, base_t Base, int_t N>

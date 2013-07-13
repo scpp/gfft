@@ -204,17 +204,31 @@ cout.precision(16);
 // cout << endl;
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
-//   typedef EX::FuncSeries<X,EX::CosFraction,Add,6,0,UnitFraction> Sum;
-// //  typedef typename Simplify<typename Sum::Result>::Result StartValue;
-//   typedef typename Sum::Result StartValue;
-//   typedef typename Sum::LastStep Last;
-//   
-//   typedef typename EX::CosFraction<6,X,Last>::Result Step;
-// //   typedef FuncSeries<X,FuncStep,Accum,Count-1,Start+1,Step> NextIter;
-// //   typedef typename NextIter::LastStep LastStep;
-// // 
-//   typedef typename Add<StartValue,Step>::Result NextValue;
-// 
+//// To save compile time
+typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
+typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
+typedef TYPELIST_1(SInt<314159265>) NL1;
+typedef TYPELIST_1(SInt<100000000>) DL1;
+typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPiShort;
+
+//typedef SFraction<SInt<157>,SInt<100> > X;
+//typedef SInt<3> X;
+//typedef TPi X;
+typedef TPiShort X;
+
+  static const int NStart = 7;
+   typedef EX::FuncSeries<X,EX::CosFraction,Add,NStart,0,UnitFraction> Sum;
+//   typedef typename Simplify<typename Sum::Result>::Result StartValue;
+   typedef typename Sum::Result StartValue;
+//    typedef typename Sum::LastStep Last;
+//    typedef typename EX::CosFraction<NStart,X,Last>::Result Step;
+//    typedef typename Add<StartValue,Step>::Result NextValue;
+
+// typedef EX::FractionToDecimal<Last,20,10>::Result LastDec;
+// typedef EX::FractionToDecimal<Step,20,10>::Result StepDec;
+typedef EX::FractionToDecimal<StartValue,20,10>::Result StartDec;
+//typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
+
 //   typedef SFraction<SInt<-1>,SInt<720> > F3;
 //   typedef SFraction<SInt<1>,SInt<40320> > F2;
 //   typedef SFraction<SInt<-1>,SInt<3628800> > F1;
@@ -229,35 +243,39 @@ cout.precision(16);
 //    typedef typename Add<T1,T2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
   
-typedef EX::PiAcc<2> MetaPi;
-typedef Simplify<MetaPi::Result>::Result TPi;
-typedef EX::FractionToDecimal<TPi,17,10>::Result TPiDec;
-typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
-//typedef Loki::TL::Print<TPiD>::Result PF;
-typedef typename IPowBig<10,17>::Result TPiDen;
-typedef SFraction<TPiNum,TPiDen> TPiShort;
+// typedef EX::PiLen<1> MetaPi;
+// typedef Simplify<MetaPi::Result>::Result TPi;
+typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
+// typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
+// typedef typename IPowBig<10,17>::Result TPiDen;
+// typedef SFraction<TPiNum,TPiDen> TPiShort;
 
-//typedef SFraction<SInt<157>,SInt<100> > X;
-typedef SInt<3> X;
-//typedef TPi X;
-//typedef TPiShort X;
-
-  //typedef Loki::TL::Print<T1>::Result PF;
+//typedef Loki::TL::Print<BI>::Result PF;
   
-//typedef Simplify<EX::CosLen<X,1>::Result>::Result CosPi;
-//typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
+// typedef Simplify<EX::CosAcc<X,1>::Result>::Result CosPi;
+// typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
 
-// typedef EX::FractionToDecimal<Last,20,10>::Result LastDec;
-// typedef EX::FractionToDecimal<Step,20,10>::Result StepDec;
-// typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
-// typedef EX::FractionToDecimal<F,20,10>::Result FDec;
 cout << M_PI << endl;
-Cout<TPi>::apply(cout);
-cout << endl;
 Cout<TPiShort>::apply(cout);
 cout << endl;
-// cout << cos(3) << endl;
+Cout<TPiDec>::apply(cout);
+cout << endl;
+// cout << cos(M_PI) << endl;
 // Cout<CosPiDec>::apply(cout);
+// cout << endl;
+
+cout << endl;
+Cout<StartValue>::apply(cout);
+cout << endl;
+Cout<StartDec>::apply(cout);
+cout << endl;
+// Cout<Step>::apply(cout);
+// cout << endl;
+// Cout<Sum::LastStep>::apply(cout);
+// cout << endl;
+// Cout<NextValue>::apply(cout);
+// cout << endl;
+// Cout<NextDec>::apply(cout);
 // cout << endl;
 }
 

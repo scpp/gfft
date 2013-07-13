@@ -365,8 +365,8 @@ struct Print<Typelist<Head,Tail> > {
         template <class H1, class T1, class H2, class T2>
         struct Compare<Typelist<H1,T1>,Typelist<H2,T2> >
         {
-            static const char v = Compare<T1,T2>::value;
-            static const char value = (v==0) ? 
+            static const int v = Compare<T1,T2>::value;
+            static const int value = (v==0) ? 
                   ((H1::Value-H2::Value)>0 ? 1 : 
                    (H1::Value==H2::Value) ? 0 : -1) : v;
         };
@@ -374,19 +374,19 @@ struct Print<Typelist<Head,Tail> > {
         template <class H, class T>
         struct Compare<Typelist<H,T>,NullType>
         {
-            static const char value = 1;
+            static const int value = 1;
         };
 
         template <class H, class T>
         struct Compare<NullType,Typelist<H,T> >
         {
-            static const char value = -1;
+            static const int value = -1;
         };
 
         template <class H1, class H2>
         struct Compare<Typelist<H1,NullType>,Typelist<H2,NullType> >
         {
-            static const char value = (H1::Value-H2::Value)>0 ? 1 : 
+            static const int value = (H1::Value-H2::Value)>0 ? 1 : 
                                       (H1::Value==H2::Value) ? 0 : -1;
         };
 

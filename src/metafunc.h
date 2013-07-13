@@ -468,7 +468,7 @@ struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiFraction,Add,Acc
 {};
 
 template<int Len = 2,    // in powers of DefaultBase
-int NStartingSteps = 4>  
+int NStartingSteps = 3>  
 struct PiLen : public GenericLengthBasedFunc<Loki::NullType,PiFraction,Add,Len,NStartingSteps> 
 {};
 
@@ -516,7 +516,7 @@ struct CosAcc : public GenericAccuracyBasedFunc<X,CosFraction,Add,Accuracy,NStar
 
 template<class X, 
 int Len = 2,    // in powers of DefaultBase
-int NStartingSteps = 6>  
+int NStartingSteps = 3>  
 struct CosLen : public GenericLengthBasedFunc<X,CosFraction,Add,Len,NStartingSteps> 
 {};
 
@@ -545,7 +545,7 @@ struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> >
     Next::apply(os);
     os.fill('0');
     os.width(W);
-    os << std::right << H::value;
+    os << std::right << H::value << " ";
   }
 };
 
@@ -555,7 +555,7 @@ struct Cout<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base> > {
 //     os << H::Value << " ";
     if (!S)
       os << "-";
-    os << H::value;
+    os << H::value << " ";
   }
 };
 
