@@ -255,7 +255,7 @@ typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
 
 //typedef Loki::TL::Print<BI>::Result PF;
   
-typedef EX::SinAcc<X,1> SinA; 
+typedef EX::SinAcc<X,2> SinA; 
 typedef SinA::Result SinPi;
 //typedef SinA::ResultDecimal SinPiDec;
 typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;

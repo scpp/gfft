@@ -682,6 +682,7 @@ struct DivSelect<B1,B2,L1,L2,1> {
   typedef typename Simplify<B1>::Result BS1;
   typedef typename Simplify<B2>::Result BS2;
   typedef BigDiv<BS1,BS2> T;
+//   typedef BigDiv<B1,B2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
 };
@@ -726,12 +727,12 @@ public:
    static const unsigned L2 = Loki::TL::Length<NList2>::value;
    // Normalization
    static const int_t D = Base/(Loki::TL::TypeAt<NList2,L2-1>::Result::value+1);
-   typedef typename Loki::Select<(D > 1),typename Mult<BI1,SInt<D> >::Result,BI1>::Result U;
+   typedef typename Mult<BI1,SInt<D> >::Result U;
    static const unsigned ULen = Loki::TL::Length<typename U::Num>::value;
    typedef typename Loki::Select<(ULen==L1),
            typename Loki::TL::Append<typename U::Num,SInt<0> >::Result,
            typename U::Num>::Result UList;
-   typedef typename Loki::Select<(D > 1),typename Mult<BI2,SInt<D> >::Result,BI2>::Result V;
+   typedef typename Mult<BI2,SInt<D> >::Result V;
    // Loop
    typedef __Div<UList,typename V::Num,Base,L1-L2+1> Loop;
    //typedef SInt<Evaluate2Int<BI2,int_t>::Value> I2;
@@ -777,6 +778,8 @@ class Div<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> >
 public:
   typedef typename Simplify<typename T::DivResult>::Result DivResult;
   typedef typename Simplify<typename T::ModResult>::Result ModResult;
+//   typedef typename T::DivResult DivResult;
+//   typedef typename T::ModResult ModResult;
 };
 
 

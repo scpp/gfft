@@ -116,6 +116,16 @@ public:
   typedef typename __GCD<AN1,AN2,C>::Result Result;
 };
 
+template<bool S1, class T1, bool S2, class T2, base_t B>
+class GCD<SBigInt<S1,Loki::Typelist<SInt<0>,T1>,B>,
+          SBigInt<S2,Loki::Typelist<SInt<0>,T2>,B> > {
+  typedef typename GCD<SBigInt<S1,T1,B>,SBigInt<S2,T2,B> >::Result Next;
+  typedef Loki::Typelist<SInt<0>,typename Next::Num> NList;
+public:
+  typedef SBigInt<true,NList,B> Result;
+};
+
+
 
 template<class N, class D>
 class Simplify<SFraction<N,D> > {
@@ -123,10 +133,6 @@ class Simplify<SFraction<N,D> > {
    typedef typename GCD<AN,D>::Result T;
    typedef typename Div<N,T>::DivResult Num;
    typedef typename Div<D,T>::DivResult Den;
-
-//    static const int SN = Sign<N>::value;
-//    typedef typename Loki::Select<(SN >= 0), AbsNum,
-//            typename Negate<AbsNum>::Result>::Result Num;
 public:
    typedef SFraction<Num,Den> Result;
 };
