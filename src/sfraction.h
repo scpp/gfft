@@ -137,8 +137,7 @@ public:
 //    typedef typename Mult<N1,N2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
 // public:
-// //    typedef SFraction<Num,Den> Result;
-//    typedef typename Simplify<SFraction<Num,Den> >::Result Result;
+//    typedef SFraction<Num,Den> Result;
 // };
 
 template<class N1, class D1, class N2, class D2>
@@ -166,21 +165,42 @@ public:
    typedef SFraction<NumT,DenT> Result;
 };
 
+// template<class N, class D, int_t Num>
+// class Mult<SFraction<N,D>,SInt<Num> > {
+//    typedef typename Mult<N,SInt<Num> >::Result Numer;
+// public:
+//    typedef SFraction<Numer,D> Result;
+// };
+
 template<class N, class D, int_t Num>
 class Mult<SFraction<N,D>,SInt<Num> > {
-   typedef typename Mult<N,SInt<Num> >::Result Numer;
+   typedef typename GCD<SInt<Num>,D>::Result G;
+   typedef typename Div<SInt<Num>,G>::DivResult Num1;
+   typedef typename Div<D,G>::DivResult D1;
+   typedef typename Mult<N,Num1>::Result Numer;
 public:
-   typedef SFraction<Numer,D> Result;
+   typedef SFraction<Numer,D1> Result;
 };
 
 template<class N, class D, int_t Num>
 class Mult<SInt<Num>, SFraction<N,D> > : public Mult<SFraction<N,D>,SInt<Num> > {};
 
+// template<class N, class D, bool S, class NList, unsigned int Base>
+// class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {
+//    typedef typename Mult<N,SBigInt<S,NList,Base> >::Result Numer;
+// public:
+//    typedef SFraction<Numer,D> Result;
+// };
+
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {
-   typedef typename Mult<N,SBigInt<S,NList,Base> >::Result Numer;
+   typedef SBigInt<S,NList,Base> Num;
+   typedef typename GCD<Num,D>::Result G;
+   typedef typename Div<Num,G>::DivResult Num1;
+   typedef typename Div<D,G>::DivResult D1;
+   typedef typename Mult<N,Num1>::Result Numer;
 public:
-   typedef SFraction<Numer,D> Result;
+   typedef SFraction<Numer,D1> Result;
 };
 
 /////////////////////////////////////////////////////////////
@@ -193,26 +213,27 @@ struct Negate<SFraction<Numer,Denom> > {
 
 /////////////////////////////////////////////////////////////
 
+// template<class N1, class D1, class N2, class D2>
+// class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
+//    typedef typename Mult<N1,D2>::Result T1;
+//    typedef typename Mult<N2,D1>::Result T2;
+//    typedef typename Add<T1,T2>::Result Num;
+//    typedef typename Mult<D1,D2>::Result Den;
+// public:
+//    typedef SFraction<Num,Den> Result;
+// };
+
 template<class N1, class D1, class N2, class D2>
 class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
-   typedef typename Mult<N1,D2>::Result T1;
-   typedef typename Mult<N2,D1>::Result T2;
+   typedef typename GCD<D1,D2>::Result G;
+   typedef typename Div<D1,G>::DivResult DD1;
+   typedef typename Div<D2,G>::DivResult DD2;
+   typedef typename Mult<N1,DD2>::Result T1;
+   typedef typename Mult<N2,DD1>::Result T2;
    typedef typename Add<T1,T2>::Result Num;
-   typedef typename Mult<D1,D2>::Result Den;
+   typedef typename Mult<DD1,D2>::Result Den;
 public:
-//    typedef SFraction<Num,Den> Result;
-   typedef typename Simplify<SFraction<Num,Den> >::Result Result;
-};
-
-template<int_t N1, int_t D1, int_t N2, int_t D2>
-class Add<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
-   static const int_t Num = N1*D2 + N2*D1;   // Should still fit into int_t
-   static const int_t Den = D1*D2;
-   typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
-   typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
-   typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
-public:
-   typedef SFraction<NumT,DenT> Result;
+   typedef SFraction<Num,Den> Result;
 };
 
 template<class N, class D, int_t Num>

@@ -209,25 +209,28 @@ typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
 typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
 typedef TYPELIST_1(SInt<314159265>) NL1;
 typedef TYPELIST_1(SInt<100000000>) DL1;
-typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPiShort;
+typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPiShort;
 
 //typedef SFraction<SInt<157>,SInt<100> > X;
 //typedef SInt<3> X;
 //typedef TPi X;
 typedef TPiShort X;
 
-  static const int NStart = 7;
-   typedef EX::FuncSeries<X,EX::CosFraction,Add,NStart,0,UnitFraction> Sum;
-//   typedef typename Simplify<typename Sum::Result>::Result StartValue;
-   typedef typename Sum::Result StartValue;
+//    static const int NStart = 1;
+//    typedef EX::FuncSeries<X,EX::SinFraction,Add,NStart,0,UnitFraction> Sum;
+//    typedef typename Sum::Result StartValue;
+// // //   typedef typename Simplify<typename Sum::Result>::Result StartValue;
+// //    
 //    typedef typename Sum::LastStep Last;
-//    typedef typename EX::CosFraction<NStart,X,Last>::Result Step;
+//    typedef typename EX::SinFraction<NStart,X,Last>::Result Step;
+// //   typedef typename Add<StartValue,Step>::Result NextValue;
+// //    typedef typename Simplify<typename AddOld<StartValue,Step>::Result>::Result NextValue;
 //    typedef typename Add<StartValue,Step>::Result NextValue;
 
 // typedef EX::FractionToDecimal<Last,20,10>::Result LastDec;
 // typedef EX::FractionToDecimal<Step,20,10>::Result StepDec;
-typedef EX::FractionToDecimal<StartValue,20,10>::Result StartDec;
-//typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
+// typedef EX::FractionToDecimal<StartValue,20,10>::Result StartDec;
+// typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
 
 //   typedef SFraction<SInt<-1>,SInt<720> > F3;
 //   typedef SFraction<SInt<1>,SInt<40320> > F2;
@@ -252,24 +255,28 @@ typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
 
 //typedef Loki::TL::Print<BI>::Result PF;
   
-// typedef Simplify<EX::CosAcc<X,1>::Result>::Result CosPi;
-// typedef EX::FractionToDecimal<CosPi,20,10>::Result CosPiDec;
+typedef EX::SinAcc<X,1> SinA; 
+typedef SinA::Result SinPi;
+//typedef SinA::ResultDecimal SinPiDec;
+typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
 
 cout << M_PI << endl;
 Cout<TPiShort>::apply(cout);
 cout << endl;
 Cout<TPiDec>::apply(cout);
 cout << endl;
-// cout << cos(M_PI) << endl;
-// Cout<CosPiDec>::apply(cout);
-// cout << endl;
+cout << sin(M_PI) << endl;
+Cout<SinPiDec>::apply(cout);
+cout << endl;
 
-cout << endl;
-Cout<StartValue>::apply(cout);
-cout << endl;
-Cout<StartDec>::apply(cout);
-cout << endl;
+// cout << endl;
+// Cout<StartValue>::apply(cout);
+// cout << endl;
+// Cout<StartDec>::apply(cout);
+// cout << endl;
 // Cout<Step>::apply(cout);
+// cout << endl;
+// Cout<StepDec>::apply(cout);
 // cout << endl;
 // Cout<Sum::LastStep>::apply(cout);
 // cout << endl;
