@@ -151,6 +151,8 @@ struct BitsetSelect<0,Typelist<H,T> > {
    typedef NullType Result;
 };
 
+
+
 template<class TList, unsigned int Index> 
 struct EraseAt;
 
@@ -172,7 +174,21 @@ struct EraseAt<NullType,Index>
   typedef NullType Result;
 };
 
+
+template<class TList, unsigned int N>
+struct ShiftLeft : public Next<TList, N> {};
+
+template<class TList, unsigned int N, class DefaultType, unsigned int I=N>
+struct ShiftRight {
+  typedef Typelist<DefaultType,typename ShiftRight<TList,N,DefaultType,I-1>::Result> Result;
+};
   
+template<class TList, unsigned int N, class DefaultType>
+struct ShiftRight<TList,N,DefaultType,0> {
+  typedef TList Result;
+};
+
+
 } //namespace TL
 } //namespace Loki
 

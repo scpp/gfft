@@ -54,6 +54,16 @@ struct TempTypeTrait<Complex<T,A> > {
 //    typedef T Result;
 // };
 
+//// To save compile time
+typedef TYPELIST_1(SInt<314159265>) NL1;
+typedef TYPELIST_1(SInt<100000000>) DL1;
+typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPi1;
+
+typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
+typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
+typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPi2;
+
+
 /// Metafunctions template classes
 /*!
 Template classes under this namespace are dedicated to the calculation of
@@ -294,8 +304,16 @@ struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
   typedef typename IPowBig<DecBase,NDigits>::Result M;
   typedef typename Mult<Numer,M>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
-// typedef typename Loki::TL::Print<AllDecimals>::Result PF;
   typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
+};
+
+template<bool S1, class N1, class Denom, int_t NDigits, base_t Base>
+struct FractionToDecimal<SFraction<SBigInt<S1,N1,Base>,Denom>,NDigits,Base> {
+  typedef typename Loki::TL::ShiftRight<N1,NDigits,SInt<0> >::Result NList;
+  typedef SBigInt<S1,NList,Base> NewNumer;
+//typedef typename NL::Print<NewNumer>::Result TT2;
+  typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
+  typedef SDecimalFraction<AllDecimals,NDigits,Base> Result;
 };
 
 /////////////////////////////////////////////////////

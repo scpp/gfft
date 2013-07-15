@@ -129,14 +129,14 @@ struct TranslateID;
 
 template<uint N, class T>
 struct TranslateID<Loki::Typelist<s_uint<N>,T> > {
-   static unsigned int apply(const unsigned int* n) {
+   static unsigned int apply(const int_t* n) {
       return TranslateID<T>::apply(n+1)*N + *n;
    }
 };
 
 template<uint N>
 struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
-   static unsigned int apply(const unsigned int* n) {
+   static unsigned int apply(const int_t* n) {
       return *n;
    }
 };

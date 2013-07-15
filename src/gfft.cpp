@@ -50,18 +50,25 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 }
 
 
+
+//typedef SFraction<SInt<157>,SInt<100> > X;
+//typedef SInt<3> X;
+//typedef TPi X;
+typedef TPi2 X;
+
+
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_5(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>, SIntID<19>) NList;
-typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, DecimationGroup::FullList > TransformSet;
+typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
+typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, INFREQ> TransformSet;
 
 int main(int argc, char *argv[])
 {
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
-    int_t i, n = 11;
+    int_t i, n = 4;
 //    cin >> n;
-/*   
+   
     typedef DFT TransformType;
 
     TransformSet gfft;
@@ -96,19 +103,19 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
-//      fftobj->fft(data);
-    fftobj->fft(data, dataout);
+    fftobj->fft(data);
+//     fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
-//      for (i=0; i < n; ++i)
-//        cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-   for (i=0; i < n; ++i)
-     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+     for (i=0; i < n; ++i)
+       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//    for (i=0; i < n; ++i)
+//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-//    ifftobj->fft(data);
-   ifftobj->fft(dataout, data);
+   ifftobj->fft(data);
+//    ifftobj->fft(dataout, data);
    dft1(data1, dataout1, n, true);
 
 // print out transformed data
@@ -129,7 +136,7 @@ int main(int argc, char *argv[])
     }
     cout<<"---------------------------------------------"<<endl;
     cout << mx1 << "                 " << mx2 << endl;
-*/
+
 
 //    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
@@ -204,17 +211,6 @@ cout.precision(16);
 // cout << endl;
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
-//// To save compile time
-typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
-typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
-typedef TYPELIST_1(SInt<314159265>) NL1;
-typedef TYPELIST_1(SInt<100000000>) DL1;
-typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPiShort;
-
-//typedef SFraction<SInt<157>,SInt<100> > X;
-//typedef SInt<3> X;
-//typedef TPi X;
-typedef TPiShort X;
 
 //    static const int NStart = 1;
 //    typedef EX::FuncSeries<X,EX::SinFraction,Add,NStart,0,UnitFraction> Sum;
@@ -248,23 +244,23 @@ typedef TPiShort X;
   
 // typedef EX::PiLen<1> MetaPi;
 // typedef Simplify<MetaPi::Result>::Result TPi;
-typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
-// typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
-// typedef typename IPowBig<10,17>::Result TPiDen;
-// typedef SFraction<TPiNum,TPiDen> TPiShort;
-
-//typedef Loki::TL::Print<BI>::Result PF;
-  
+// typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
+// // typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
+// // typedef typename IPowBig<10,17>::Result TPiDen;
+// // typedef SFraction<TPiNum,TPiDen> TPiShort;
+// 
+// //typedef Loki::TL::Print<BI>::Result PF;
+//   
 typedef EX::SinAcc<X,2> SinA; 
 typedef SinA::Result SinPi;
-//typedef SinA::ResultDecimal SinPiDec;
+// //typedef SinA::ResultDecimal SinPiDec;
 typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
-
-cout << M_PI << endl;
-Cout<TPiShort>::apply(cout);
-cout << endl;
-Cout<TPiDec>::apply(cout);
-cout << endl;
+// 
+// cout << M_PI << endl;
+// Cout<TPiShort>::apply(cout);
+// cout << endl;
+// Cout<TPiDec>::apply(cout);
+// cout << endl;
 cout << sin(M_PI) << endl;
 Cout<SinPiDec>::apply(cout);
 cout << endl;

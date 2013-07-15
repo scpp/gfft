@@ -30,7 +30,8 @@
 
 #include <iostream>
 
-typedef unsigned int base_t;
+//typedef unsigned int base_t;
+typedef int_t base_t;
 
 //static const base_t DefaultBase = (1<<(sizeof(int_t)*4));
 
@@ -585,6 +586,18 @@ class Mult<SBigInt<S,NList,Base>,SInt<N> > {
    typedef typename Align<Prod,Base>::Result AProd;
 public:
    typedef SBigInt<(S1==S),AProd,Base> Result;
+};
+
+template<bool S, class NList, base_t Base>
+class Mult<SBigInt<S,NList,Base>,SInt<Base> > {
+public:
+   typedef SBigInt<S,Loki::Typelist<SInt<0>,NList>,Base> Result;
+};
+
+template<bool S, class NList, base_t Base>
+class Mult<SBigInt<S,NList,Base>,SInt<-Base> > {
+public:
+   typedef SBigInt<!S,Loki::Typelist<SInt<0>,NList>,Base> Result;
 };
 
 template<bool S, class NList, base_t Base>

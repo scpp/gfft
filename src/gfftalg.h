@@ -75,36 +75,6 @@ public:
 };
 
 
-// TODO: compare this with the simple loop
-template<int_t K, int_t M, typename T, int S, int NIter>
-class IterateInFreq {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const int_t M2 = M*2;
-   static const int_t N = K*M;
-   IterateInFreq<K,M,T,S,NIter-1> next;
-   DFTk_inplace<K,M2,T,S> spec_inp;
-public:
-   void apply(T* data) 
-   {
-      next.apply(data);
-
-      const LocalVType t = Sin<N,NIter,LocalVType>::value();
-      const LocalVType wr = 1 - 2.0*t*t;
-      const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
-      spec_inp.apply(&wr, &wi, data + NIter*2);
-   }
-};
-
-template<int_t K, int_t M, typename T, int S>
-class IterateInFreq<K,M,T,S,0> {
-   DFTk_inplace<K,M*2,T,S> spec_inp;
-public:
-   void apply(T* data) 
-   {
-      spec_inp.apply(data);
-   }
-};
-
 template<int_t K, int_t M, typename T, int S>
 class DFTk_x_Im_T 
 {
@@ -297,6 +267,38 @@ public:
 
 /////////////////////////////////////////////////////////
 
+// TODO: compare this with the simple loop
+template<int_t K, int_t M, typename T, int S, int NIter>
+class IterateInFreq {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t M2 = M*2;
+   static const int_t N = K*M;
+   IterateInFreq<K,M,T,S,NIter-1> next;
+   DFTk_inplace<K,M2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      next.apply(data);
+
+      const LocalVType t = Sin<N,NIter,LocalVType>::value();
+      const LocalVType wr = 1 - 2.0*t*t;
+      const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
+      spec_inp.apply(&wr, &wi, data + NIter*2);
+   }
+};
+
+template<int_t K, int_t M, typename T, int S>
+class IterateInFreq<K,M,T,S,0> {
+   DFTk_inplace<K,M*2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+   }
+};
+
+/////////////////////////////////////////////////////////
+
 template<int_t K, int_t M, typename T, int S>
 class T_DFTk_x_Im
 {
@@ -447,28 +449,28 @@ class T_DFTk_x_Im<2,M,T,S>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
    DFTk<2,N,N,T,S> spec;
-   DFTk_inplace<2,N,T,S> spec_inp;
+//    DFTk_inplace<2,N,T,S> spec_inp;
 
-   //IterateInFreq<2,M,T,S,M-1> iterate;
+   IterateInFreq<2,M,T,S,M-1> iterate;
 public:
    void apply(T* data) 
    {
-      //iterate.apply(data);
-      spec_inp.apply(data);
-
-      LocalVType t,wr,wi;
-      t = Sin<N,1,LocalVType>::value();
-      const LocalVType wpr = -2.0*t*t;
-      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      wr = 1+wpr;
-      wi = wpi;
-      for (int_t i=2; i<N; i+=2) {
-	spec_inp.apply(&wr, &wi, data+i);
-
-        t = wr;
-        wr += t*wpr - wi*wpi;
-        wi += wi*wpr + t*wpi;
-      }
+      iterate.apply(data);
+//       spec_inp.apply(data);
+// 
+//       LocalVType t,wr,wi;
+//       t = Sin<N,1,LocalVType>::value();
+//       const LocalVType wpr = -2.0*t*t;
+//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+//       wr = 1+wpr;
+//       wi = wpi;
+//       for (int_t i=2; i<N; i+=2) {
+// 	spec_inp.apply(&wr, &wi, data+i);
+// 
+//         t = wr;
+//         wr += t*wpr - wi*wpi;
+//         wi += wi*wpr + t*wpi;
+//       }
    }
    
    void apply(const T* src, T* dst) 
