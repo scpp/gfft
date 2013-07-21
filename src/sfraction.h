@@ -36,7 +36,7 @@ struct SDecimalFraction {
 
 ///Greatest common divisor of A and B
 
-template<class A, class B, char C>
+template<class A, class B, int C>
 struct __GCD;
 
 template<class A, class B>
@@ -120,7 +120,8 @@ template<bool S1, class T1, bool S2, class T2, base_t B>
 class GCD<SBigInt<S1,Loki::Typelist<SInt<0>,T1>,B>,
           SBigInt<S2,Loki::Typelist<SInt<0>,T2>,B> > {
   typedef typename GCD<SBigInt<S1,T1,B>,SBigInt<S2,T2,B> >::Result Next;
-  typedef Loki::Typelist<SInt<0>,typename Next::Num> NList;
+  typedef typename CreateBigInt<Next,B>::Result NextBig;
+  typedef Loki::Typelist<SInt<0>,typename NextBig::Num> NList;
 public:
   typedef SBigInt<true,NList,B> Result;
 };
@@ -251,6 +252,10 @@ public:
    typedef SFraction<Numer,D> Result;
 };
 
+template<class N, class D, int_t Num>
+class Add<SInt<Num>, SFraction<N,D> > : public Add<SFraction<N,D>,SInt<Num> > {};
+
+
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
    typedef SBigInt<S,NList,Base> T;
@@ -259,6 +264,9 @@ class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
 public:
    typedef SFraction<Numer,D> Result;
 };
+
+template<class N, class D, bool S, class NList, unsigned int Base>
+class Add<SBigInt<S,NList,Base>,SFraction<N,D> > : public Add<SFraction<N,D>,SBigInt<S,NList,Base> > {};
 
 ///////////////////////////////////////////////
 

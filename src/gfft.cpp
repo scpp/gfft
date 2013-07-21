@@ -52,8 +52,7 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 
 
 //typedef SFraction<SInt<157>,SInt<100> > X;
-//typedef SInt<3> X;
-//typedef TPi X;
+//typedef SInt<1> X;
 typedef TPi2 X;
 
 
@@ -212,18 +211,19 @@ cout.precision(16);
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
 
-//    static const int NStart = 1;
-//    typedef EX::FuncSeries<X,EX::SinFraction,Add,NStart,0,UnitFraction> Sum;
+//    static const int NStart = 5;
+//    typedef EX::SinCosAux<X,X,Loki::NullType>::Result Aux;
+//    typedef EX::FuncSeries<X,EX::SinFraction,Add,NStart> Sum;
 //    typedef typename Sum::Result StartValue;
 // // //   typedef typename Simplify<typename Sum::Result>::Result StartValue;
 // //    
-//    typedef typename Sum::LastStep Last;
+//    typedef typename Sum::ResultAux Last;
 //    typedef typename EX::SinFraction<NStart,X,Last>::Result Step;
 // //   typedef typename Add<StartValue,Step>::Result NextValue;
 // //    typedef typename Simplify<typename AddOld<StartValue,Step>::Result>::Result NextValue;
 //    typedef typename Add<StartValue,Step>::Result NextValue;
-
-// typedef EX::FractionToDecimal<Last,20,10>::Result LastDec;
+// 
+// //typedef EX::FractionToDecimal<Last::second,20,10>::Result LastDec;
 // typedef EX::FractionToDecimal<Step,20,10>::Result StepDec;
 // typedef EX::FractionToDecimal<StartValue,20,10>::Result StartDec;
 // typedef EX::FractionToDecimal<NextValue,20,10>::Result NextDec;
@@ -242,26 +242,29 @@ cout.precision(16);
 //    typedef typename Add<T1,T2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
   
-// typedef EX::PiLen<1> MetaPi;
+// typedef EX::PiAcc<2> MetaPi;
 // typedef Simplify<MetaPi::Result>::Result TPi;
-// typedef EX::FractionToDecimal<TPiShort,17,10>::Result TPiDec;
+// typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 // // typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
 // // typedef typename IPowBig<10,17>::Result TPiDen;
 // // typedef SFraction<TPiNum,TPiDen> TPiShort;
 // 
 // //typedef Loki::TL::Print<BI>::Result PF;
 //   
-typedef EX::SinAcc<X,2> SinA; 
+typedef EX::SinAcc<X,1> SinA; 
 typedef SinA::Result SinPi;
 // //typedef SinA::ResultDecimal SinPiDec;
 typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
 // 
 // cout << M_PI << endl;
-// Cout<TPiShort>::apply(cout);
-// cout << endl;
+// // Cout<TPiShort>::apply(cout);
+// // cout << endl;
 // Cout<TPiDec>::apply(cout);
 // cout << endl;
+
 cout << sin(M_PI) << endl;
+Cout<SinPi>::apply(cout);
+cout << endl;
 Cout<SinPiDec>::apply(cout);
 cout << endl;
 
@@ -273,8 +276,6 @@ cout << endl;
 // Cout<Step>::apply(cout);
 // cout << endl;
 // Cout<StepDec>::apply(cout);
-// cout << endl;
-// Cout<Sum::LastStep>::apply(cout);
 // cout << endl;
 // Cout<NextValue>::apply(cout);
 // cout << endl;

@@ -35,12 +35,6 @@ struct Print<Loki::Typelist<Head,Tail> > {
 };
 
 
-template<typename T1, typename T2>
-struct Pair {
-  typedef T1 first;
-  typedef T2 second;
-};
-
 template<int_t N, int_t Factor, 
 bool C = (N % Factor == 0)>
 struct IsMultipleOf;
