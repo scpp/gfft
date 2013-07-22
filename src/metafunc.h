@@ -329,12 +329,6 @@ struct FuncSeries
   typedef typename FStep::Result Step;
   typedef typename FStep::ResultAux ResultAux;
 
-//   typedef FuncStep<Start,X,Aux> FStep;
-//   typedef typename FStep::Result Step;
-//   typedef typename FStep::ResultAux StepAux;
-  //typedef typename NextIter::ResultAux::second LastStep;
-
-  //typedef typename FuncAux<X,LastStep,StepAux>::Result ResultAux;
   typedef typename Accum<Step,typename NextIter::Result>::Result Result;
 };
 
@@ -456,17 +450,47 @@ int NStartingSteps>
 struct GenericLengthBasedFunc
 {
   typedef FuncSeries<X,FuncStep,Accumulator,NStartingSteps> Sum;
-//   typedef typename Simplify<typename Sum::Result>::Result StartValue;
   typedef typename Sum::Result StartValue;
   typedef typename Sum::ResultAux Aux;
 
   typedef FuncStep<NStartingSteps,X,Aux> FStep;
   typedef typename FStep::Result NextStep;
   typedef typename FStep::ResultAux NextAux;
-//   typedef typename Simplify<typename Accumulator<NextStep,StartValue>::Result>::Result NextValue;
   typedef typename Accumulator<NextStep,StartValue>::Result NextValue;
 
   typedef typename FuncLengthLoop<X,FuncStep,Accumulator,Length,NStartingSteps+1,StartValue,NextValue,NextAux>::Result Result;
+};
+
+/////////////////////////////////////////////////////
+
+template<int_t A, int_t P, class RetType = long double>
+struct DPow {
+  static RetType value() {
+    return (RetType)A * DPow<A,P-1,RetType>::value();
+  }
+};
+
+template<int_t A, class RetType>
+struct DPow<A,1,RetType> {
+  static RetType value() { return A; }
+};
+
+template<int_t A, class RetType>
+struct DPow<A,0,RetType> {
+  static RetType value() { return 1; }
+};
+
+template<class SFrac, int Accuracy>
+struct Compute {
+  typedef long double RetType;
+  typedef typename EX::FractionToDecimal<SFrac,Accuracy,DefaultDecimalBase>::Result TDec;
+  //static const int_t NDec = (NDigits<DefaultDecimalBase,10>::value - 1)*Accuracy;
+  typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
+  
+  static RetType value() {
+    return EvaluateToFloat<BigInt,RetType>::value()
+         / DPow<DefaultDecimalBase,Accuracy,RetType>::value();
+  }
 };
 
 ////////////////////////////////////////////////////////
@@ -483,8 +507,8 @@ struct PiFraction
                         typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
-//   typedef typename Simplify<SFraction<Numer,Denom> >::Result Fraction;
-  typedef SFraction<Numer,Denom> Result;
+  typedef typename Simplify<SFraction<Numer,Denom> >::Result Result;
+//  typedef SFraction<Numer,Denom> Result;
   typedef Loki::NullType ResultAux;
 };
 
@@ -498,7 +522,7 @@ struct PiFraction<0,C,Aux>
 
 
 template<int Accuracy = 2,    // in powers of DefaultBase
-int NStartingSteps = 6>  
+int NStartingSteps = 5>  
 struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiFraction,Add,Accuracy,NStartingSteps> 
 {};
 
@@ -528,8 +552,6 @@ struct SinCosFraction
 {
   static const int_t M = 2*(K-1)+D;
   typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
-//   typedef typename Mult<typename Mult<X,X>::Result,Divider>::Result XX;
-//   typedef typename Mult<XX,Aux>::Result XP;
   typedef typename Mult<typename Aux::first,Divider>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
   typedef typename Negate<XP>::Result Result;

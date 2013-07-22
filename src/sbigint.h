@@ -129,39 +129,45 @@ struct Evaluate2Int<SInt<N>, RetType>
 
 
 template<class BInt, class RetType>
-struct Evaluate2FloatLoop;
+struct EvaluateToFloatLoop;
 
 template<bool S, class H, class T, base_t Base, class RetType>
-struct Evaluate2FloatLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
+struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
 {
-  static RetType value(const RetType AccumBase = 1) 
+  static RetType value() 
   {
-    return (RetType)H::Value*AccumBase + Evaluate2FloatLoop<SBigInt<S,T,Base>,RetType>::value(AccumBase*Base);
+    return (RetType)H::Value + Base * EvaluateToFloatLoop<SBigInt<S,T,Base>,RetType>::value();
   }
 };
 
-template<bool S, base_t Base, class RetType>
-struct Evaluate2FloatLoop<SBigInt<S,Loki::NullType,Base>,RetType>
+template<bool S, class H, base_t Base, class RetType>
+struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,RetType>
 {
-  static RetType value(const RetType AccumBase = 1) { return 0; }
+  static RetType value() { return H::Value; }
+};
+
+template<bool S, base_t Base, class RetType>
+struct EvaluateToFloatLoop<SBigInt<S,Loki::NullType,Base>,RetType>
+{
+  static RetType value() { return 0; }
 };
 
 
 template<class BInt, class RetType>
-struct Evaluate2Float;
+struct EvaluateToFloat;
 
 template<bool S, class NList, base_t Base, class RetType>
-struct Evaluate2Float<SBigInt<S,NList,Base>,RetType> 
+struct EvaluateToFloat<SBigInt<S,NList,Base>,RetType> 
 {
   static RetType value() 
   { 
-    RetType v = Evaluate2FloatLoop<SBigInt<S,NList,Base>,RetType>::value();
+    RetType v = EvaluateToFloatLoop<SBigInt<S,NList,Base>,RetType>::value();
     return S ? v : -v; 
   }
 };
 
 template<int_t N, class RetType>
-struct Evaluate2Float<SInt<N>,RetType>
+struct EvaluateToFloat<SInt<N>,RetType>
 {
   static RetType value() { return N; }
 };
@@ -899,6 +905,37 @@ template<bool S, base_t Base, base_t NewBase>
 class Translate<SBigInt<S,Loki::NullType,Base>,NewBase> {
 public:
    typedef SBigInt<S,Loki::NullType,NewBase> Result;
+};
+
+////////////////////////////////////////////////////////
+
+template<class NList, base_t Base>
+struct DoubleBaseLoop;
+
+template<class H1, class H2, class T, base_t Base>
+struct DoubleBaseLoop<Loki::Typelist<H1,Loki::Typelist<H2,T> >,Base> {
+  static const int_t H = H2::value*Base + H1::value;
+  typedef Loki::Typelist<SInt<H>,typename DoubleBaseLoop<T,Base>::Result> Result;
+};
+
+template<class H1, base_t Base>
+struct DoubleBaseLoop<Loki::Typelist<H1,Loki::NullType>,Base> {
+  typedef Loki::Typelist<H1,Loki::NullType> Result;
+};
+
+template<base_t Base>
+struct DoubleBaseLoop<Loki::NullType,Base> {
+  typedef Loki::NullType Result;
+};
+
+
+template<class BI>
+struct DoubleBase;
+
+template<bool S, class N, base_t Base>
+struct DoubleBase<SBigInt<S,N,Base> > {
+  typedef typename DoubleBaseLoop<N,Base>::Result List;
+  typedef SBigInt<S,List,Base*Base> Result;
 };
 
 ////////////////////////////////////////////////////////

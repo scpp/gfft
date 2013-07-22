@@ -54,6 +54,7 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 //typedef SFraction<SInt<157>,SInt<100> > X;
 //typedef SInt<1> X;
 typedef TPi2 X;
+typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
 
 typedef DOUBLE ValueType;
@@ -169,7 +170,7 @@ typedef long double RetType;
 // cout<< Evaluate2Int<D,int_t>::value << endl; 
 // cout<< Evaluate2Float<M,double>::value() << endl; 
 // cout<< Evaluate2Float<D,double>::value() << endl; 
-cout.precision(16);
+cout.precision(18);
 // cout << (int)NL::Compare<BI1, BI2>::value << endl;
 // cout << (int)NL::Compare<BI2, S>::value << endl;
 // cout << (int)NL::Compare<BI2, SS>::value << endl;
@@ -242,31 +243,40 @@ cout.precision(16);
 //    typedef typename Add<T1,T2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
   
-// typedef EX::PiAcc<2> MetaPi;
-// typedef Simplify<MetaPi::Result>::Result TPi;
-// typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
+typedef EX::PiAcc<2> MetaPi;
+typedef MetaPi::Result TPi;
+typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
+//typedef EX::FractionToDecimal<TPi,2,DefaultDecimalBase>::Result TPiDec2;
 // // typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
 // // typedef typename IPowBig<10,17>::Result TPiDen;
 // // typedef SFraction<TPiNum,TPiDen> TPiShort;
 // 
-// //typedef Loki::TL::Print<BI>::Result PF;
 //   
-typedef EX::SinAcc<X,1> SinA; 
-typedef SinA::Result SinPi;
-// //typedef SinA::ResultDecimal SinPiDec;
-typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
+// typedef EX::SinAcc<X4,2> SinA; 
+// typedef SinA::Result SinPi;
+// typedef SinA::ResultDecimal SinPiDec2;
+// typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
+//typedef EX::FractionToDecimal<X4,20,10>::Result X4Dec;
+//typedef Loki::TL::Print<SinPiDec2>::Result PF;
 // 
-// cout << M_PI << endl;
-// // Cout<TPiShort>::apply(cout);
-// // cout << endl;
-// Cout<TPiDec>::apply(cout);
+cout << M_PI << endl;
+// Cout<TPiShort>::apply(cout);
 // cout << endl;
+Cout<TPiDec>::apply(cout);
+cout << endl;
+// Cout<TPiDec2::Num>::apply(cout);
+// cout << endl;
+cout << EX::Compute<TPi,2>::value() << endl;
 
-cout << sin(M_PI) << endl;
-Cout<SinPi>::apply(cout);
-cout << endl;
-Cout<SinPiDec>::apply(cout);
-cout << endl;
+// cout << sin(M_PI/4.) << endl;
+// Cout<SinPi>::apply(cout);
+// cout << endl;
+// Cout<SinPiDec::Num>::apply(cout);
+// cout << endl;
+// Cout<SinPiDec2::Num>::apply(cout);
+// cout << endl;
+// Cout<X4Dec>::apply(cout);
+// cout << endl;
 
 // cout << endl;
 // Cout<StartValue>::apply(cout);
