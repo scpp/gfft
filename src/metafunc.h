@@ -316,6 +316,11 @@ struct FractionToDecimal<SFraction<SBigInt<S1,N1,Base>,Denom>,NDigits,Base> {
   typedef SDecimalFraction<AllDecimals,NDigits,Base> Result;
 };
 
+template<int_t N, int_t NDigits, base_t DecBase>
+struct FractionToDecimal<SInt<N>,NDigits,DecBase> {
+  typedef SDecimalFraction<SInt<N>,0,DecBase> Result;
+};
+
 /////////////////////////////////////////////////////
 
 template<class X,
@@ -480,17 +485,23 @@ struct DPow<A,0,RetType> {
   static RetType value() { return 1; }
 };
 
-template<class SFrac, int Accuracy>
-struct Compute {
-  typedef long double RetType;
-  typedef typename EX::FractionToDecimal<SFrac,Accuracy,DefaultDecimalBase>::Result TDec;
-  //static const int_t NDec = (NDigits<DefaultDecimalBase,10>::value - 1)*Accuracy;
+template<class SFrac, int Accuracy, class RetType = long double>
+struct Compute;
+
+template<class Numer, class Denom, int Accuracy, class RetType>
+struct Compute<SFraction<Numer,Denom>,Accuracy,RetType> {
+  typedef typename EX::FractionToDecimal<SFraction<Numer,Denom>,Accuracy,DefaultDecimalBase>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
   static RetType value() {
     return EvaluateToFloat<BigInt,RetType>::value()
          / DPow<DefaultDecimalBase,Accuracy,RetType>::value();
   }
+};
+
+template<int_t N, int Accuracy, class RetType>
+struct Compute<SInt<N>,Accuracy,RetType> {
+  static RetType value() { return static_cast<RetType>(N); }
 };
 
 ////////////////////////////////////////////////////////
@@ -525,6 +536,22 @@ template<int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiFraction,Add,Accuracy,NStartingSteps> 
 {};
+
+template<int NStartingSteps>  
+struct PiAcc<1,NStartingSteps> {
+  static const base_t Base = DefaultDecimalBase;
+  typedef TYPELIST_1(SInt<314159265>) NL1;
+  typedef TYPELIST_1(SInt<Base/10>) DL1;
+  typedef SFraction<SBigInt<true,NL1,Base>,SBigInt<true,DL1,Base> > Result;
+};
+
+template<int NStartingSteps>  
+struct PiAcc<2,NStartingSteps> {
+  static const base_t Base = DefaultDecimalBase;
+  typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
+  typedef TYPELIST_2(SInt<0>,SInt<Base/10>) DL2;
+  typedef SFraction<SBigInt<true,NL2,Base>,SBigInt<true,DL2,Base> > Result;
+};
 
 template<int Len = 2,    // in powers of DefaultBase
 int NStartingSteps = 3>  
@@ -604,7 +631,40 @@ int Len = 2,    // in powers of DefaultBase
 int NStartingSteps = 3>  
 struct SinLen : public GenericLengthBasedFunc<X,SinFraction,Add,Len,NStartingSteps> {};
 
+
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct __SinPiFrac {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
+   typedef typename Mult<TPi,F>::Result X;
+   typedef typename SinAcc<X,Accuracy>::Result Result;
+};
   
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __SinPiFrac<A,1,Accuracy,NStartingSteps> {
+  typedef SInt<0> Result;
+};
+
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __SinPiFrac<A,2,Accuracy,NStartingSteps> {
+  typedef typename Loki::Select<(A%2 == 0),SInt<0>,
+          typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result>::Result Result;
+};
+
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct SinPiFrac {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename Simplify<F>::Result SF;
+   typedef typename __SinPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
+};
+
+
 } // namespcae EX
 
 ////////////////////////////////////////////////////////

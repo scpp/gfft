@@ -268,27 +268,35 @@ public:
 /////////////////////////////////////////////////////////
 
 // TODO: compare this with the simple loop
-template<int_t K, int_t M, typename T, int S, int NIter>
+template<int_t K, int_t M, typename T, int S, int NIter,
+class Sin1, class Sin2>
 class IterateInFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t M2 = M*2;
    static const int_t N = K*M;
-   IterateInFreq<K,M,T,S,NIter-1> next;
+   IterateInFreq<K,M,T,S,NIter-1,Sin1,Sin2> next;
    DFTk_inplace<K,M2,T,S> spec_inp;
+   
 public:
    void apply(T* data) 
    {
       next.apply(data);
 
-      const LocalVType t = Sin<N,NIter,LocalVType>::value();
+//       const LocalVType t = Sin<N,NIter,LocalVType>::value();
+//       const LocalVType wr = 1 - 2.0*t*t;
+//       const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
+      const LocalVType t = EX::Compute<Sin1,2>::value();
       const LocalVType wr = 1 - 2.0*t*t;
-      const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
+      const LocalVType wi = -S*EX::Compute<Sin2,2>::value();
+std::cout << NIter << "/" << N << ": " << t << " --- " << wi << std::endl;
+
       spec_inp.apply(&wr, &wi, data + NIter*2);
    }
 };
 
-template<int_t K, int_t M, typename T, int S>
-class IterateInFreq<K,M,T,S,0> {
+template<int_t K, int_t M, typename T, int S, 
+class Sin1, class Sin2>
+class IterateInFreq<K,M,T,S,0,Sin1,Sin2> {
    DFTk_inplace<K,M*2,T,S> spec_inp;
 public:
    void apply(T* data) 
@@ -449,9 +457,14 @@ class T_DFTk_x_Im<2,M,T,S>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
    DFTk<2,N,N,T,S> spec;
-//    DFTk_inplace<2,N,T,S> spec_inp;
+   DFTk_inplace<2,N,T,S> spec_inp;
 
-   IterateInFreq<2,M,T,S,M-1> iterate;
+//    typedef SFraction<SInt<M-1>,SInt<N> > F1;
+//    typedef typename Mult<TPi2,F1>::Result X1;
+//    typedef typename Mult<X1,SInt<2> >::Result X2;
+   typedef typename EX::SinPiFrac<M-1,N,2>::Result Sin1;
+   typedef typename EX::SinPiFrac<2*(M-1),N,2>::Result Sin2;
+   IterateInFreq<2,M,T,S,M-1,Sin1,Sin2> iterate;
 public:
    void apply(T* data) 
    {

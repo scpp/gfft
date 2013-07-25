@@ -59,11 +59,13 @@ typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
-typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
+//typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
+typedef TYPELIST_1(SIntID<4>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, INFREQ> TransformSet;
 
 int main(int argc, char *argv[])
 {
+    cout.precision(18);
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
     int_t i, n = 4;
@@ -170,7 +172,6 @@ typedef long double RetType;
 // cout<< Evaluate2Int<D,int_t>::value << endl; 
 // cout<< Evaluate2Float<M,double>::value() << endl; 
 // cout<< Evaluate2Float<D,double>::value() << endl; 
-cout.precision(18);
 // cout << (int)NL::Compare<BI1, BI2>::value << endl;
 // cout << (int)NL::Compare<BI2, S>::value << endl;
 // cout << (int)NL::Compare<BI2, SS>::value << endl;
@@ -243,9 +244,9 @@ cout.precision(18);
 //    typedef typename Add<T1,T2>::Result Num;
 //    typedef typename Mult<D1,D2>::Result Den;
   
-typedef EX::PiAcc<2> MetaPi;
-typedef MetaPi::Result TPi;
-typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
+// typedef EX::PiAcc<2> MetaPi;
+// typedef MetaPi::Result TPi;
+// typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 //typedef EX::FractionToDecimal<TPi,2,DefaultDecimalBase>::Result TPiDec2;
 // // typedef Translate<TPiDec::Num,DefaultDecimalBase>::Result TPiNum;
 // // typedef typename IPowBig<10,17>::Result TPiDen;
@@ -254,29 +255,40 @@ typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 //   
 // typedef EX::SinAcc<X4,2> SinA; 
 // typedef SinA::Result SinPi;
-// typedef SinA::ResultDecimal SinPiDec2;
 // typedef EX::FractionToDecimal<SinPi,20,10>::Result SinPiDec;
 //typedef EX::FractionToDecimal<X4,20,10>::Result X4Dec;
 //typedef Loki::TL::Print<SinPiDec2>::Result PF;
-// 
-cout << M_PI << endl;
-// Cout<TPiShort>::apply(cout);
+
+// typedef SFraction<SInt<1>,SInt<4> > F;
+// typedef typename EX::PiAcc<2>::Result TPi;
+// typedef typename Mult<TPi,F>::Result X;
+// typedef typename EX::SinAcc<X,2>::Result SinPi4;
+//typedef EX::SinPiFrac<1,4,2>::Result SinPi4;
+// typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
+// typedef EX::FractionToDecimal<X,20,10>::Result XDec;
+// typedef EX::FractionToDecimal<SinPi4,20,10>::Result SinPi4Dec;
+
+// cout << M_PI/4 << endl;
+// Cout<TPiDec>::apply(cout);
 // cout << endl;
-Cout<TPiDec>::apply(cout);
-cout << endl;
-// Cout<TPiDec2::Num>::apply(cout);
+// Cout<XDec>::apply(cout);
 // cout << endl;
-cout << EX::Compute<TPi,2>::value() << endl;
+// Cout<SinPi4Dec>::apply(cout);
+// cout << endl;
+// // Cout<TPiDec2::Num>::apply(cout);
+// // cout << endl;
+// cout << EX::Compute<TPi,2>::value() << endl;
 
 // cout << sin(M_PI/4.) << endl;
 // Cout<SinPi>::apply(cout);
 // cout << endl;
-// Cout<SinPiDec::Num>::apply(cout);
+// Cout<SinPiDec>::apply(cout);
 // cout << endl;
 // Cout<SinPiDec2::Num>::apply(cout);
 // cout << endl;
 // Cout<X4Dec>::apply(cout);
 // cout << endl;
+// cout << EX::Compute<SinPi,2>::value() << endl;
 
 // cout << endl;
 // Cout<StartValue>::apply(cout);

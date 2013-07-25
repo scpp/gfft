@@ -111,7 +111,7 @@ template<class N1, class N2>
 class GCD {
   typedef typename Abs<N1>::Result AN1;
   typedef typename Abs<N2>::Result AN2;
-  static const char C = NL::Compare<AN1,AN2>::value;
+  static const int C = NL::Compare<AN1,AN2>::value;
 public:
   typedef typename __GCD<AN1,AN2,C>::Result Result;
 };

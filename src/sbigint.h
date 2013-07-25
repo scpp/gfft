@@ -740,6 +740,15 @@ struct DivSelect<B1,B2,2,L,1> {
   typedef typename T::ModResult ModResult;
 };
 
+template<class B1, class B2>
+struct DivSelect<B1,B2,2,1,1> {
+  typedef SInt<Evaluate2Int<B1,int_t>::Value> I1;
+  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
+  typedef Div<I1,I2> T;
+  typedef typename T::DivResult DivResult;
+  typedef typename T::ModResult ModResult;
+};
+
 template<class B1, class B2, int_t L>
 struct DivSelect<B1,B2,L,1,1> {
   typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
@@ -749,7 +758,6 @@ struct DivSelect<B1,B2,L,1,1> {
 };
 
 
-
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class BigDiv<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
 public:
@@ -757,7 +765,8 @@ public:
    typedef SBigInt<S2,NList2,Base> BI2;
    static const unsigned L1 = Loki::TL::Length<NList1>::value;
    static const unsigned L2 = Loki::TL::Length<NList2>::value;
-   
+//typedef typename Loki::TL::Print<SInt<L2> >::Result A;
+
    // Normalization
    static const int_t D = Base/(Loki::TL::TypeAt<NList2,L2-1>::Result::value+1);
    typedef typename Mult<BI1,SInt<D> >::Result U;
