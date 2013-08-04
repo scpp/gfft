@@ -34,6 +34,90 @@ struct SIntID : public SInt<N> {
    static const uint ID = N-1;
 };
 
+template<class W1, int_t M, class W, int_t I, int Accuracy>
+struct GetNextRoot {
+  typedef typename Mult<W1,W>::Result Result;
+};
+
+// template<class W1, class W, int_t I, int Accuracy>
+// struct GetNextRoot<W1,2,W,I,Accuracy> {
+//   typedef typename EX::CosPiFrac<I,2,Accuracy>::Result Re;
+//   typedef typename EX::SinPiFrac<I,2,Accuracy>::Result Im;
+//   typedef MComplex<Re,Im> Result;
+// };
+
+
+template<class W1, int_t M, int Accuracy, class W = W1, int_t I = 2>
+struct __RootListLoop {
+  typedef typename Simplify<SFraction<SInt<2*I>,SInt<M> > >::Result SF;
+  typedef typename GetNextRoot<W1,SF::Denom::value,W,SF::Numer::value,Accuracy>::Result WW;
+  typedef EX::Compute<typename WW::Re,Accuracy> CRe;
+  typedef EX::Compute<typename WW::Im,Accuracy> CIm;
+  typedef typename __RootListLoop<W1,M,Accuracy,WW,I+1>::Result Next;
+  typedef Loki::Typelist<Pair<CRe,CIm>,Next> Result;
+};
+
+template<class W1, int_t M, int Accuracy, class W>
+struct __RootListLoop<W1,M,Accuracy,W,M> {
+  typedef Loki::NullType Result;
+};
+
+template<class RList>
+struct GenerateSymmetricPart;
+
+template<class H, class T>
+struct GenerateSymmetricPart<Loki::Typelist<H,T> > {
+  typedef typename H::first T1;
+  typedef typename Negate<typename H::second::BigInt>::Result T2;
+  typedef typename GenerateSymmetricPart<T>::Result Next;
+  typedef Loki::Typelist<Pair<T1,T2>,Next> Result;
+};
+
+template<>
+struct GenerateSymmetricPart<Loki::NullType> {
+  typedef Loki::NullType Result;
+};
+
+
+template<int_t N, int S, int Accuracy>
+class GenerateRootList 
+{
+  typedef typename EX::SinPiFrac<1,N,Accuracy>::Result Sin1;
+  typedef typename Reduce<typename EX::SinPiFrac<2,N,Accuracy>::Result,Accuracy>::Result Sin2;
+  typedef typename Loki::Select<(S>0),Sin2,
+          typename Negate<Sin2>::Result>::Result WI;
+  typedef typename Reduce<typename Sub<SInt<1>,typename Mult<SInt<2>,
+          typename Mult<Sin1,Sin1>::Result>::Result>::Result,Accuracy>::Result WR;
+//  typedef typename Reduce<typename EX::CosPiFrac<2,N,Accuracy>::Result,Accuracy>::Result WPR;
+  typedef MComplex<WR,WI> W1;
+  
+public:
+  typedef EX::Compute<typename W1::Re,Accuracy> CRe;
+  typedef EX::Compute<typename W1::Im,Accuracy> CIm;
+  typedef Loki::Typelist<Pair<CRe,CIm>,typename __RootListLoop<W1,(N%2==0) ? N/2 : N/2+1,Accuracy>::Result> FirstHalf;
+  typedef typename Loki::Select<(N%2==0),
+          typename Loki::TL::Append<FirstHalf,typename GenerateRootList<2,S,Accuracy>::Result>::Result,FirstHalf>::Result FirstHalfMod;
+  typedef typename Loki::TL::Reverse<typename GenerateSymmetricPart<FirstHalf>::Result>::Result SecondHalf;
+
+//public:
+//  typedef typename Loki::TL::Append<FirstHalfMod,SecondHalf>::Result Result;
+  typedef FirstHalf Result;
+};
+
+template<int S, int Accuracy>
+class GenerateRootList<2,S,Accuracy> {
+  typedef EX::Compute<SInt<-1>,Accuracy> CRe;
+  typedef EX::Compute<SInt<0>, Accuracy> CIm;
+public:
+  typedef Loki::Typelist<Pair<CRe,CIm>,Loki::NullType> Result;
+};
+
+template<int S, int Accuracy>
+class GenerateRootList<1,S,Accuracy> {
+public:
+  typedef Loki::NullType Result;
+};
+
 /** \class {GFFT::Transform}
 \brief Generic Fast Fourier transform in-place class
 \tparam Power2 defines transform length, which is 2^Power2
@@ -57,13 +141,17 @@ class FactoryPolicy = Empty,
 uint IDN = N::ID>
 class Transform : public FactoryPolicy 
 {
+   
    typedef typename VType::ValueType T;
    typedef typename Parall::template Swap<N::value,T>::Result Swap;
-   typedef typename Type::template Direction<N::Value,T> Dir;
+   typedef typename Type::template Direction<N::value,T> Dir;
    typedef Separate<N::Value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
    typedef typename Factorization<N, SInt>::Result NFact;
-   typedef typename Decimation::template List<N::Value,NFact,T,Swap,Dir,Parall::NParProc>::Result TList;
+
+   typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
+   
+   typedef typename Decimation::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,RootList>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;

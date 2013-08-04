@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2007-2009 by Volodymyr Myrnyy                           *
+ *   Copyright (C) 2007-2013 by Volodymyr Myrnyy                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -207,17 +207,18 @@ struct IPow<N,0> {
   static const unsigned long value = 1;
 };
 
-template<int_t N, int_t P>
+
+template<class N, int_t P>
 struct IPowBig {
-  typedef typename Mult<typename IPowBig<N,P-1>::Result, SInt<N> >::Result Result;
+  typedef typename Mult<typename IPowBig<N,P-1>::Result, N>::Result Result;
 };
 
-template<int_t N>
+template<class N>
 struct IPowBig<N,1> {
-  typedef SInt<N> Result;
+  typedef N Result;
 };
 
-template<int_t N>
+template<class N>
 struct IPowBig<N,0> {
   typedef SInt<1> Result;
 };
@@ -301,7 +302,7 @@ struct FractionToDecimal;
 
 template<class Numer, class Denom, int_t NDigits, base_t DecBase>
 struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
-  typedef typename IPowBig<DecBase,NDigits>::Result D;
+  typedef typename IPowBig<SInt<DecBase>,NDigits>::Result D;
   typedef typename Mult<Numer,D>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
   typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
@@ -490,7 +491,8 @@ struct Compute;
 
 template<class Numer, class Denom, int Accuracy, class RetType>
 struct Compute<SFraction<Numer,Denom>,Accuracy,RetType> {
-  typedef typename EX::FractionToDecimal<SFraction<Numer,Denom>,Accuracy,DefaultDecimalBase>::Result TDec;
+  typedef SFraction<Numer,Denom> Value;
+  typedef typename EX::FractionToDecimal<Value,Accuracy,DefaultDecimalBase>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
   static RetType value() {
@@ -501,6 +503,7 @@ struct Compute<SFraction<Numer,Denom>,Accuracy,RetType> {
 
 template<int_t N, int Accuracy, class RetType>
 struct Compute<SInt<N>,Accuracy,RetType> {
+  typedef SInt<N> BigInt;
   static RetType value() { return static_cast<RetType>(N); }
 };
 
@@ -509,7 +512,7 @@ struct Compute<SInt<N>,Accuracy,RetType> {
 template<int K,class C,class Aux>
 struct PiFraction
 {
-  typedef typename IPowBig<16,K>::Result PBig;
+  typedef typename IPowBig<SInt<16>,K>::Result PBig;
   typedef SInt<8*K+1> TK1;
   typedef SInt<4*K+2> TK2;
   typedef SInt<8*K+5> TK3;
@@ -703,7 +706,7 @@ struct Reduce;
 
 template<class N, class D, int Accuracy, base_t Base>
 struct Reduce<SFraction<N,D>,Accuracy,Base> {
-  typedef typename IPowBig<Base,Accuracy>::Result Denom;
+  typedef typename IPowBig<SInt<Base>,Accuracy>::Result Denom;
   typedef typename EX::FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
   typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
 };

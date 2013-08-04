@@ -120,12 +120,12 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, int_t LastK, 
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK, 
 bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
 
-template<unsigned int NThreads, int_t N, typename Head, typename Tail, typename T, int S, int_t LastK>
-class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,LastK,true> 
+template<unsigned int NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
@@ -135,10 +135,11 @@ class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,LastK,true>
    static const int_t LastK2 = LastK*2;
    static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
    
+   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    //IterateInFreq<M,T,LastK,K-1> iter;
-   InFreqOMP<NThreadsNext,M,NFactNext,T,S,K*LastK> dft_str;
-   T_DFTk_x_Im<K,M,T,S> dft_scaled;
+   InFreqOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
+   T_DFTk_x_Im<K,M,T,S,W1,true> dft_scaled;
 
 public:
    void apply(T* data) 
@@ -170,11 +171,11 @@ public:
    }
 };
 
-template<int_t N, typename NFact, typename T, int S, int_t LastK>
-class InFreqOMP<1,N,NFact,T,S,LastK,true> : public InFreq<N,NFact,T,S,LastK> { };
+template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
+class InFreqOMP<1,N,NFact,T,S,W1,LastK,true> : public InFreq<N,NFact,T,S,W1,LastK> { };
 
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, int_t LastK>
-class InFreqOMP<NThreads,N,NFact,T,S,LastK,false> : public InFreq<N,NFact,T,S,LastK> { };
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
+class InFreqOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InFreq<N,NFact,T,S,W1,LastK> { };
 
 
 

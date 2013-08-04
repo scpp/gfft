@@ -22,6 +22,7 @@
 #include "loki/Typelist.h"
 #include <complex>
 
+#include "sint.h"
 
 namespace GFFT {
 
@@ -98,11 +99,10 @@ struct COMPLEX_FLOAT {
 struct INTIME {
    static const id_t ID = 0;
    template<int_t N, typename NFact, typename T,
-            class Swap,
-            class Direction, short_t NT>
+            class Swap, class Direction, short_t NT, class W1>
    class List {
       typedef InTime<N,NFact,T,Direction::Sign> InT;
-//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign> InT;
+//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
    public:
        typedef TYPELIST_3(Swap,InT,Direction) Result;
 //      typedef TYPELIST_2(InT,Direction) Result;
@@ -115,11 +115,10 @@ struct INTIME {
 struct INFREQ {
    static const id_t ID = 1;
    template<int_t N, typename NFact, typename T,
-            class Swap,
-            class Direction, short_t NT>
+            class Swap, class Direction, short_t NT, class W1>
    class List {
-      typedef InFreq<N,NFact,T,Direction::Sign> InF;
-//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign> InF;
+      typedef InFreq<N,NFact,T,Direction::Sign,W1> InF;
+//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
    public:
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
