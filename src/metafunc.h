@@ -301,8 +301,8 @@ struct FractionToDecimal;
 
 template<class Numer, class Denom, int_t NDigits, base_t DecBase>
 struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
-  typedef typename IPowBig<DecBase,NDigits>::Result M;
-  typedef typename Mult<Numer,M>::Result NewNumer;
+  typedef typename IPowBig<DecBase,NDigits>::Result D;
+  typedef typename Mult<Numer,D>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
   typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
 };
@@ -641,7 +641,7 @@ struct __SinPiFrac {
    typedef typename Mult<TPi,F>::Result X;
    typedef typename SinAcc<X,Accuracy>::Result Result;
 };
-  
+
 template<int_t A, 
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,1,Accuracy,NStartingSteps> {
@@ -651,8 +651,7 @@ struct __SinPiFrac<A,1,Accuracy,NStartingSteps> {
 template<int_t A, 
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,2,Accuracy,NStartingSteps> {
-  typedef typename Loki::Select<(A%2 == 0),SInt<0>,
-          typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result>::Result Result;
+  typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
 };
 
 template<int_t A, int_t B, 
@@ -665,7 +664,54 @@ struct SinPiFrac {
 };
 
 
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct __CosPiFrac {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
+   typedef typename Mult<TPi,F>::Result X;
+   typedef typename CosAcc<X,Accuracy>::Result Result;
+};
+  
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __CosPiFrac<A,1,Accuracy,NStartingSteps> {
+  typedef typename Loki::Select<(A%2==0),SInt<1>,SInt<-1> >::Result Result;
+};
+
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __CosPiFrac<A,2,Accuracy,NStartingSteps> {
+  typedef SInt<0> Result;
+};
+
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct CosPiFrac {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename Simplify<F>::Result SF;
+   typedef typename __CosPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
+};
+
+  
 } // namespcae EX
+
+template<class T, int Accuracy, base_t Base = DefaultBase>
+struct Reduce;
+
+template<class N, class D, int Accuracy, base_t Base>
+struct Reduce<SFraction<N,D>,Accuracy,Base> {
+  typedef typename IPowBig<Base,Accuracy>::Result Denom;
+  typedef typename EX::FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
+  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
+};
+
+template<int_t N, int Accuracy, base_t Base>
+struct Reduce<SInt<N>,Accuracy,Base> {
+  typedef SInt<N> Result;
+};
 
 ////////////////////////////////////////////////////////
 

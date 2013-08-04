@@ -169,7 +169,7 @@ struct EvaluateToFloat<SBigInt<S,NList,Base>,RetType>
 template<int_t N, class RetType>
 struct EvaluateToFloat<SInt<N>,RetType>
 {
-  static RetType value() { return N; }
+  static RetType value() { return static_cast<RetType>(N); }
 };
 
 
@@ -565,22 +565,22 @@ public:
 
 ///////////////////////////////////////////////////////////////
 
-template<class NList1, class NList2, int_t I=0>
+template<class NList1, class NList2, base_t Base, int_t I=0>
 struct __MultLoop;
 
-template<class Num, class Tail, class NList2, int_t I>
-struct __MultLoop<Loki::Typelist<Num,Tail>,NList2,I> {
+template<class Num, class Tail, class NList2, base_t Base, int_t I>
+struct __MultLoop<Loki::Typelist<Num,Tail>,NList2,Base,I> {
 private:
    typedef typename NL::MultConst<NList2,Num>::Result Prod;
    typedef typename Loki::TL::Repeat<SInt<0>,I>::Result Shift;
    typedef typename Loki::TL::Append<Shift,Prod>::Result ShiftedProd;
 public:
-   typedef typename NL::Add<ShiftedProd,
-           typename __MultLoop<Tail,NList2,I+1>::Result>::Result Result;
+   typedef typename Align<typename NL::Add<ShiftedProd,
+           typename __MultLoop<Tail,NList2,Base,I+1>::Result>::Result,Base>::Result Result;
 };
 
-template<class NList2, int_t I>
-struct __MultLoop<Loki::NullType,NList2,I> {
+template<class NList2, base_t Base, int_t I>
+struct __MultLoop<Loki::NullType,NList2,Base,I> {
    typedef Loki::NullType Result;
 };
 
@@ -588,10 +588,10 @@ struct __MultLoop<Loki::NullType,NList2,I> {
 
 template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Mult<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
-   typedef typename __MultLoop<NList1,NList2>::Result NListProd;
-   typedef typename Align<NListProd,Base>::Result ANListProd;
+   typedef typename __MultLoop<NList1,NList2,Base>::Result NListProd;
+   //typedef typename Align<NListProd,Base>::Result ANListProd;
 public:
-   typedef SBigInt<(S1==S2),ANListProd,Base> Result;
+   typedef SBigInt<(S1==S2),NListProd,Base> Result;
 };
 
 template<bool S, class NList, base_t Base, int_t N>
@@ -860,7 +860,14 @@ public:
 };
 
 template<bool S, class H, class T, base_t Base>
-class Div<SBigInt<S,Loki::Typelist<H,T>,Base>,SInt<0> > {};
+class Div<SBigInt<S,Loki::Typelist<H,T>,Base>,SInt<0> > {};  // error, division by zero
+
+template<bool S, class H, class T, base_t Base>
+class Div<SInt<0>, SBigInt<S,Loki::Typelist<H,T>,Base> > {
+public:
+   typedef SInt<0> DivResult;
+   typedef SInt<0> ModResult;
+};  
 
 template<bool S, base_t Base, int_t N>
 class Div<SBigInt<S,Loki::NullType,Base>,SInt<N> > {
@@ -945,6 +952,11 @@ template<bool S, class N, base_t Base>
 struct DoubleBase<SBigInt<S,N,Base> > {
   typedef typename DoubleBaseLoop<N,Base>::Result List;
   typedef SBigInt<S,List,Base*Base> Result;
+};
+
+template<int_t N>
+struct DoubleBase<SInt<N> > {
+  typedef SInt<N> Result;
 };
 
 ////////////////////////////////////////////////////////

@@ -227,7 +227,7 @@ template<class N, class D, int_t Num>
 class Add<SInt<Num>, SFraction<N,D> > : public Add<SFraction<N,D>,SInt<Num> > {};
 
 
-template<class N, class D, bool S, class NList, unsigned int Base>
+template<class N, class D, bool S, class NList, base_t Base>
 class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
    typedef SBigInt<S,NList,Base> T;
    typedef typename Add<
@@ -236,8 +236,20 @@ public:
    typedef SFraction<Numer,D> Result;
 };
 
-template<class N, class D, bool S, class NList, unsigned int Base>
+template<class N, class D, bool S, class NList, base_t Base>
 class Add<SBigInt<S,NList,Base>,SFraction<N,D> > : public Add<SFraction<N,D>,SBigInt<S,NList,Base> > {};
+
+///////////////////////////////////////////////
+
+template<class N1, class D1, class N2, class D2>
+class Sub<SFraction<N1,D1>, SFraction<N2,D2> > 
+: public Add<SFraction<N1,D1>, typename Negate<SFraction<N2,D2> >::Result> { };
+
+template<class N, class D, int_t Num>
+class Sub<SFraction<N,D>,SInt<Num> > : public Add<SFraction<N,D>,SInt<-Num> > { };
+
+template<class N, class D, int_t Num>
+class Sub<SInt<Num>, SFraction<N,D> > : public Add<SInt<Num>, typename Negate<SFraction<N,D> >::Result> { };
 
 ///////////////////////////////////////////////
 

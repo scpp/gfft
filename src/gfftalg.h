@@ -268,40 +268,72 @@ public:
 /////////////////////////////////////////////////////////
 
 // TODO: compare this with the simple loop
-template<int_t K, int_t M, typename T, int S, int NIter,
-class Sin1, class Sin2>
+template<int_t K, int_t M, typename T, int S,
+class WR, class WI, class WPR, class WPI,
+int NIter = 1>
 class IterateInFreq {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t M2 = M*2;
    static const int_t N = K*M;
-   IterateInFreq<K,M,T,S,NIter-1,Sin1,Sin2> next;
+//         t = wr;
+//         wr = t*wpr - wi*wpi;
+//         wi = wi*wpr + t*wpi;
+   typedef typename Mult<WR,WPR>::Result PRR;
+   typedef typename Mult<WI,WPI>::Result PII;
+   typedef typename Mult<WI,WPR>::Result PIR;
+   typedef typename Mult<WR,WPI>::Result PRI;
+   typedef typename Sub<PRR,PII>::Result WRnext;
+   typedef typename Add<PIR,PRI>::Result WInext;
+   
+   IterateInFreq<K,M,T,S,WRnext,WInext,WPR,WPI,NIter+1> next;
    DFTk_inplace<K,M2,T,S> spec_inp;
    
 public:
    void apply(T* data) 
    {
-      next.apply(data);
-
-//       const LocalVType t = Sin<N,NIter,LocalVType>::value();
+//       const LocalVType t = Sin<N,NIter-1,LocalVType>::value();
 //       const LocalVType wr = 1 - 2.0*t*t;
-//       const LocalVType wi = -S*Sin<N,2*NIter,LocalVType>::value();
-      const LocalVType t = EX::Compute<Sin1,2>::value();
-      const LocalVType wr = 1 - 2.0*t*t;
-      const LocalVType wi = -S*EX::Compute<Sin2,2>::value();
-std::cout << NIter << "/" << N << ": " << t << " --- " << wi << std::endl;
+//       const LocalVType wi = -S*Sin<N,2*(NIter-1),LocalVType>::value();
+      const LocalVType wr = EX::Compute<WR,2>::value();
+      const LocalVType wi = EX::Compute<WI,2>::value();
+//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
-      spec_inp.apply(&wr, &wi, data + NIter*2);
+      spec_inp.apply(&wr, &wi, data + (NIter-1)*2);
+
+      next.apply(data);
    }
 };
 
 template<int_t K, int_t M, typename T, int S, 
-class Sin1, class Sin2>
-class IterateInFreq<K,M,T,S,0,Sin1,Sin2> {
+class WR, class WI, class WPR, class WPI>
+class IterateInFreq<K,M,T,S,WR,WI,WPR,WPI,1> {
    DFTk_inplace<K,M*2,T,S> spec_inp;
+   IterateInFreq<K,M,T,S,WR,WI,WPR,WPI,2> next;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
+      next.apply(data);
+   }
+};
+
+template<int_t K, int_t M, typename T, int S, 
+class WR, class WI, class WPR, class WPI>
+class IterateInFreq<K,M,T,S,WR,WI,WPR,WPI,M> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t N = K*M;
+   DFTk_inplace<K,M*2,T,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+//       const LocalVType t = Sin<N,M-1,LocalVType>::value();
+//       const LocalVType wr = 1 - 2.0*t*t;
+//       const LocalVType wi = -S*Sin<N,2*(M-1),LocalVType>::value();
+      const LocalVType wr = EX::Compute<WR,2>::value();
+      const LocalVType wi = EX::Compute<WI,2>::value();
+//std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+
+      spec_inp.apply(&wr, &wi, data + (M-1)*2);
    }
 };
 
@@ -462,9 +494,17 @@ class T_DFTk_x_Im<2,M,T,S>
 //    typedef SFraction<SInt<M-1>,SInt<N> > F1;
 //    typedef typename Mult<TPi2,F1>::Result X1;
 //    typedef typename Mult<X1,SInt<2> >::Result X2;
-   typedef typename EX::SinPiFrac<M-1,N,2>::Result Sin1;
-   typedef typename EX::SinPiFrac<2*(M-1),N,2>::Result Sin2;
-   IterateInFreq<2,M,T,S,M-1,Sin1,Sin2> iterate;
+   static const int Accuracy = 2;
+   typedef typename Reduce<typename EX::SinPiFrac<1,N,Accuracy>::Result,Accuracy>::Result Sin1;
+   typedef typename Reduce<typename EX::SinPiFrac<2,N,Accuracy>::Result,Accuracy>::Result Sin2;
+   typedef typename Loki::Select<(S<0),Sin2,
+           typename Negate<Sin2>::Result>::Result WPI;
+   typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
+           typename Mult<Sin1,Sin1>::Result>::Result>::Result WPR;
+//   typedef typename Reduce<typename EX::CosPiFrac<2,N,Accuracy>::Result,Accuracy>::Result WPR;
+
+   IterateInFreq<2,M,T,S,WPR,WPI,WPR,WPI> iterate;
+//   IterateInFreq<2,M,T,S,Loki::NullType,Loki::NullType> iterate;
 public:
    void apply(T* data) 
    {
@@ -478,6 +518,7 @@ public:
 //       wr = 1+wpr;
 //       wi = wpi;
 //       for (int_t i=2; i<N; i+=2) {
+// std::cout << i << "/" << N << ": " << t << " --- (" << wr << ", " << wi << ")" << std::endl;
 // 	spec_inp.apply(&wr, &wi, data+i);
 // 
 //         t = wr;
@@ -533,7 +574,6 @@ class InFreq<N, Loki::Typelist<Head,Tail>, T, S, LastK>
    static const int_t LastK2 = LastK*2;
    
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   //IterateInFreq<M,T,LastK,K-1> iter;
    InFreq<M,NFactNext,T,S,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S> dft_scaled;
 
