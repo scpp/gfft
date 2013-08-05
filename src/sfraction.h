@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2008 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2008-2013 by Volodymyr Myrnyy                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,6 +24,7 @@ struct SFraction {
 };
 
 typedef SFraction<SInt<1>,SInt<1> > UnitFraction;
+
 
 template<class BigInt, int_t NDecPlaces, base_t DecBase>
 struct SDecimalFraction {
@@ -153,6 +154,14 @@ public:
    typedef SFraction<Num,Den> Result;
 };
 
+template<class N, class D>
+class Mult<SFraction<N,D>, SFraction<N,D> > {
+   typedef typename Mult<N,N>::Result Num;
+   typedef typename Mult<D,D>::Result Den;
+public:
+   typedef SFraction<Num,Den> Result;
+};
+
 template<int_t N1, int_t D1, int_t N2, int_t D2>
 class Mult<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
    static const int_t Num = N1*N2;
@@ -160,6 +169,16 @@ class Mult<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
    typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
    typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
    typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
+public:
+   typedef SFraction<NumT,DenT> Result;
+};
+
+template<int_t N, int_t D>
+class Mult<SFraction<SInt<N>,SInt<D> >, SFraction<SInt<N>,SInt<D> > > {
+   static const int_t Num = N*N;
+   static const int_t Den = D*D;
+   typedef typename __SwitchToBigInt<Num>::Result NumT;
+   typedef typename __SwitchToBigInt<Den>::Result DenT;
 public:
    typedef SFraction<NumT,DenT> Result;
 };
@@ -190,6 +209,14 @@ public:
 
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Mult<SBigInt<S,NList,Base>,SFraction<N,D> > : public Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {};
+
+
+template<class BI1, int_t ND1, class BI2, int_t ND2, base_t DecBase>
+class Mult<SDecimalFraction<BI1,ND1,DecBase>,SDecimalFraction<BI2,ND2,DecBase> > {
+  typedef typename Mult<BI1,BI2>::Result Prod;
+public:
+  typedef SDecimalFraction<Prod,ND1+ND2,DecBase> Result;
+};
 
 /////////////////////////////////////////////////////////////
 
@@ -239,6 +266,13 @@ public:
 template<class N, class D, bool S, class NList, base_t Base>
 class Add<SBigInt<S,NList,Base>,SFraction<N,D> > : public Add<SFraction<N,D>,SBigInt<S,NList,Base> > {};
 
+template<class BI1, class BI2, int_t ND, base_t DecBase>
+class Add<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
+  typedef typename Add<BI1,BI2>::Result Sum;
+public:
+  typedef SDecimalFraction<Sum,ND,DecBase> Result;
+};
+
 ///////////////////////////////////////////////
 
 template<class N1, class D1, class N2, class D2>
@@ -250,6 +284,13 @@ class Sub<SFraction<N,D>,SInt<Num> > : public Add<SFraction<N,D>,SInt<-Num> > { 
 
 template<class N, class D, int_t Num>
 class Sub<SInt<Num>, SFraction<N,D> > : public Add<SInt<Num>, typename Negate<SFraction<N,D> >::Result> { };
+
+template<class BI1, class BI2, int_t ND, base_t DecBase>
+class Sub<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
+  typedef typename Sub<BI1,BI2>::Result Dif;
+public:
+  typedef SDecimalFraction<Dif,ND,DecBase> Result;
+};
 
 ///////////////////////////////////////////////
 

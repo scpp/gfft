@@ -297,7 +297,7 @@ namespace EX {
   
 // Works with SFraction of decimal bases (10^n) only
 // TODO: change that
-template<class Fraction, int_t NDigits, base_t DecBase>
+template<class Fraction, int_t NDigits, base_t DecBase=DefaultDecimalBase>
 struct FractionToDecimal;
 
 template<class Numer, class Denom, int_t NDigits, base_t DecBase>
@@ -486,6 +486,31 @@ struct DPow<A,0,RetType> {
   static RetType value() { return 1; }
 };
 
+
+template<class T, int Accuracy, base_t Base = DefaultBase>
+struct Reduce;
+
+template<class N, class D, int Accuracy, base_t Base>
+struct Reduce<SFraction<N,D>,Accuracy,Base> {
+  typedef typename IPowBig<SInt<Base>,Accuracy>::Result Denom;
+  typedef typename EX::FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
+  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
+};
+
+template<int_t N, int Accuracy, base_t Base>
+struct Reduce<SInt<N>,Accuracy,Base> {
+  typedef SInt<N> Result;
+};
+
+template<class BI, int_t ND, int Accuracy, base_t Base>
+struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
+  typedef typename BI::Num NList;
+  typedef typename Loki::Select<(ND>Accuracy),
+          typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
+  typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
+};
+
+
 template<class SFrac, int Accuracy, class RetType = long double>
 struct Compute;
 
@@ -505,6 +530,28 @@ template<int_t N, int Accuracy, class RetType>
 struct Compute<SInt<N>,Accuracy,RetType> {
   typedef SInt<N> BigInt;
   static RetType value() { return static_cast<RetType>(N); }
+};
+
+template<class BI, int_t ND, base_t Base, int Accuracy, class RetType>
+struct Compute<SDecimalFraction<BI,ND,Base>,Accuracy,RetType> {
+  typedef SDecimalFraction<BI,ND,Base> Value;
+  typedef typename Reduce<Value,Accuracy,Base>::Result TDec;
+  typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
+  
+  static RetType value() {
+    return EvaluateToFloat<BigInt,RetType>::value()
+         / DPow<Base,Accuracy,RetType>::value();
+  }
+};
+
+template<int_t N, int_t ND, base_t Base, int Accuracy, class RetType>
+struct Compute<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,RetType> {
+  typedef SDecimalFraction<SInt<N>,ND,Base> Value;
+  
+  static RetType value() {
+    return static_cast<RetType>(N)
+         / DPow<Base,ND,RetType>::value();
+  }
 };
 
 ////////////////////////////////////////////////////////
@@ -657,6 +704,15 @@ struct __SinPiFrac<A,2,Accuracy,NStartingSteps> {
   typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
 };
 
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __SinPiFrac<A,6,Accuracy,NStartingSteps> {
+  static const int_t R = A%12;
+  typedef SFraction<SInt<1>,SInt<2> >  V1;
+  typedef SFraction<SInt<-1>,SInt<2> > V2;
+  typedef typename Loki::Select<(R==1 || R==5),V1,V2>::Result Result;
+};
+
 template<int_t A, int_t B, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
@@ -701,20 +757,6 @@ struct CosPiFrac {
   
 } // namespcae EX
 
-template<class T, int Accuracy, base_t Base = DefaultBase>
-struct Reduce;
-
-template<class N, class D, int Accuracy, base_t Base>
-struct Reduce<SFraction<N,D>,Accuracy,Base> {
-  typedef typename IPowBig<SInt<Base>,Accuracy>::Result Denom;
-  typedef typename EX::FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
-  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
-};
-
-template<int_t N, int Accuracy, base_t Base>
-struct Reduce<SInt<N>,Accuracy,Base> {
-  typedef SInt<N> Result;
-};
 
 ////////////////////////////////////////////////////////
 

@@ -39,26 +39,38 @@ struct GetNextRoot {
   typedef typename Mult<W1,W>::Result Result;
 };
 
-// template<class W1, class W, int_t I, int Accuracy>
-// struct GetNextRoot<W1,2,W,I,Accuracy> {
-//   typedef typename EX::CosPiFrac<I,2,Accuracy>::Result Re;
-//   typedef typename EX::SinPiFrac<I,2,Accuracy>::Result Im;
-//   typedef MComplex<Re,Im> Result;
-// };
+template<class W1, class W, int_t I, int Accuracy>
+struct GetNextRoot<W1,2,W,I,Accuracy> {
+  typedef typename EX::CosPiFrac<I,2,Accuracy>::Result Re;
+  typedef typename EX::SinPiFrac<I,2,Accuracy>::Result Im;
+  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef MComplex<ReDec,ImDec> Result;
+};
+
+template<class W1, class W, int_t I, int Accuracy>
+struct GetNextRoot<W1,1,W,I,Accuracy> {
+  typedef typename EX::CosPiFrac<I,1,Accuracy>::Result Re;
+  typedef typename EX::SinPiFrac<I,1,Accuracy>::Result Im;
+  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef MComplex<ReDec,ImDec> Result;
+};
 
 
-template<class W1, int_t M, int Accuracy, class W = W1, int_t I = 2>
+template<class W1, int_t N, int Accuracy, class W, int_t Count, int_t I = 2>
 struct __RootListLoop {
-  typedef typename Simplify<SFraction<SInt<2*I>,SInt<M> > >::Result SF;
+  typedef typename Simplify<SFraction<SInt<2*I>,SInt<N> > >::Result SF;
+//typedef typename NL::Print<SF>::Result TTT;
   typedef typename GetNextRoot<W1,SF::Denom::value,W,SF::Numer::value,Accuracy>::Result WW;
   typedef EX::Compute<typename WW::Re,Accuracy> CRe;
   typedef EX::Compute<typename WW::Im,Accuracy> CIm;
-  typedef typename __RootListLoop<W1,M,Accuracy,WW,I+1>::Result Next;
+  typedef typename __RootListLoop<W1,N,Accuracy,WW,Count,I+1>::Result Next;
   typedef Loki::Typelist<Pair<CRe,CIm>,Next> Result;
 };
 
-template<class W1, int_t M, int Accuracy, class W>
-struct __RootListLoop<W1,M,Accuracy,W,M> {
+template<class W1, int_t N, int Accuracy, class W, int_t Count>
+struct __RootListLoop<W1,N,Accuracy,W,Count,Count> {
   typedef Loki::NullType Result;
 };
 
@@ -83,21 +95,25 @@ template<int_t N, int S, int Accuracy>
 class GenerateRootList 
 {
   typedef typename EX::SinPiFrac<1,N,Accuracy>::Result Sin1;
-  typedef typename Reduce<typename EX::SinPiFrac<2,N,Accuracy>::Result,Accuracy>::Result Sin2;
+  typedef typename EX::SinPiFrac<2,N,Accuracy>::Result Sin2;
+  
   typedef typename Loki::Select<(S>0),Sin2,
           typename Negate<Sin2>::Result>::Result WI;
-  typedef typename Reduce<typename Sub<SInt<1>,typename Mult<SInt<2>,
-          typename Mult<Sin1,Sin1>::Result>::Result>::Result,Accuracy>::Result WR;
-//  typedef typename Reduce<typename EX::CosPiFrac<2,N,Accuracy>::Result,Accuracy>::Result WPR;
-  typedef MComplex<WR,WI> W1;
+  typedef typename EX::FractionToDecimal<WI,Accuracy>::Result WIDec;
+  
+  typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
+          typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
+//   typedef typename EX::CosPiFrac<2,N,Accuracy>::Result WR;
+  typedef typename EX::FractionToDecimal<WR,Accuracy>::Result WRDec;
+  typedef MComplex<WRDec,WIDec> W1;
   
 public:
-  typedef EX::Compute<typename W1::Re,Accuracy> CRe;
-  typedef EX::Compute<typename W1::Im,Accuracy> CIm;
-  typedef Loki::Typelist<Pair<CRe,CIm>,typename __RootListLoop<W1,(N%2==0) ? N/2 : N/2+1,Accuracy>::Result> FirstHalf;
+  typedef EX::Compute<WRDec,Accuracy> CRe;
+  typedef EX::Compute<WIDec,Accuracy> CIm;
+  typedef Loki::Typelist<Pair<CRe,CIm>,typename __RootListLoop<W1,N,Accuracy,W1,(N%2==0) ? N/2 : N/2+1>::Result> FirstHalf;
   typedef typename Loki::Select<(N%2==0),
           typename Loki::TL::Append<FirstHalf,typename GenerateRootList<2,S,Accuracy>::Result>::Result,FirstHalf>::Result FirstHalfMod;
-  typedef typename Loki::TL::Reverse<typename GenerateSymmetricPart<FirstHalf>::Result>::Result SecondHalf;
+//  typedef typename Loki::TL::Reverse<typename GenerateSymmetricPart<FirstHalf>::Result>::Result SecondHalf;
 
 //public:
 //  typedef typename Loki::TL::Append<FirstHalfMod,SecondHalf>::Result Result;
