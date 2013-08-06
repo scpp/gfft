@@ -188,20 +188,20 @@ typedef long double RetType;
 // typedef typename EX::PiAcc<2>::Result TPi;
 // typedef typename Mult<TPi,F>::Result X;
 // typedef typename EX::SinAcc<X,2>::Result SinPi4;
-// typedef EX::SinPiFrac<1,6,2>::Result SinPi4;
+// typedef EX::SinPiFrac<1,3,2>::Result SinPi4;
 //typedef EX::SinPiFrac<1,8,2>::Result SinPi8;
 //typedef EX::SinPiFrac<1,4,2>::Result CosPi4;
 // // typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 // // typedef EX::FractionToDecimal<X,20,10>::Result XDec;
 
-//typedef EX::FractionToDecimal<SinPi4,20,10>::Result SinPi4Dec;
+// typedef EX::FractionToDecimal<SinPi4,20,10>::Result SinPi4Dec;
 //typedef EX::FractionToDecimal<CosPi4,20,10>::Result CosPi4Dec;
 // typedef EX::FractionToDecimal<SinPi8,20,10>::Result SinPi8Dec;
 
 // typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
 //         typename Mult<SinPi4,SinPi4>::Result>::Result>::Result WR;
 
-// cout << sin(M_PI/6.) << endl;
+// cout << sin(M_PI/3.) << endl;
 // Cout<SinPi4Dec>::apply(cout);
 // cout << endl;
 

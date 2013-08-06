@@ -188,7 +188,7 @@ public:
     }
   }
 };
-
+/*
 template<int_t M, typename T, int S>
 class DFTk_inplace<4,M,T,S> 
 {
@@ -239,7 +239,7 @@ public:
   { 
   }
 };
-
+*/
 template<int_t M, typename T, int S>
 class DFTk_inplace<3,M,T,S> 
 {

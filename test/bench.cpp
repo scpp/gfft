@@ -162,8 +162,8 @@ public:
 };
 
 
-static const unsigned int MinP = 4;
-static const unsigned int MaxP = 10;
+static const unsigned int MinP = 1;
+static const unsigned int MaxP = 8;
 
 
 int main(int argc, char *argv[])
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
     }
 
 //     typedef GenNumList<MinP, MaxP, Power2holder>::Result NList;
-    typedef GenNumList<2, 100, SIntID>::Result NList;
+    typedef GenNumList<2, 10, SIntID>::Result NList;
     typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
        ParallelizationGroup::Default, INTIME> List_ds;
 //    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;

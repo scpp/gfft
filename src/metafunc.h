@@ -539,8 +539,8 @@ struct Compute<SDecimalFraction<BI,ND,Base>,Accuracy,RetType> {
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
   static RetType value() {
-    return EvaluateToFloat<BigInt,RetType>::value()
-         / DPow<Base,Accuracy,RetType>::value();
+    return EvaluateToFloat<BigInt,RetType>::value() * 1e-18;
+      //   / DPow<Base,Accuracy,RetType>::value();
   }
 };
 
@@ -549,8 +549,8 @@ struct Compute<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,RetType> {
   typedef SDecimalFraction<SInt<N>,ND,Base> Value;
   
   static RetType value() {
-    return static_cast<RetType>(N)
-         / DPow<Base,ND,RetType>::value();
+    return static_cast<RetType>(N) * 1e-18;
+      //   / DPow<Base,ND,RetType>::value();
   }
 };
 
@@ -702,6 +702,26 @@ template<int_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,2,Accuracy,NStartingSteps> {
   typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
+};
+
+template<int_t A, int NStartingSteps>  
+struct __SinPiFrac<A,3,2,NStartingSteps> {
+  static const int_t R = A%6;
+  typedef TYPELIST_2(SInt<784438645>,SInt<866025403>) NList;
+  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
+  typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
+  typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
+  typedef SFraction<Numer,Denom> Result;
+};
+
+template<int_t A, int NStartingSteps>  
+struct __SinPiFrac<A,4,2,NStartingSteps> {
+  static const int_t R = A%8;
+  typedef TYPELIST_2(SInt<186547523>,SInt<707106781>) NList;
+  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
+  typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
+  typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
+  typedef SFraction<Numer,Denom> Result;
 };
 
 template<int_t A, 

@@ -34,35 +34,12 @@ struct SIntID : public SInt<N> {
    static const uint ID = N-1;
 };
 
-template<class W1, int_t M, class W, int_t I, int Accuracy>
-struct GetNextRoot {
-  typedef typename Mult<W1,W>::Result Result;
-};
-
-template<class W1, class W, int_t I, int Accuracy>
-struct GetNextRoot<W1,2,W,I,Accuracy> {
-  typedef typename EX::CosPiFrac<I,2,Accuracy>::Result Re;
-  typedef typename EX::SinPiFrac<I,2,Accuracy>::Result Im;
-  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
-  typedef MComplex<ReDec,ImDec> Result;
-};
-
-template<class W1, class W, int_t I, int Accuracy>
-struct GetNextRoot<W1,1,W,I,Accuracy> {
-  typedef typename EX::CosPiFrac<I,1,Accuracy>::Result Re;
-  typedef typename EX::SinPiFrac<I,1,Accuracy>::Result Im;
-  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
-  typedef MComplex<ReDec,ImDec> Result;
-};
-
 
 template<class W1, int_t N, int Accuracy, class W, int_t Count, int_t I = 2>
 struct __RootListLoop {
   typedef typename Simplify<SFraction<SInt<2*I>,SInt<N> > >::Result SF;
 //typedef typename NL::Print<SF>::Result TTT;
-  typedef typename GetNextRoot<W1,SF::Denom::value,W,SF::Numer::value,Accuracy>::Result WW;
+  typedef typename GetNextRoot<SF::Numer::value,SF::Denom::value,W1,W,Accuracy>::Result WW;
   typedef EX::Compute<typename WW::Re,Accuracy> CRe;
   typedef EX::Compute<typename WW::Im,Accuracy> CIm;
   typedef typename __RootListLoop<W1,N,Accuracy,WW,Count,I+1>::Result Next;
@@ -165,9 +142,22 @@ class Transform : public FactoryPolicy
    typedef Caller<Loki::NullType> EmptySwap;
    typedef typename Factorization<N, SInt>::Result NFact;
 
-   typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
+   //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
+   static const int Accuracy = 2;
+   typedef typename EX::SinPiFrac<1,N::value,Accuracy>::Result Sin1;
+  typedef typename EX::SinPiFrac<2,N::value,Accuracy>::Result Sin2;
+  
+  typedef typename Loki::Select<(Dir::Sign<0),Sin2,
+          typename Negate<Sin2>::Result>::Result WI;
+  typedef typename EX::FractionToDecimal<WI,Accuracy>::Result WIDec;
+  
+  typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
+          typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
+//   typedef typename EX::CosPiFrac<2,N,Accuracy>::Result WR;
+  typedef typename EX::FractionToDecimal<WR,Accuracy>::Result WRDec;
+  typedef MComplex<WRDec,WIDec> W1;
    
-   typedef typename Decimation::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,RootList>::Result TList;
+   typedef typename Decimation::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
