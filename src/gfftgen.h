@@ -34,14 +34,49 @@ struct SIntID : public SInt<N> {
    static const uint ID = N-1;
 };
 
+template<int_t M, int_t P>
+struct PowerHolder {
+   static const int_t N = IPow<M,P>::value;
+   static const int_t ID = N-1;
+   static const int_t value = N;
+};
+
+template<int_t P>
+struct PowerHolder<2,P> {
+   static const int_t N = 1<<P;
+   static const int_t ID = N-1;
+   static const int_t value = N;
+};
+
+template<int_t P>
+struct Power2holder : public PowerHolder<2,P> {};
+
+template<int_t P>
+struct Power3holder : public PowerHolder<3,P> {};
+
+
+/// Generates Typelist with types Holder<N>, N = Begin,...,End
+template<int_t Begin, int_t End, 
+template<int_t> class Holder = SIntID>
+struct GenNumList {
+   typedef Loki::Typelist<Holder<Begin>,
+      typename GenNumList<Begin+1,End,Holder>::Result> Result;
+};
+
+template<int_t End, 
+template<int_t> class Holder>
+struct GenNumList<End,End,Holder> {
+   typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
+};
+
 
 template<class W1, int_t N, int Accuracy, class W, int_t Count, int_t I = 2>
 struct __RootListLoop {
   typedef typename Simplify<SFraction<SInt<2*I>,SInt<N> > >::Result SF;
 //typedef typename NL::Print<SF>::Result TTT;
   typedef typename GetNextRoot<SF::Numer::value,SF::Denom::value,W1,W,Accuracy>::Result WW;
-  typedef EX::Compute<typename WW::Re,Accuracy> CRe;
-  typedef EX::Compute<typename WW::Im,Accuracy> CIm;
+  typedef Compute<typename WW::Re,Accuracy> CRe;
+  typedef Compute<typename WW::Im,Accuracy> CIm;
   typedef typename __RootListLoop<W1,N,Accuracy,WW,Count,I+1>::Result Next;
   typedef Loki::Typelist<Pair<CRe,CIm>,Next> Result;
 };
@@ -69,24 +104,33 @@ struct GenerateSymmetricPart<Loki::NullType> {
 
 
 template<int_t N, int S, int Accuracy>
-class GenerateRootList 
-{
-  typedef typename EX::SinPiFrac<1,N,Accuracy>::Result Sin1;
-  typedef typename EX::SinPiFrac<2,N,Accuracy>::Result Sin2;
+class GetFirstRoot {
+  typedef typename SinPiDecimal<1,N,Accuracy>::Result Sin1;
+  typedef typename SinPiDecimal<2,N,Accuracy>::Result Sin2;
   
-  typedef typename Loki::Select<(S>0),Sin2,
+  typedef typename Loki::Select<(S<0),Sin2,
           typename Negate<Sin2>::Result>::Result WI;
-  typedef typename EX::FractionToDecimal<WI,Accuracy>::Result WIDec;
+  //typedef typename FractionToDecimal<WI,Accuracy>::Result WIDec;
   
   typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
           typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
-//   typedef typename EX::CosPiFrac<2,N,Accuracy>::Result WR;
-  typedef typename EX::FractionToDecimal<WR,Accuracy>::Result WRDec;
-  typedef MComplex<WRDec,WIDec> W1;
+//   typedef typename CosPiFrac<2,N,Accuracy>::Result WR;
+  //typedef typename FractionToDecimal<WR,Accuracy>::Result WRDec;
   
 public:
-  typedef EX::Compute<WRDec,Accuracy> CRe;
-  typedef EX::Compute<WIDec,Accuracy> CIm;
+  typedef MComplex<WR,WI> Result;
+};
+
+
+
+template<int_t N, int S, int Accuracy>
+class GenerateRootList 
+{
+  typedef typename GetFirstRoot<N,-S,Accuracy>::Result W1;
+  
+public:
+  typedef Compute<typename W1::Re,Accuracy> CRe;
+  typedef Compute<typename W1::Im,Accuracy> CIm;
   typedef Loki::Typelist<Pair<CRe,CIm>,typename __RootListLoop<W1,N,Accuracy,W1,(N%2==0) ? N/2 : N/2+1>::Result> FirstHalf;
   typedef typename Loki::Select<(N%2==0),
           typename Loki::TL::Append<FirstHalf,typename GenerateRootList<2,S,Accuracy>::Result>::Result,FirstHalf>::Result FirstHalfMod;
@@ -99,8 +143,8 @@ public:
 
 template<int S, int Accuracy>
 class GenerateRootList<2,S,Accuracy> {
-  typedef EX::Compute<SInt<-1>,Accuracy> CRe;
-  typedef EX::Compute<SInt<0>, Accuracy> CIm;
+  typedef Compute<SInt<-1>,Accuracy> CRe;
+  typedef Compute<SInt<0>, Accuracy> CIm;
 public:
   typedef Loki::Typelist<Pair<CRe,CIm>,Loki::NullType> Result;
 };
@@ -144,18 +188,7 @@ class Transform : public FactoryPolicy
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
    static const int Accuracy = 2;
-   typedef typename EX::SinPiFrac<1,N::value,Accuracy>::Result Sin1;
-  typedef typename EX::SinPiFrac<2,N::value,Accuracy>::Result Sin2;
-  
-  typedef typename Loki::Select<(Dir::Sign<0),Sin2,
-          typename Negate<Sin2>::Result>::Result WI;
-  typedef typename EX::FractionToDecimal<WI,Accuracy>::Result WIDec;
-  
-  typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
-          typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
-//   typedef typename EX::CosPiFrac<2,N,Accuracy>::Result WR;
-  typedef typename EX::FractionToDecimal<WR,Accuracy>::Result WRDec;
-  typedef MComplex<WRDec,WIDec> W1;
+   typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
    
    typedef typename Decimation::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
@@ -249,38 +282,6 @@ struct TransformFactoryError
    static AbstractProduct* OnUnknownType(IdentifierType) {
       throw Exception();
    }
-};
-
-
-
-template<int_t P>
-struct Power2holder {
-   static const int_t N = 1<<P;
-   static const int_t ID = N-1;
-   static const int_t Value = N;
-   static const int_t value = N;
-};
-
-template<int_t P>
-struct Power3holder {
-   static const int_t N = IPow<3,P>::value;
-   static const int_t ID = N-1;
-   static const int_t Value = N;
-   static const int_t value = N;
-};
-
-/// Generates Typelist with types Holder<N>, N = Begin,...,End
-template<int_t Begin, int_t End, 
-template<int_t> class Holder = SIntID>
-struct GenNumList {
-   typedef Loki::Typelist<Holder<Begin>,
-      typename GenNumList<Begin+1,End,Holder>::Result> Result;
-};
-
-template<int_t End, 
-template<int_t> class Holder>
-struct GenNumList<End,End,Holder> {
-   typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
 };
 
 

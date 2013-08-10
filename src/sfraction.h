@@ -26,15 +26,6 @@ struct SFraction {
 typedef SFraction<SInt<1>,SInt<1> > UnitFraction;
 
 
-template<class BigInt, int_t NDecPlaces, base_t DecBase>
-struct SDecimalFraction {
-   typedef BigInt Num;
-   static const int_t NDec = NDecPlaces;
-   static const base_t Base = DecBase;
-};
-
-
-
 ///Greatest common divisor of A and B
 
 template<class A, class B, int C>
@@ -95,6 +86,16 @@ struct __GCD<SInt<N1>, SInt<N2>, -1>
 template<bool S1, bool S2, class N, base_t Base>
 struct __GCD<SBigInt<S1,N,Base>, SBigInt<S2,Loki::NullType,Base>, 1> {
    typedef SBigInt<S1,N,Base> Result;
+};
+
+template<bool S, class N, base_t Base>
+struct __GCD<SBigInt<S,N,Base>, SInt<1>, 1> {
+   typedef SInt<1> Result;
+};
+
+template<int_t N>
+struct __GCD<SInt<N>, SInt<1>, 1> {
+   typedef SInt<1> Result;
 };
 
 template<bool S, class N, base_t Base>
@@ -210,14 +211,6 @@ public:
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Mult<SBigInt<S,NList,Base>,SFraction<N,D> > : public Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {};
 
-
-template<class BI1, int_t ND1, class BI2, int_t ND2, base_t DecBase>
-class Mult<SDecimalFraction<BI1,ND1,DecBase>,SDecimalFraction<BI2,ND2,DecBase> > {
-  typedef typename Mult<BI1,BI2>::Result Prod;
-public:
-  typedef SDecimalFraction<Prod,ND1+ND2,DecBase> Result;
-};
-
 /////////////////////////////////////////////////////////////
 
 template<class Numer, class Denom>
@@ -266,13 +259,6 @@ public:
 template<class N, class D, bool S, class NList, base_t Base>
 class Add<SBigInt<S,NList,Base>,SFraction<N,D> > : public Add<SFraction<N,D>,SBigInt<S,NList,Base> > {};
 
-template<class BI1, class BI2, int_t ND, base_t DecBase>
-class Add<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
-  typedef typename Add<BI1,BI2>::Result Sum;
-public:
-  typedef SDecimalFraction<Sum,ND,DecBase> Result;
-};
-
 ///////////////////////////////////////////////
 
 template<class N1, class D1, class N2, class D2>
@@ -284,13 +270,6 @@ class Sub<SFraction<N,D>,SInt<Num> > : public Add<SFraction<N,D>,SInt<-Num> > { 
 
 template<class N, class D, int_t Num>
 class Sub<SInt<Num>, SFraction<N,D> > : public Add<SInt<Num>, typename Negate<SFraction<N,D> >::Result> { };
-
-template<class BI1, class BI2, int_t ND, base_t DecBase>
-class Sub<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
-  typedef typename Sub<BI1,BI2>::Result Dif;
-public:
-  typedef SDecimalFraction<Dif,ND,DecBase> Result;
-};
 
 ///////////////////////////////////////////////
 

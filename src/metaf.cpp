@@ -189,12 +189,13 @@ typedef long double RetType;
 // typedef typename Mult<TPi,F>::Result X;
 // typedef typename EX::SinAcc<X,2>::Result SinPi4;
 // typedef EX::SinPiFrac<1,3,2>::Result SinPi4;
-//typedef EX::SinPiFrac<1,8,2>::Result SinPi8;
+//typedef SinPiFrac<1,8,2>::Result SinPi4;
+
 //typedef EX::SinPiFrac<1,4,2>::Result CosPi4;
 // // typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 // // typedef EX::FractionToDecimal<X,20,10>::Result XDec;
 
-// typedef EX::FractionToDecimal<SinPi4,20,10>::Result SinPi4Dec;
+// typedef FractionToDecimal<SinPi4,20,10>::Result SinPi4Dec;
 //typedef EX::FractionToDecimal<CosPi4,20,10>::Result CosPi4Dec;
 // typedef EX::FractionToDecimal<SinPi8,20,10>::Result SinPi8Dec;
 
@@ -205,13 +206,17 @@ typedef long double RetType;
 // Cout<SinPi4Dec>::apply(cout);
 // cout << endl;
 
-static const int_t N = 6;
-typedef GenerateRootList<N,1,2>::Result List;
-PrintRootList<List,N>::apply();
+// static const int_t N = 6;
+// typedef GenerateRootList<N,1,2>::Result List;
+// PrintRootList<List,N>::apply();
 
-// cout << sin(M_PI/8.) << endl;
-// Cout<SinPi4Dec3::Result>::apply(cout);
+typedef SinPiDecimal<1,10,2>::Result SinPiDec;
+
+cout << sin(M_PI/10.) << endl;
+// Cout<SinPi4Dec>::apply(cout);
 // cout << endl;
+Cout<SinPiDec>::apply(cout);
+cout << endl;
 // Cout<SinPi4s>::apply(cout);
 // cout << endl;
 // Cout<SinPi4sDec>::apply(cout);

@@ -904,6 +904,18 @@ public:
    typedef typename Mod<SBigInt<S,NList,Base>,SInt<N> >::Result Result;
 };
 */
+
+// Returns number of digits in N in the Base-system (Base=2 for binary)
+template<unsigned N, unsigned Base>
+struct NDigits {
+  static const unsigned value = NDigits<N/Base, Base>::value + 1;
+};
+
+template<unsigned Base>
+struct NDigits<0, Base> {
+  static const unsigned value = 0;
+};
+
 ////////////////////////////////////////////////////////
 
 template<class B, base_t NewBase>

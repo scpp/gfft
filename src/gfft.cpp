@@ -56,11 +56,11 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 // typedef TPi2 X;
 // typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
-static const int_t N = 128;
+static const int_t N = 8;
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
-typedef TYPELIST_2(SIntID<8>,SIntID<N>) NList;
+typedef TYPELIST_1(SIntID<N>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, INFREQ> TransformSet;
 
 int main(int argc, char *argv[])

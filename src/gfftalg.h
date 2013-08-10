@@ -292,19 +292,19 @@ struct GetNextRoot {
 
 template<class W1, class W, int_t I, int Accuracy>
 struct GetNextRoot<I,2,W1,W,Accuracy> {
-  typedef typename EX::CosPiFrac<I,2,Accuracy>::Result Re;
-  typedef typename EX::SinPiFrac<I,2,Accuracy>::Result Im;
-  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef typename CosPiFrac<I,2,Accuracy>::Result Re;
+  typedef typename SinPiFrac<I,2,Accuracy>::Result Im;
+  typedef typename FractionToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename FractionToDecimal<Im,Accuracy>::Result ImDec;
   typedef MComplex<ReDec,ImDec> Result;
 };
 
 template<class W1, class W, int_t I, int Accuracy>
 struct GetNextRoot<I,1,W1,W,Accuracy> {
-  typedef typename EX::CosPiFrac<I,1,Accuracy>::Result Re;
-  typedef typename EX::SinPiFrac<I,1,Accuracy>::Result Im;
-  typedef typename EX::FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename EX::FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef typename CosPiFrac<I,1,Accuracy>::Result Re;
+  typedef typename SinPiFrac<I,1,Accuracy>::Result Im;
+  typedef typename FractionToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename FractionToDecimal<Im,Accuracy>::Result ImDec;
   typedef MComplex<ReDec,ImDec> Result;
 };
 
@@ -317,8 +317,8 @@ class IterateInFreq
 // class IterateInFreq<K,M,T,S,Loki::Typelist<H,Tail>,NIter> {
    //typedef typename RList::Head H;
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef EX::Compute<typename W::Re,2> WR;
-   typedef EX::Compute<typename W::Im,2> WI;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
    static const int_t M2 = M*2;
    static const int_t N = K*M;
 
@@ -350,8 +350,8 @@ class IterateInFreq<K,M,T,S,W1,M,W>
 {
 //    typedef typename RList::Head H;
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef EX::Compute<typename W::Re,2> WR;
-   typedef EX::Compute<typename W::Im,2> WI;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
    static const int_t N = K*M;
    DFTk_inplace<K,M*2,T,S> spec_inp;
 public:
