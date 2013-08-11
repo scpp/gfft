@@ -105,16 +105,16 @@ struct GenerateSymmetricPart<Loki::NullType> {
 
 template<int_t N, int S, int Accuracy>
 class GetFirstRoot {
-  typedef typename SinPiDecimal<1,N,Accuracy>::Result Sin1;
+  //typedef typename SinPiDecimal<1,N,Accuracy>::Result Sin1;
   typedef typename SinPiDecimal<2,N,Accuracy>::Result Sin2;
   
   typedef typename Loki::Select<(S<0),Sin2,
           typename Negate<Sin2>::Result>::Result WI;
   //typedef typename FractionToDecimal<WI,Accuracy>::Result WIDec;
   
-  typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
-          typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
-//   typedef typename CosPiFrac<2,N,Accuracy>::Result WR;
+//   typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
+//           typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
+  typedef typename CosPiDecimal<2,N,Accuracy>::Result WR;
   //typedef typename FractionToDecimal<WR,Accuracy>::Result WRDec;
   
 public:

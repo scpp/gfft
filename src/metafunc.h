@@ -58,13 +58,13 @@ struct TempTypeTrait<Complex<T,A> > {
 // };
 
 //// To save compile time
-typedef TYPELIST_1(SInt<314159265>) NL1;
-typedef TYPELIST_1(SInt<100000000>) DL1;
-typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPi1;
-
-typedef TYPELIST_2(SInt<358979324>,SInt<314159265>) NL2;
-typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
-typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPi2;
+// typedef TYPELIST_1(SInt<314159265>) NL1;
+// typedef TYPELIST_1(SInt<100000000>) DL1;
+// typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPi1;
+// 
+// typedef TYPELIST_2(SInt<358979324>,SInt<314159265>) NL2;
+// typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
+// typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPi2;
 
 typedef TYPELIST_3(SInt<589793238>,SInt<141592653>,SInt<3>) NL21;
 typedef SDecimalFraction<SBigInt<true,NL21,DefaultDecimalBase>,2,DefaultDecimalBase> TPi2Dec;
@@ -460,7 +460,6 @@ struct SinCosDecimal
   typedef typename Reduce<XP,Accuracy>::Result XPR;
   typedef typename Negate<XPR>::Result Result;
   typedef typename SinCosAux<X,Result,Aux>::Result ResultAux;
-//  typedef typename NL::Print<Result>::Result TT2;
 };
 
 template<class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
@@ -476,7 +475,16 @@ struct CosFraction : public SinCosFraction<K,X,Aux,1> {};
 
 template<int K, class X>
 struct CosFraction<K,X,Loki::NullType>
-: public SinCosFraction<K,X,typename SinCosAux<X,UnitFraction>::Result,1> {};
+: public SinCosFraction<K,X,typename SinCosAux<X,SInt<1> >::Result,1> {};
+
+
+template<int K, class X, class Aux>
+struct CosDecimal : public SinCosDecimal<K,X,Aux,1> {};
+
+template<int K, class X>
+struct CosDecimal<K,X,Loki::NullType>
+: public SinCosDecimal<K,X,typename SinCosAux<X,SInt<1> >::Result,1> {};
+
 
 
 template<int K, class X, class Aux>
@@ -499,6 +507,11 @@ template<class X,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct CosAcc : public GenericAccuracyBasedFunc<X,CosFraction,Add,Accuracy,NStartingSteps> {};
+
+template<class X, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct CosDecAcc : public GenericAccuracyBasedFunc<X,CosDecimal,Add,Accuracy,NStartingSteps> {};
 
 template<class X, 
 int Len = 2,    // in powers of DefaultBase
@@ -590,7 +603,7 @@ struct __SinPiDecimal {
    typedef SFraction<SInt<A>,SInt<B> > F;
    typedef typename FractionToDecimal<F,Accuracy>::Result FDec;
    //typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
-   typedef TPi2Dec TPi;
+   typedef TPi2Dec TPi;   // <<< TODO: make general accuracy
    typedef typename Mult<TPi,FDec>::Result X;
    typedef typename Reduce<X,Accuracy>::Result XR;
    typedef typename SinDecAcc<XR,Accuracy>::Result Result;
@@ -607,36 +620,33 @@ int Accuracy, int NStartingSteps>
 struct __SinPiDecimal<A,2,Accuracy,NStartingSteps> {
   typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
 };
-/*
+
 template<int_t A, int NStartingSteps>  
 struct __SinPiDecimal<A,3,2,NStartingSteps> {
   static const int_t R = A%6;
   typedef TYPELIST_2(SInt<784438645>,SInt<866025403>) NList;
-  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
   typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
-  typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
-  typedef SFraction<Numer,Denom> Result;
+  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
 };
 
 template<int_t A, int NStartingSteps>  
 struct __SinPiDecimal<A,4,2,NStartingSteps> {
   static const int_t R = A%8;
   typedef TYPELIST_2(SInt<186547523>,SInt<707106781>) NList;
-  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
   typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
-  typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
-  typedef SFraction<Numer,Denom> Result;
+  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
 };
 
 template<int_t A, 
 int Accuracy, int NStartingSteps>  
 struct __SinPiDecimal<A,6,Accuracy,NStartingSteps> {
   static const int_t R = A%12;
-  typedef SFraction<SInt<1>,SInt<2> >  V1;
-  typedef SFraction<SInt<-1>,SInt<2> > V2;
-  typedef typename Loki::Select<(R==1 || R==5),V1,V2>::Result Result;
+  typedef Loki::Typelist<SInt<500000000>,Loki::NullType> NList1;
+  typedef typename Loki::TL::ShiftRight<NList1,Accuracy-1,SInt<0> >::Result NList;
+  typedef SBigInt<(R==1 || R==5),NList,DefaultDecimalBase> Numer;
+  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
 };
-*/
+
 template<int_t A, int_t B, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
@@ -679,6 +689,41 @@ struct CosPiFrac {
    typedef typename __CosPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
 
+
+
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct __CosPiDecimal {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename FractionToDecimal<F,Accuracy>::Result FDec;
+   //typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
+   typedef TPi2Dec TPi;   // <<< TODO: make general accuracy
+   typedef typename Mult<TPi,FDec>::Result X;
+   typedef typename Reduce<X,Accuracy>::Result XR;
+   typedef typename CosDecAcc<XR,Accuracy>::Result Result;
+};
+  
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __CosPiDecimal<A,1,Accuracy,NStartingSteps> {
+  typedef typename Loki::Select<(A%2==0),SInt<1>,SInt<-1> >::Result Result;
+};
+
+template<int_t A, 
+int Accuracy, int NStartingSteps>  
+struct __CosPiDecimal<A,2,Accuracy,NStartingSteps> {
+  typedef SInt<0> Result;
+};
+
+template<int_t A, int_t B, 
+int Accuracy = 2,    // in powers of DefaultBase
+int NStartingSteps = 5>  
+struct CosPiDecimal {
+   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef typename Simplify<F>::Result SF;
+   typedef typename __CosPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
+};
   
 ////////////////////////////////////////////////////////
 

@@ -53,6 +53,16 @@ public:
   typedef SDecimalFraction<Sum,ND,DecBase> Result;
 };
 
+template<class BI, int_t ND, base_t DecBase, int_t N>
+class Add<SDecimalFraction<BI,ND,DecBase>,SInt<N> > {
+  typedef typename CreateBigInt<SInt<N>,DecBase>::Result BI1;
+  typedef typename Loki::TL::ShiftRight<typename BI1::Num,ND,SInt<0> >::Result NList;
+  typedef SBigInt<BI1::isPositive,NList,DecBase> NewBI;
+  typedef typename Add<BI,NewBI>::Result Sum;
+public:
+  typedef SDecimalFraction<Sum,ND,DecBase> Result;
+};
+
 ///////////////////////////////////////////////
 
 template<class BI1, class BI2, int_t ND, base_t DecBase>

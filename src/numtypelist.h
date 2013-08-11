@@ -50,9 +50,9 @@ struct Print<Typelist<Head,Tail> > {
         struct Max< Typelist<Num, Tail> >
         {
         private:
-            enum { temp = Max<Tail>::Value };
+            enum { temp = Max<Tail>::value };
         public:
-            typedef SInt<(temp > Num::Value) ? temp : Num::Value> Result;
+            typedef SInt<(temp > Num::value) ? temp : Num::value> Result;
         };
 
 /// \class Min
@@ -73,9 +73,9 @@ struct Print<Typelist<Head,Tail> > {
         struct Min< Typelist<Num, Tail> >
         {
         private:
-            enum { temp = Min<Tail>::Value };
+            enum { temp = Min<Tail>::value };
         public:
-            typedef SInt<(temp < Num::Value) ? temp : Num::Value> Result;
+            typedef SInt<(temp < Num::value) ? temp : Num::value> Result;
         };
 
 /// \class AddConst
@@ -96,7 +96,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct AddConst<Typelist<Head,Tail>,Num>
         {
-            typedef Typelist<SInt<Head::Value + Num::Value>,
+            typedef Typelist<SInt<Head::value + Num::value>,
                     typename AddConst<Tail,Num>::Result> Result;
         };
 
@@ -115,7 +115,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct AddAt<Typelist<Head, Tail>, 0, Num>
         {
-            typedef Typelist<SInt<Head::Value + Num::Value>, Tail> Result;
+            typedef Typelist<SInt<Head::value + Num::value>, Tail> Result;
         };
 
         template <class Head, class Tail, unsigned int i, class Num>
@@ -158,7 +158,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head1, class Tail1, class Head2, class Tail2>
         struct Add<Typelist<Head1,Tail1>,Typelist<Head2,Tail2> >
         {
-            typedef Typelist<SInt<Head1::Value + Head2::Value>,
+            typedef Typelist<SInt<Head1::value + Head2::value>,
                     typename Add<Tail1,Tail2>::Result> Result;
         };
 
@@ -182,7 +182,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct SubConst<Typelist<Head,Tail>,Num>
         {
-            typedef Typelist<SInt<Head::Value - Num::Value>,
+            typedef Typelist<SInt<Head::value - Num::value>,
                     typename SubConst<Tail,Num>::Result> Result;
         };
 
@@ -201,7 +201,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct SubAt<Typelist<Head, Tail>, 0, Num>
         {
-            typedef Typelist<SInt<Head::Value - Num::Value>, Tail> Result;
+            typedef Typelist<SInt<Head::value - Num::value>, Tail> Result;
         };
 
         template <class Head, class Tail, unsigned int i, class Num>
@@ -243,7 +243,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head1, class Tail1, class Head2, class Tail2>
         struct Sub<Typelist<Head1,Tail1>,Typelist<Head2,Tail2> >
         {
-            typedef Typelist<SInt<Head1::Value-Head2::Value>,
+            typedef Typelist<SInt<Head1::value-Head2::value>,
                     typename Sub<Tail1,Tail2>::Result> Result;
         };
 
@@ -266,7 +266,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct MultConst<Typelist<Head,Tail>,Num>
         {
-            typedef Typelist<SInt<Head::Value * Num::Value>,
+            typedef Typelist<SInt<Head::value * Num::value>,
                     typename MultConst<Tail,Num>::Result> Result;
         };
 
@@ -285,7 +285,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head, class Tail, class Num>
         struct MultAt<Typelist<Head, Tail>, 0, Num>
         {
-            typedef Typelist<SInt<Head::Value * Num::Value>, Tail> Result;
+            typedef Typelist<SInt<Head::value * Num::value>, Tail> Result;
         };
 
         template <class Head, class Tail, unsigned int i, class Num>
@@ -327,7 +327,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Head1, class Tail1, class Head2, class Tail2>
         struct Mult<Typelist<Head1,Tail1>,Typelist<Head2,Tail2> >
         {
-            typedef Typelist<SInt<Head1::Value*Head2::Value>,
+            typedef Typelist<SInt<Head1::value*Head2::value>,
                     typename Add<Tail1,Tail2>::Result> Result;
         };
 
@@ -347,7 +347,7 @@ struct Print<Typelist<Head,Tail> > {
         template <class Num, class Tail>
         struct Sum< Typelist<Num, Tail> >
         {
-            typedef SInt<Num::Value + Sum<Tail>::Result::Value> Result;
+            typedef SInt<Num::value + Sum<Tail>::Result::value> Result;
         };
 
 /// \class Compare
@@ -367,8 +367,8 @@ struct Print<Typelist<Head,Tail> > {
         {
             static const int v = Compare<T1,T2>::value;
             static const int value = (v==0) ? 
-                  ((H1::Value-H2::Value)>0 ? 1 : 
-                   (H1::Value==H2::Value) ? 0 : -1) : v;
+                  ((H1::value-H2::value)>0 ? 1 : 
+                   (H1::value==H2::value) ? 0 : -1) : v;
         };
 
         template <class H, class T>
@@ -386,8 +386,8 @@ struct Print<Typelist<Head,Tail> > {
         template <class H1, class H2>
         struct Compare<Typelist<H1,NullType>,Typelist<H2,NullType> >
         {
-            static const int value = (H1::Value-H2::Value)>0 ? 1 : 
-                                      (H1::Value==H2::Value) ? 0 : -1;
+            static const int value = (H1::value-H2::value)>0 ? 1 : 
+                                      (H1::value==H2::value) ? 0 : -1;
         };
 
 /// \class Sort
@@ -420,17 +420,17 @@ struct NZeros;
 
 template<int_t N, typename Tail>
 struct NZeros<Loki::Typelist<SInt<N>,Tail> > {
-  static const int_t Value = NZeros<Tail>::Value;
+  static const int_t value = NZeros<Tail>::value;
 };
 
 template<typename Tail>
 struct NZeros<Loki::Typelist<SInt<0>,Tail> > {
-  static const int_t Value = NZeros<Tail>::Value + 1;
+  static const int_t value = NZeros<Tail>::value + 1;
 };
 
 template<>
 struct NZeros<Loki::NullType> {
-  static const int_t Value = 0;
+  static const int_t value = 0;
 };
 
 
@@ -445,7 +445,7 @@ struct CutTrailingZeros<Loki::Typelist<H,Tail> > {
 template<class Tail>
 struct CutTrailingZeros<Loki::Typelist<SInt<0>,Tail> > {
   static const int Len = TL::Length<Tail>::value;
-  static const int NZ  = NZeros<Tail>::Value;
+  static const int NZ  = NZeros<Tail>::value;
   typedef typename Select<(Len == NZ), Loki::NullType,
           Loki::Typelist<SInt<0>, typename CutTrailingZeros<Tail>::Result> >::Result Result;
 };
