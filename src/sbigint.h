@@ -101,8 +101,8 @@ struct Evaluate2IntLoop;
 template<bool S, class H, class T, base_t Base, class RetType, unsigned long AccumBase>
 struct Evaluate2IntLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType,AccumBase>
 {
-  static const RetType Next = Evaluate2IntLoop<SBigInt<S,T,Base>,RetType,AccumBase*Base>::Value;
-  static const RetType Value = H::Value*AccumBase + Next;
+  static const RetType Next = Evaluate2IntLoop<SBigInt<S,T,Base>,RetType,AccumBase*Base>::value;
+  static const RetType Value = H::value*AccumBase + Next;
 };
 
 template<bool S, base_t Base, class RetType, unsigned long AccumBase>
@@ -117,14 +117,14 @@ struct Evaluate2Int;
 template<bool S, class NList, base_t Base, class RetType>
 struct Evaluate2Int<SBigInt<S,NList,Base>,RetType>
 {
-  static const RetType v = Evaluate2IntLoop<SBigInt<S,NList,Base>,RetType>::Value;
-  static const RetType Value = S ? v : -v;
+  static const RetType v = Evaluate2IntLoop<SBigInt<S,NList,Base>,RetType>::value;
+  static const RetType value = S ? v : -v;
 };
 
 template<int_t N, class RetType>
 struct Evaluate2Int<SInt<N>, RetType>
 {
-  static const RetType Value = N;
+  static const RetType value = N;
 };
 
 
@@ -136,14 +136,14 @@ struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
 {
   static RetType value() 
   {
-    return (RetType)H::Value + Base * EvaluateToFloatLoop<SBigInt<S,T,Base>,RetType>::value();
+    return (RetType)H::value + Base * EvaluateToFloatLoop<SBigInt<S,T,Base>,RetType>::value();
   }
 };
 
 template<bool S, class H, base_t Base, class RetType>
 struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,RetType>
 {
-  static RetType value() { return H::Value; }
+  static RetType value() { return H::value; }
 };
 
 template<bool S, base_t Base, class RetType>
@@ -239,7 +239,7 @@ struct Align;
 
 template<class H, class T, base_t Base, int_t Rest>
 struct Align<Loki::Typelist<H,T>,Base,Rest> {
-   static const int_t A = H::Value+Rest;
+   static const int_t A = H::value+Rest;
    typedef Loki::Typelist<SInt<A%Base>,
       typename Align<T,Base,A/Base>::Result> Result;
 };
@@ -310,7 +310,7 @@ struct __SwitchToInt {
 
 template<class N>
 struct __SwitchToInt<N,1> {
-   typedef SInt<Evaluate2Int<N,int_t>::Value> Result;
+   typedef SInt<Evaluate2Int<N,int_t>::value> Result;
 };
 
 template<class N>
@@ -733,8 +733,8 @@ struct DivSelect<B1,B2,L1,L2,0> {
 
 template<class B1, class B2, int_t L>
 struct DivSelect<B1,B2,2,L,1> {
-  typedef SInt<Evaluate2Int<B1,int_t>::Value> I1;
-  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
+  typedef SInt<Evaluate2Int<B1,int_t>::value> I1;
+  typedef SInt<Evaluate2Int<B2,int_t>::value> I2;
   typedef Div<I1,I2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
@@ -742,8 +742,8 @@ struct DivSelect<B1,B2,2,L,1> {
 
 template<class B1, class B2>
 struct DivSelect<B1,B2,2,1,1> {
-  typedef SInt<Evaluate2Int<B1,int_t>::Value> I1;
-  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
+  typedef SInt<Evaluate2Int<B1,int_t>::value> I1;
+  typedef SInt<Evaluate2Int<B2,int_t>::value> I2;
   typedef Div<I1,I2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
@@ -751,7 +751,7 @@ struct DivSelect<B1,B2,2,1,1> {
 
 template<class B1, class B2, int_t L>
 struct DivSelect<B1,B2,L,1,1> {
-  typedef SInt<Evaluate2Int<B2,int_t>::Value> I2;
+  typedef SInt<Evaluate2Int<B2,int_t>::value> I2;
   typedef Div<B1,I2> T;
   typedef typename T::DivResult DivResult;
   typedef typename T::ModResult ModResult;
@@ -783,7 +783,7 @@ public:
    static const int_t V1 = Loki::TL::TypeAt<VList,VLen-1>::Result::value;
    static const int_t V2 = Loki::TL::TypeAt<VList,VLen-2>::Result::value;
    typedef __Div<UList,VList,Base,L1-L2+1,UListLen,V1,V2> Loop;
-   //typedef SInt<Evaluate2Int<BI2,int_t>::Value> I2;
+   //typedef SInt<Evaluate2Int<BI2,int_t>::value> I2;
 
 /*  typedef typename Div<SBigInt<true,
            typename Loki::Range<NList1,0,L2-1>::Result,Base>,SInt<D> >::DivResult ModResult;*/
@@ -801,7 +801,7 @@ template<class H, class T, int_t N, base_t Base>
 struct __DivN<Loki::Typelist<H,T>,SInt<N>,Base> {
    typedef __DivN<T,SInt<N>,Base> Next;
    static const int_t AN = (N>0) ? N : -N;
-   static const int_t B = Next::Q*Base + H::Value;
+   static const int_t B = Next::Q*Base + H::value;
    static const int_t R = B/AN;
    static const int_t Q = B%AN;
    typedef Loki::Typelist<SInt<R>,typename Next::Result> Result;

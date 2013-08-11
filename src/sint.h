@@ -32,7 +32,6 @@ typedef unsigned short short_t;
 template<int_t N>
 struct SInt {
   static const int_t value = N;
-  static const int_t Value = N;
 };
 
 #define STATIC_INTEGER_CLASS(Type, Name) \
@@ -40,7 +39,6 @@ template<Type N>                         \
 struct s_##Name {                        \
    typedef Type value_type;              \
    static const Type value = N;          \
-   static const Type Value = N;          \
 };
 
 STATIC_INTEGER_CLASS(int, int)

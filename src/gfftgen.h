@@ -182,7 +182,7 @@ class Transform : public FactoryPolicy
    typedef typename VType::ValueType T;
    typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
-   typedef Separate<N::Value,T,Dir::Sign> Sep;
+   typedef Separate<N::value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
    typedef typename Factorization<N, SInt>::Result NFact;
 
@@ -203,7 +203,7 @@ public:
    typedef Parall ParallType;
    typedef Decimation DecimationType;
 
-   enum { ID = IDN, Len = N::Value };
+   enum { ID = IDN, Len = N::value };
 
    static FactoryPolicy* Create() {
       return new Transform<N,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
@@ -212,7 +212,7 @@ public:
    Transform() 
    {
      if (Decimation::ID == 1)
-       buf = new T[2*N::Value];
+       buf = new T[2*N::value];
    }
  
    ~Transform() 
