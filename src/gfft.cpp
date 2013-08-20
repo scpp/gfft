@@ -56,7 +56,7 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 // typedef TPi2 X;
 // typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
-static const int_t N = 8;
+static const int_t N = 9;
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
@@ -105,19 +105,19 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
-    fftobj->fft(data);
-//     fftobj->fft(data, dataout);
+//    fftobj->fft(data);
+    fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
     cout<<"Result of transform:"<<endl;
-     for (i=0; i < n; ++i)
-       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-//    for (i=0; i < n; ++i)
-//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+//      for (i=0; i < n; ++i)
+//        cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+   for (i=0; i < n; ++i)
+     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-   ifftobj->fft(data);
-//    ifftobj->fft(dataout, data);
+//   ifftobj->fft(data);
+   ifftobj->fft(dataout, data);
    dft1(data1, dataout1, n, true);
 
 // print out transformed data

@@ -289,7 +289,7 @@ template<int_t I, int_t M, class W1, class W, int Accuracy>
 struct GetNextRoot {
   typedef typename Mult<W1,W>::Result Result;
 };
-
+/*
 template<class W1, class W, int_t I, int Accuracy>
 struct GetNextRoot<I,2,W1,W,Accuracy> {
   typedef typename CosPiFrac<I,2,Accuracy>::Result Re;
@@ -307,7 +307,7 @@ struct GetNextRoot<I,1,W1,W,Accuracy> {
   typedef typename FractionToDecimal<Im,Accuracy>::Result ImDec;
   typedef MComplex<ReDec,ImDec> Result;
 };
-
+*/
 
 // TODO: compare this with the simple loop
 template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
@@ -324,27 +324,33 @@ class IterateInFreq
 
    typedef typename GetNextRoot<NIter+1,N,W1,W,2>::Result Wnext;
    IterateInFreq<K,M,T,S,W1,NIter+1,Wnext> next;
+   DFTk<K,M2,M2,T,S> spec;
    DFTk_inplace<K,M2,T,S> spec_inp;
    
 public:
    void apply(T* data) 
    {
-//      LocalVType wr[K-1], wi[K-1];
-//       const LocalVType t = Sin<N,NIter-1,LocalVType>::value();
-//       const LocalVType wr = 1 - 2.0*t*t;
-//       const LocalVType wi = -S*Sin<N,2*(NIter-1),LocalVType>::value();
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
-//       const LocalVType wr = H::first::value();
-//       const LocalVType wi = H::second::value();
 std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (NIter-1)*2);
 
       next.apply(data);
    }
+   void apply(const T* src, T* dst) 
+   {
+      const LocalVType wr = WR::value();
+      const LocalVType wi = WI::value();
+std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+
+      spec.apply(&wr, &wi, src + (NIter-1)*2, dst + (NIter-1)*2);
+
+      next.apply(src,dst);
+   }
 };
 
+// Last step of the loop
 template<int_t K, int_t M, typename T, int S, class W1, class W>
 class IterateInFreq<K,M,T,S,W1,M,W> 
 {
@@ -352,8 +358,10 @@ class IterateInFreq<K,M,T,S,W1,M,W>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
+   static const int_t M2 = M*2;
    static const int_t N = K*M;
-   DFTk_inplace<K,M*2,T,S> spec_inp;
+   DFTk<K,M2,M2,T,S> spec;
+   DFTk_inplace<K,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -368,17 +376,33 @@ std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (M-1)*2);
    }
+   void apply(const T* src, T* dst) 
+   {
+      const LocalVType wr = WR::value();
+      const LocalVType wi = WI::value();
+std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+
+      spec.apply(&wr, &wi, src + (M-1)*2, dst + (M-1)*2);
+   }
 };
 
+// First step in the loop
 template<int_t K, int_t M, typename T, int S, class W1, class W>
 class IterateInFreq<K,M,T,S,W1,1,W> {
-   DFTk_inplace<K,M*2,T,S> spec_inp;
+   static const int_t M2 = M*2;
+   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk<K,M2,M2,T,S> spec;
    IterateInFreq<K,M,T,S,W1,2,W> next;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
       next.apply(data);
+   }
+   void apply(const T* src, T* dst) 
+   {
+      spec.apply(src,dst);
+      next.apply(src,dst);
    }
 };
 
@@ -398,6 +422,7 @@ public:
    }
    void apply(const T* src, T* dst) 
    {
+      iterate.apply(src,dst);
    }
 };
 
@@ -553,27 +578,27 @@ class T_DFTk_x_Im<2,M,T,S,W,false>
    DFTk<2,N,N,T,S> spec;
    DFTk_inplace<2,N,T,S> spec_inp;
 
-   IterateInFreq<2,M,T,S,W> iterate;
+//    IterateInFreq<2,M,T,S,W> iterate;
 public:
    void apply(T* data) 
    {
-      iterate.apply(data);
-//       spec_inp.apply(data);
-// 
-//       LocalVType t,wr,wi;
-//       t = Sin<N,1,LocalVType>::value();
-//       const LocalVType wpr = -2.0*t*t;
-//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-//       wr = 1+wpr;
-//       wi = wpi;
-//       for (int_t i=2; i<N; i+=2) {
-// std::cout << i << "/" << N << ": " << t << " --- (" << wr << ", " << wi << ")" << std::endl;
-// 	spec_inp.apply(&wr, &wi, data+i);
-// 
-//         t = wr;
-//         wr += t*wpr - wi*wpi;
-//         wi += wi*wpr + t*wpi;
-//       }
+//       iterate.apply(data);
+      spec_inp.apply(data);
+
+      LocalVType t,wr,wi;
+      t = Sin<N,1,LocalVType>::value();
+      const LocalVType wpr = -2.0*t*t;
+      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+      wr = 1+wpr;
+      wi = wpi;
+      for (int_t i=2; i<N; i+=2) {
+//std::cout << i << "/" << N << ": " << t << " --- (" << wr << ", " << wi << ")" << std::endl;
+	spec_inp.apply(&wr, &wi, data+i);
+
+        t = wr;
+        wr += t*wpr - wi*wpi;
+        wi += wi*wpr + t*wpi;
+      }
    }
    
    void apply(const T* src, T* dst) 
