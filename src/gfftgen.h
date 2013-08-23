@@ -190,7 +190,7 @@ class Transform : public FactoryPolicy
    static const int Accuracy = 2;
    typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
    
-   typedef typename Decimation::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename Decimation::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
@@ -211,7 +211,7 @@ public:
 
    Transform() 
    {
-     if (Decimation::ID == 1)
+     if (Decimation::ID > 0)
        buf = new T[2*N::value];
    }
  
@@ -222,7 +222,7 @@ public:
    }
 
    // in-place transform
-   void fft(T* data) { run.apply(data); }
+   //void fft(T* data) { run.apply(data); }
 
    // out-of-place transform
    void fft(const T* src, T* dst) { run.apply(src, dst, buf); }

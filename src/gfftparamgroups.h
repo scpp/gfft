@@ -65,8 +65,8 @@ struct ParallelizationGroup
 /// \ingroup gr_groups
 struct DecimationGroup
 {
-  typedef TYPELIST_2(INTIME,INFREQ) FullList;
-  static const uint Length = 2;
+  typedef TYPELIST_3(INTIME,INFREQ,INFREQ_OOP) FullList;
+  static const uint Length = 3;
   typedef INFREQ Default;
   static const uint default_id = INFREQ::ID;
 };

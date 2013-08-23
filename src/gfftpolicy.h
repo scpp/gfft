@@ -38,7 +38,7 @@ classes that represent FFT of different lengths and types.
 template<typename T>
 class AbstractFFT {
 public:
-   virtual void fft(T*) = 0;
+   //virtual void fft(T*) = 0;
    virtual void fft(const T*, T*) = 0;
    virtual ~AbstractFFT() {}
 };
@@ -124,6 +124,18 @@ struct INFREQ {
    };
 };
 
+struct INFREQ_OOP {
+   static const id_t ID = 2;
+   template<int_t N, typename NFact, typename T,
+            class Swap, class Direction, short_t NT, class W1>
+   class List {
+      typedef InFreqOOP<N,NFact,T,Direction::Sign,W1> InF;
+//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
+   public:
+      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   };
+};
+
 struct IDFT;
 struct IRDFT;
 
@@ -134,10 +146,10 @@ struct DFT {
    static const id_t ID = 0;
    typedef IDFT Inverse;
 
-   template<typename TPower>
-   struct Length {
-      static const uint Value = TPower::value;
-   };
+//    template<typename TPower>
+//    struct Length {
+//       static const uint Value = TPower::value;
+//    };
 
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
@@ -155,10 +167,10 @@ struct IDFT {
    static const id_t ID = 1;
    typedef DFT Inverse;
 
-   template<typename TPower>
-   struct Length {
-      static const uint Value = TPower::value;
-   };
+//    template<typename TPower>
+//    struct Length {
+//       static const uint Value = TPower::value;
+//    };
 
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
