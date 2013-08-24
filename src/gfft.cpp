@@ -56,12 +56,12 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 // typedef TPi2 X;
 // typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
-static const int_t N = 16;
+static const int_t N = 128;
 typedef DOUBLE ValueType;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
-typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, INFREQ_OOP> TransformSet;
+typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, OUT_OF_PLACE> TransformSet;
 
 int main(int argc, char *argv[])
 {
@@ -75,9 +75,9 @@ int main(int argc, char *argv[])
 
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
-								   ParallelizationGroup::Default::ID, INFREQ_OOP::ID);
+								   ParallelizationGroup::Default::ID, OUT_OF_PLACE::ID);
     TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
-								   ParallelizationGroup::Default::ID, INFREQ_OOP::ID);
+								   ParallelizationGroup::Default::ID, OUT_OF_PLACE::ID);
     
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];

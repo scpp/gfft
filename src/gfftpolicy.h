@@ -28,7 +28,7 @@ namespace GFFT {
 
 typedef unsigned int id_t;
 
-/** \class AbstractFFT
+/** \class AbstractFFT_inp
 \brief Abstract interface class to build %GFFT object factory
 
 This class represents basic interface for %GFFT classes.
@@ -36,20 +36,25 @@ In other words, it shares the function fft(T*) between
 classes that represent FFT of different lengths and types.
 */
 template<typename T>
-class AbstractFFT {
+class AbstractFFT_inp {
 public:
-   //virtual void fft(T*) = 0;
-   virtual void fft(const T*, T*) = 0;
-   virtual ~AbstractFFT() {}
+   virtual void fft(T*) = 0;
+   virtual ~AbstractFFT_inp() {}
 };
 
+template<typename T>
+class AbstractFFT_oop {
+public:
+   virtual void fft(const T*, T*) = 0;
+   virtual ~AbstractFFT_oop() {}
+};
 
 /** \class Empty
 \brief Abstract empty base class
 
 This class is passed instead of AbstractFFT,
-if object factory is not needed
-to avoid a virtual function call penalty.
+if object factory is not needed.
+The virtual function call is then avoided.
 */
 class Empty { };
 
@@ -124,8 +129,34 @@ struct INFREQ {
    };
 };
 
-struct INFREQ_OOP {
-   static const id_t ID = 2;
+/*! \brief In-place algorithm 
+\ingroup gr_params
+*/
+struct IN_PLACE {
+   static const id_t ID = 0;
+   template<class T>
+   struct Interface {
+     typedef AbstractFFT_inp<T> Result;  
+   };
+   template<int_t N, typename NFact, typename T,
+            class Swap, class Direction, short_t NT, class W1>
+   class List {
+      typedef InFreq<N,NFact,T,Direction::Sign,W1> InF;
+//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
+   public:
+      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   };
+};
+
+/*! \brief Out-of-place algorithm
+\ingroup gr_params
+*/
+struct OUT_OF_PLACE {
+   static const id_t ID = 1;
+   template<class T>
+   struct Interface {
+     typedef AbstractFFT_oop<T> Result;  
+   };
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
    class List {
@@ -154,9 +185,9 @@ struct DFT {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<class List, class Separator>
+   template<class TList, class Separator>
    struct Algorithm {
-      typedef List Result;
+      typedef TList Result;
    };
 };
 
@@ -175,9 +206,9 @@ struct IDFT {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<class List, class Separator>
+   template<class TList, class Separator>
    struct Algorithm {
-      typedef List Result;
+      typedef TList Result;
    };
 };
 
@@ -196,9 +227,9 @@ struct RDFT {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<class List, class Separator>
+   template<class TList, class Separator>
    struct Algorithm {
-      typedef typename Loki::TL::Append<List,Separator>::Result Result;
+      typedef typename Loki::TL::Append<TList,Separator>::Result Result;
    };
 };
 
@@ -217,9 +248,9 @@ struct IRDFT {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<class List, class Separator>
+   template<class TList, class Separator>
    struct Algorithm {
-      typedef Loki::Typelist<Separator,List> Result;
+      typedef Loki::Typelist<Separator,TList> Result;
    };
 };
 

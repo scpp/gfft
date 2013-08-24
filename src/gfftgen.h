@@ -173,12 +173,21 @@ class VType,
 class Type,                    // DFT, IDFT, RDFT, IRDFT
 class Dim,
 class Parall,
-class Decimation,              // INTIME, INFREQ
+class Place,              // IN_PLACE, OUT_OF_PLACE
 class FactoryPolicy = Empty,
 uint IDN = N::ID>
-class Transform : public FactoryPolicy 
+class Transform;
+
+
+template<class N,
+class VType,
+class Type,                    // DFT, IDFT, RDFT, IRDFT
+class Dim,
+class Parall,
+class FactoryPolicy,
+uint IDN>
+class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
-   
    typedef typename VType::ValueType T;
    typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
@@ -190,7 +199,52 @@ class Transform : public FactoryPolicy
    static const int Accuracy = 2;
    typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
    
-   typedef typename Decimation::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename IN_PLACE::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
+   
+   Caller<Loki::Typelist<Parall,Alg> > run;
+   
+public:
+   typedef VType ValueType;
+   typedef Type TransformType;
+   typedef Parall ParallType;
+   //typedef Decimation DecimationType;
+
+   enum { ID = IDN, Len = N::value };
+
+   static FactoryPolicy* Create() {
+      return new Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,ID>();
+   }
+
+   Transform() { }
+    ~Transform() { }
+
+//   in-place transform
+   void fft(T* data) { run.apply(data); }
+};
+
+
+template<class N,
+class VType,
+class Type,                    // DFT, IDFT, RDFT, IRDFT
+class Dim,
+class Parall,
+class FactoryPolicy,
+uint IDN>
+class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
+{
+   typedef typename VType::ValueType T;
+   typedef typename Parall::template Swap<N::value,T>::Result Swap;
+   typedef typename Type::template Direction<N::value,T> Dir;
+   typedef Separate<N::value,T,Dir::Sign> Sep;
+   typedef Caller<Loki::NullType> EmptySwap;
+   typedef typename Factorization<N, SInt>::Result NFact;
+
+   //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
+   static const int Accuracy = 2;
+   typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
+   
+   typedef typename OUT_OF_PLACE::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
@@ -201,28 +255,23 @@ public:
    typedef VType ValueType;
    typedef Type TransformType;
    typedef Parall ParallType;
-   typedef Decimation DecimationType;
+   //typedef Decimation DecimationType;
 
    enum { ID = IDN, Len = N::value };
 
    static FactoryPolicy* Create() {
-      return new Transform<N,VType,Type,Dim,Parall,Decimation,FactoryPolicy>();
+      return new Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy>();
    }
 
    Transform() 
    {
-     if (Decimation::ID > 0)
        buf = new T[2*N::value];
    }
  
    ~Transform() 
    {
-     if (Decimation::ID == 1)
        delete [] buf;
    }
-
-   // in-place transform
-   //void fft(T* data) { run.apply(data); }
 
    // out-of-place transform
    void fft(const T* src, T* dst) { run.apply(src, dst, buf); }
@@ -241,12 +290,14 @@ all the types of substituted template parameters must be correct.
 template<class TList, uint ID>
 struct DefineTransform {
    typedef typename TList::Tail::Head VType;
-   typedef Transform<typename TList::Head, VType,
-                typename TList::Tail::Tail::Head,
+   typedef typename TList::Tail::Tail::Head TransformType;
+   typedef typename TList::Tail::Tail::Tail::Tail::Tail::Head Place;
+   typedef typename Place::template Interface<typename VType::ValueType>::Result Abstract;
+   
+   typedef Transform<typename TList::Head, VType, TransformType,
                 typename TList::Tail::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Tail::Head,
-                typename TList::Tail::Tail::Tail::Tail::Tail::Head,
-                AbstractFFT<typename VType::ValueType>,ID> Result;
+                Place,Abstract,ID> Result;
 };
 
 
@@ -331,7 +382,7 @@ class T         /* = ValueTypeList*/,        // has to be set explicitely becaus
 class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
 class Dim        = SIntID<1>,
 class Parall     = ParallelizationGroup::Default,
-class Decimation = DecimationGroup::Default>        // INTIME, INFREQ
+class Place      = PlaceGroup::Default>             // IN_PLACE, OUT_OF_PLACE
 class GenerateTransform {
    //typedef typename GenNumList<Begin,End>::Result NList;
    enum { L1 = Loki::TL::Length<NList>::value };
@@ -344,13 +395,13 @@ class GenerateTransform {
 
    typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
 
-   typedef TYPELIST_6(Decimation,Parall,Dim,TransType,T,NList) RevList;
+   typedef TYPELIST_6(Place,Parall,Dim,TransType,T,NList) RevList;
 
    typedef TranslateID<LenList> Translate;
 
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
-   typedef AbstractFFT<typename T::ValueType> ObjectType;
+   typedef typename Place::template Interface<typename T::ValueType>::Result ObjectType;
 
    Loki::Factory<ObjectType,int_t,ObjectType*(*)(),TransformFactoryError> factory;
 

@@ -30,7 +30,7 @@ namespace GFFT {
 \brief Classes that represent groups of parameters to define transform
 */
 
-/// \brief Lists all acceptable and default value types
+/// \brief Lists all acceptable value types and the default one
 /// \ingroup gr_groups
 struct ValueTypeGroup
 {
@@ -40,7 +40,7 @@ struct ValueTypeGroup
   static const uint default_id = DOUBLE::ID;
 };
 
-/// \brief Lists all acceptable and default types of Fast Fourier transform
+/// \brief Lists all acceptable types of Fast Fourier transform
 /// \ingroup gr_groups
 struct TransformTypeGroup
 {
@@ -51,7 +51,7 @@ struct TransformTypeGroup
   static const uint default_id = DFT::ID;
 };
 
-/// \brief Lists all acceptable and default parallelization methods
+/// \brief Lists all acceptable parallelization methods
 /// \ingroup gr_groups
 struct ParallelizationGroup
 {
@@ -61,16 +61,26 @@ struct ParallelizationGroup
   static const uint default_id = Serial::ID;
 };
 
-/// \brief Lists all acceptable and default decimation versions
+/// \brief Lists all acceptable decimation versions
 /// \ingroup gr_groups
 struct DecimationGroup
 {
-  typedef TYPELIST_3(INTIME,INFREQ,INFREQ_OOP) FullList;
-  static const uint Length = 3;
+  typedef TYPELIST_2(INTIME,INFREQ) FullList;
+  static const uint Length = 2;
   typedef INFREQ Default;
   static const uint default_id = INFREQ::ID;
 };
 
+/// \brief Lists in-place and out-of-place FFT algorithms
+/// \ingroup gr_groups
+struct PlaceGroup
+{
+  typedef TYPELIST_2(IN_PLACE,OUT_OF_PLACE) FullList;
+  static const uint Length = 2;
+  typedef OUT_OF_PLACE Default;
+  static const uint default_id = OUT_OF_PLACE::ID;
+};
+  
 }  //namespace
 
 #endif
