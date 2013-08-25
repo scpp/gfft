@@ -20,6 +20,7 @@
 */
 
 #include "gfftalg.h"
+#include "gfftalgfreq.h"
 
 #include <omp.h>
 
@@ -48,12 +49,12 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, int_t LastK = 1, 
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
 bool C = ((N>NThreads) && (N>=SwitchToOMP))>
 class InTimeOMP;
 
-template<short_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, int_t LastK>
-class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,LastK,true> 
+template<short_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
@@ -63,9 +64,9 @@ class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,LastK,true>
    static const int_t LastK2 = LastK*2;
    static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
    
+   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   //IterateInTime<M,T,LastK,K-1> iter;
-   InTimeOMP<NThreadsNext,M,NFactNext,T,S,K*LastK> dft_str;
+   InTimeOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,M,T,S> dft_scaled;
 public:
    void apply(T* data) 
@@ -97,11 +98,11 @@ public:
    }
 };
 
-template<int_t N, typename NFact, typename T, int S, int_t LastK>
-class InTimeOMP<1,N,NFact,T,S,LastK,true> : public InTime<N,NFact,T,S,LastK> { };
+template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
+class InTimeOMP<1,N,NFact,T,S,W1,LastK,true> : public InTime<N,NFact,T,S,W1,LastK> { };
 
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, int_t LastK>
-class InTimeOMP<NThreads,N,NFact,T,S,LastK,false> : public InTime<N,NFact,T,S,LastK> { };
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
+class InTimeOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTime<N,NFact,T,S,W1,LastK> { };
 
 
 /** \class {GFFT::InFreqOMP}
@@ -137,7 +138,6 @@ class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   //IterateInFreq<M,T,LastK,K-1> iter;
    InFreqOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S,W1,true> dft_scaled;
 
