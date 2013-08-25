@@ -80,6 +80,56 @@ struct ListGenerator<Loki::NullType,Loki::NullType,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<typename DefTrans<WorkingList,ID>::Result,Loki::NullType> Result;
 };
 
+
+
+/// Generates Typelist with types Holder<N>, N = Begin,...,End
+template<int_t Begin, int_t End, 
+template<int_t> class Holder = SIntID>
+struct GenNumList {
+   typedef Loki::Typelist<Holder<Begin>,
+      typename GenNumList<Begin+1,End,Holder>::Result> Result;
+};
+
+template<int_t End, 
+template<int_t> class Holder>
+struct GenNumList<End,End,Holder> {
+   typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
+};
+
+
+template<int_t M, int_t P>
+struct PowerHolder {
+   static const int_t N = IPow<M,P>::value;
+   static const int_t ID = N-1;
+   static const int_t value = N;
+};
+
+template<int_t P>
+struct PowerHolder<2,P> {
+   static const int_t N = 1<<P;
+   static const int_t ID = N-1;
+   static const int_t value = N;
+};
+
+template<int_t P>
+struct Power2holder : public PowerHolder<2,P> {};
+
+template<int_t P>
+struct Power3holder : public PowerHolder<3,P> {};
+
+
+/// Generates Typelist with types Holder<N>, N = Begin,...,End
+template<int_t PowerBegin, int_t PowerEnd, int_t M>
+struct GenPowerList {
+   typedef Loki::Typelist<PowerHolder<M,PowerBegin>,
+      typename GenPowerList<PowerBegin+1,PowerEnd,M>::Result> Result;
+};
+
+template<int_t PowerEnd, int_t M>
+struct GenPowerList<PowerEnd,PowerEnd,M> {
+   typedef Loki::Typelist<PowerHolder<M,PowerEnd>,Loki::NullType> Result;
+};
+
 }  //namespace
 
 #endif

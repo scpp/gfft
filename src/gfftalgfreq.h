@@ -31,13 +31,9 @@ namespace GFFT {
 using namespace MF;
 
 
-// TODO: compare this with the simple loop
 template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
 class IterateInFreq
 {
-// template<int_t K, int_t M, typename T, int S, class H, class Tail, int NIter = 1>
-// class IterateInFreq<K,M,T,S,Loki::Typelist<H,Tail>,NIter> {
-   //typedef typename RList::Head H;
    typedef typename TempTypeTrait<T>::Result LocalVType;
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
@@ -46,14 +42,14 @@ class IterateInFreq
 
    typedef typename GetNextRoot<NIter+1,N,W1,W,2>::Result Wnext;
    IterateInFreq<K,M,T,S,W1,NIter+1,Wnext> next;
-   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk_inp<K,M2,T,S> spec_inp;
    
 public:
    void apply(T* data) 
    {
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
-std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (NIter-1)*2);
 
@@ -71,7 +67,7 @@ class IterateInFreq<K,M,T,S,W1,M,W>
    typedef Compute<typename W::Im,2> WI;
    static const int_t M2 = M*2;
    static const int_t N = K*M;
-   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk_inp<K,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -82,7 +78,7 @@ public:
       const LocalVType wi = WI::value();
 //       const LocalVType wr = H::first::value();
 //       const LocalVType wi = H::second::value();
-std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+//std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (M-1)*2);
    }
@@ -92,7 +88,7 @@ std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 template<int_t K, int_t M, typename T, int S, class W1, class W>
 class IterateInFreq<K,M,T,S,W1,1,W> {
    static const int_t M2 = M*2;
-   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk_inp<K,M2,T,S> spec_inp;
    IterateInFreq<K,M,T,S,W1,2,W> next;
 public:
    void apply(T* data) 
@@ -191,7 +187,7 @@ class T_DFTk_x_Im<K,M,T,S,W,false>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
-   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk_inp<K,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -232,7 +228,7 @@ class T_DFTk_x_Im<3,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
-   DFTk_inplace<3,M2,T,S> spec_inp;
+   DFTk_inp<3,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -271,7 +267,7 @@ class T_DFTk_x_Im<2,M,T,S,W,false>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
-   DFTk_inplace<2,N,T,S> spec_inp;
+   DFTk_inp<2,N,T,S> spec_inp;
 
 //    IterateInFreq<2,M,T,S,W> iterate;
 public:
@@ -452,7 +448,7 @@ class InFreq<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InFreq<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   T_DFTk_x_Im<K,M,T,S,W1,true> dft_scaled;
+   T_DFTk_x_Im<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 
 public:
    void apply(T* data) 
@@ -475,7 +471,7 @@ class InFreq<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK>
 // Specialization for prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
 class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
-  DFTk_inplace<N, 2, T, S> spec_inp;
+  DFTk_inp<N, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
@@ -502,7 +498,7 @@ class InFreqOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InFreqOOP<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   T_DFTk_x_Im_OOP<K,M,T,S,W1,true> dft_scaled;
+   T_DFTk_x_Im_OOP<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 
 public:
    void apply(const T* src, T* dst, T* buf) 

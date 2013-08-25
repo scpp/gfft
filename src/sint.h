@@ -34,6 +34,12 @@ struct SInt {
   static const int_t value = N;
 };
 
+/// Static unsigned integer class holder with additional definition of ID
+template<int_t N>
+struct SIntID : public SInt<N> {
+   static const int_t ID = N-1;
+};
+
 #define STATIC_INTEGER_CLASS(Type, Name) \
 template<Type N>                         \
 struct s_##Name {                        \

@@ -87,7 +87,7 @@ public:
           <<software_id<<space
           <<H::TransformType::ID<<space
           <<H::ValueType::ID<<space
-          <<H::DecimationType::ID<<space
+          <<H::PlaceType::ID<<space
           <<H::ParallType::ID+1<<space
           <<0<<space    // array type
           <<1<<space    // dim
@@ -140,7 +140,7 @@ public:
           <<software_id<<space
           <<H::TransformType::ID<<space
           <<H::ValueType::ID<<space
-          <<H::DecimationType::ID<<space
+          <<H::PlaceType::ID<<space
           <<H::ParallType::ID+1<<space
           <<0<<space    // array type
           <<1<<space    // dim
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 //     typedef GenNumList<MinP, MaxP, Power2holder>::Result NList;
     typedef GenNumList<2, 10, SIntID>::Result NList;
     typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
-       ParallelizationGroup::Default, INTIME> List_ds;
+       ParallelizationGroup::Default, IN_PLACE> List_ds;
 //    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;

@@ -28,48 +28,6 @@
 /// Main namespace
 namespace GFFT {
 
-/// Static unsigned integer class holder with additional definition of ID
-template<int_t N>
-struct SIntID : public SInt<N> {
-   static const uint ID = N-1;
-};
-
-template<int_t M, int_t P>
-struct PowerHolder {
-   static const int_t N = IPow<M,P>::value;
-   static const int_t ID = N-1;
-   static const int_t value = N;
-};
-
-template<int_t P>
-struct PowerHolder<2,P> {
-   static const int_t N = 1<<P;
-   static const int_t ID = N-1;
-   static const int_t value = N;
-};
-
-template<int_t P>
-struct Power2holder : public PowerHolder<2,P> {};
-
-template<int_t P>
-struct Power3holder : public PowerHolder<3,P> {};
-
-
-/// Generates Typelist with types Holder<N>, N = Begin,...,End
-template<int_t Begin, int_t End, 
-template<int_t> class Holder = SIntID>
-struct GenNumList {
-   typedef Loki::Typelist<Holder<Begin>,
-      typename GenNumList<Begin+1,End,Holder>::Result> Result;
-};
-
-template<int_t End, 
-template<int_t> class Holder>
-struct GenNumList<End,End,Holder> {
-   typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
-};
-
-
 
 /** \class {GFFT::Transform}
 \brief Generic Fast Fourier transform in-place class
@@ -115,7 +73,7 @@ class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public Fac
    static const int Accuracy = 2;
    typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
    
-   typedef typename IN_PLACE::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename IN_PLACE::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
@@ -124,7 +82,7 @@ public:
    typedef VType ValueType;
    typedef Type TransformType;
    typedef Parall ParallType;
-   //typedef Decimation DecimationType;
+   typedef IN_PLACE PlaceType;
 
    enum { ID = IDN, Len = N::value };
 
@@ -150,7 +108,7 @@ uint IDN>
 class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
    typedef typename VType::ValueType T;
-   typedef typename Parall::template Swap<N::value,T>::Result Swap;
+   //typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
    typedef Separate<N::value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
@@ -171,7 +129,7 @@ public:
    typedef VType ValueType;
    typedef Type TransformType;
    typedef Parall ParallType;
-   //typedef Decimation DecimationType;
+   typedef OUT_OF_PLACE PlaceType;
 
    enum { ID = IDN, Len = N::value };
 

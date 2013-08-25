@@ -67,7 +67,7 @@ class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InTimeOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
    void apply(T* data) 
    {

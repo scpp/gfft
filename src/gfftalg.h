@@ -43,49 +43,91 @@ struct StaticAssert<true> { };
 static const int_t StaticLoopLimit = 128;
 
 
-// TODO: compare this with the simple loop
-template<int_t M, typename T, int LastK, int NIter>
-class IterateInTime {
-   static const unsigned int M2 = M*2;
-   IterateInTime<M,T,LastK,NIter-1> next;
+template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
+class IterateInTime
+{
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
+   static const int_t M2 = M*2;
+   static const int_t N = K*M;
+
+   typedef typename GetNextRoot<NIter+1,N,W1,W,2>::Result Wnext;
+   IterateInTime<K,M,T,S,W1,NIter+1,Wnext> next;
+   DFTk_inp<K,M2,T,S> spec_inp;
+   
 public:
-   template<class InTimeType>
-   void apply(InTimeType& step, T* data) 
+   void apply(T* data) 
    {
-      next.apply(step, data);
-      step.apply(data + NIter*M2);
-   }
-   template<class InTimeType>
-   void apply(InTimeType& step, const T* src, T* dst) 
-   {
-      next.apply(step, src, dst);
-      step.apply(src + NIter*2*LastK, dst + NIter*M2);
+      const LocalVType wr = WR::value();
+      const LocalVType wi = WI::value();
+//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
+
+      spec_inp.apply(data + (NIter-1)*2, &wr, &wi);
+
+      next.apply(data);
    }
 };
 
-template<int_t M, typename T, int LastK>
-class IterateInTime<M,T,LastK,0> {
+// Last step of the loop
+template<int_t K, int_t M, typename T, int S, class W1, class W>
+class IterateInTime<K,M,T,S,W1,M,W> 
+{
+//    typedef typename RList::Head H;
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
+   static const int_t M2 = M*2;
+   static const int_t N = K*M;
+   DFTk_inp<K,M2,T,S> spec_inp;
 public:
-   template<class InTimeType>
-   void apply(InTimeType& step, T* data) 
+   void apply(T* data) 
    {
-      step.apply(data);
+      const LocalVType wr = WR::value();
+      const LocalVType wi = WI::value();
+
+      spec_inp.apply(data + (M-1)*2, &wr, &wi);
    }
-   template<class InTimeType>
-   void apply(InTimeType& step, const T* src, T* dst) 
+};
+
+// First step in the loop
+template<int_t K, int_t M, typename T, int S, class W1, class W>
+class IterateInTime<K,M,T,S,W1,1,W> {
+   static const int_t M2 = M*2;
+   DFTk_inp<K,M2,T,S> spec_inp;
+   IterateInTime<K,M,T,S,W1,2,W> next;
+public:
+   void apply(T* data) 
    {
-      step.apply(src, dst);
+      spec_inp.apply(data);
+      next.apply(data);
    }
 };
 
 
-template<int_t K, int_t M, typename T, int S>
-class DFTk_x_Im_T 
+/////////////////////////////////////////////////////////
+
+template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
+class DFTk_x_Im_T;
+
+template<int_t K, int_t M, typename T, int S, class W>
+class DFTk_x_Im_T<K,M,T,S,W,true>
+{
+   IterateInTime<K,M,T,S,W> iterate;
+public:
+   void apply(T* data) 
+   {
+      iterate.apply(data);
+   }
+};
+
+template<int_t K, int_t M, typename T, int S, class W>
+class DFTk_x_Im_T<K,M,T,S,W,false>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
-   DFTk_inplace<K,M2,T,S> spec_inp;
+   DFTk_inp<K,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -122,12 +164,12 @@ public:
   
 };
 
-template<int_t M, typename T, int S>
-class DFTk_x_Im_T<3,M,T,S> {
+template<int_t M, typename T, int S, class W>
+class DFTk_x_Im_T<3,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
-   DFTk_inplace<3,M2,T,S> spec_inp;
+   DFTk_inp<3,M2,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -161,11 +203,11 @@ public:
    }
 };
 
-template<int_t M, typename T, int S>
-class DFTk_x_Im_T<2,M,T,S> {
+template<int_t M, typename T, int S, class W>
+class DFTk_x_Im_T<2,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
-   DFTk_inplace<2,N,T,S> spec_inp;
+   DFTk_inp<2,N,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -217,7 +259,8 @@ class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    //IterateInTime<M,T,LastK,K-1> iter;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -237,7 +280,7 @@ class InTime<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK>
 // Specialization for prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
 class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
-  DFTk_inplace<N, 2, T, S> spec_inp;
+  DFTk_inp<N, 2, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
@@ -263,7 +306,7 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    //IterateInTime<M,T,LastK,K-1> iter;
    InTimeOOP<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
 
    void apply(const T* src, T* dst, T* buf) 

@@ -56,12 +56,15 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 // typedef TPi2 X;
 // typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
 
-static const int_t N = 16;
 typedef DOUBLE ValueType;
+typedef IN_PLACE Place;
+//typedef OUT_OF_PLACE Place;
+
+static const int_t N = 16;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
-typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, OUT_OF_PLACE> TransformSet;
+typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, Place> TransformSet;
 
 int main(int argc, char *argv[])
 {
@@ -75,9 +78,9 @@ int main(int argc, char *argv[])
 
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
-								   ParallelizationGroup::Default::ID, OUT_OF_PLACE::ID);
-    TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
-								   ParallelizationGroup::Default::ID, OUT_OF_PLACE::ID);
+								   ParallelizationGroup::Default::ID, Place::ID);
+//     TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
+// 								   ParallelizationGroup::Default::ID, Place::ID);
     
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
@@ -105,39 +108,36 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
-//    fftobj->fft(data);
-    fftobj->fft(data, dataout);
+    fftobj->fft(data);
+//    fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
+    cout.precision(2);
     cout<<"Result of transform:"<<endl;
-//      for (i=0; i < n; ++i)
-//        cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-   for (i=0; i < n; ++i)
-     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+    for (i=0; i < n; ++i)
+      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+//    for (i=0; i < n; ++i)
+//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
 
-//   ifftobj->fft(data);
-   ifftobj->fft(dataout, data);
-   dft1(data1, dataout1, n, true);
+   //ifftobj->fft(data);
+//   ifftobj->fft(dataout, data);
+   //dft1(data1, dataout1, n, true);
 
 // print out transformed data
-    cout<<"Result of backward transform:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Result of backward transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
     
     cout<<"Check against DFT:"<<endl;
-    cout.precision(2);
-    double mx1(-1), mx2(-1);
+    double mx1(-1);
     for (i=0; i < n; ++i) {
-      cout<<"("<<fabs(data[2*i]-data1[2*i])<<","<<fabs(data[2*i+1]-data1[2*i+1])<<")   \t("
-      <<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(data[2*i]-data1[2*i]));
-      mx1 = max(mx1, fabs(data[2*i+1]-data1[2*i+1]));
-      mx2 = max(mx1, fabs(dataout[2*i]-dataout1[2*i]));
-      mx2 = max(mx1, fabs(dataout[2*i+1]-dataout1[2*i+1]));
+      cout<<"("<<fabs(data[2*i]-dataout1[2*i])<<","<<fabs(data[2*i+1]-dataout1[2*i+1])<<")"<<endl;
+      mx1 = max(mx1, fabs(data[2*i]-dataout1[2*i]));
+      mx1 = max(mx1, fabs(data[2*i+1]-dataout1[2*i+1]));
     }
     cout<<"---------------------------------------------"<<endl;
-    cout << mx1 << "                 " << mx2 << endl;
+    cout << mx1 << endl;
 
 
 //    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539

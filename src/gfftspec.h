@@ -51,7 +51,7 @@ struct ComputeTwiddles<T,N,S,1>
 //////////////////////////////////////////////////
 
 template<int_t N, int_t M, typename T, int S>
-class DFTk_inplace
+class DFTk_inp
 {
   //GFFT_STATIC_ASSERT((N%2 == 1))   // N is assumed odd, otherwise compiler would not come here
   
@@ -62,7 +62,7 @@ class DFTk_inplace
   LocalVType m_c[K], m_s[K];
   
 public:
-  DFTk_inplace() 
+  DFTk_inp() 
   { 
     ComputeTwiddles<LocalVType, N, S, K>::apply(m_c, m_s);
   }
@@ -190,7 +190,7 @@ public:
 };
 /*
 template<int_t M, typename T, int S>
-class DFTk_inplace<4,M,T,S> 
+class DFTk_inp<4,M,T,S> 
 {
   static const int_t I10 = M;
   static const int_t I11 = M+1;
@@ -200,7 +200,7 @@ class DFTk_inplace<4,M,T,S>
   static const int_t I31 = I30+1;
   
 public:
-  DFTk_inplace() { }
+  DFTk_inp() { }
   
   void apply(T* data) 
   { 
@@ -241,7 +241,7 @@ public:
 };
 */
 template<int_t M, typename T, int S>
-class DFTk_inplace<3,M,T,S> 
+class DFTk_inp<3,M,T,S> 
 {
   static const int_t I10 = M;
   static const int_t I11 = M+1;
@@ -251,7 +251,7 @@ class DFTk_inplace<3,M,T,S>
   T m_coef;
   
 public:
-  DFTk_inplace() : m_coef(S * Sqrt<3, T>::value() * 0.5) { }
+  DFTk_inp() : m_coef(S * Sqrt<3, T>::value() * 0.5) { }
   
   void apply(T* data) 
   { 
@@ -312,7 +312,7 @@ public:
 };
 
 template<int_t M, typename T, int S>
-class DFTk_inplace<2,M,T,S> 
+class DFTk_inp<2,M,T,S> 
 {
 public:
   void apply(T* data) 

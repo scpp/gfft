@@ -114,6 +114,19 @@ struct INTIME {
    };
 };
 
+struct INTIME_OOP {
+   static const id_t ID = 0;
+   template<int_t N, typename NFact, typename T,
+            class Swap, class Direction, short_t NT, class W1>
+   class List {
+      typedef InTimeOOP<N,NFact,T,Direction::Sign,W1> InT;
+//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
+   public:
+       typedef TYPELIST_3(Swap,InT,Direction) Result;
+//      typedef TYPELIST_2(InT,Direction) Result;
+   };
+};
+
 /*! \brief Decimation in-frequency
 \ingroup gr_params
 */
@@ -140,11 +153,8 @@ struct IN_PLACE {
    };
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
-   class List {
-      typedef InTime<N,NFact,T,Direction::Sign,W1> InF;
-//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
-   public:
-      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   struct List {
+      typedef typename INTIME::template List<N,NFact,T,Swap,Direction,NT,W1>::Result Result;
    };
 };
 
@@ -160,10 +170,7 @@ struct OUT_OF_PLACE {
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
    class List {
-      typedef InTimeOOP<N,NFact,T,Direction::Sign,W1> InF;
-//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
-   public:
-      typedef TYPELIST_3(InF,Swap,Direction) Result;
+      typedef typename INTIME_OOP::template List<N,NFact,T,Swap,Direction,NT,W1>::Result Result;
    };
 };
 
