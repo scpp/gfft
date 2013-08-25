@@ -69,13 +69,6 @@ struct TempTypeTrait<Complex<T,A> > {
 typedef TYPELIST_3(SInt<589793238>,SInt<141592653>,SInt<3>) NL21;
 typedef SDecimalFraction<SBigInt<true,NL21,DefaultDecimalBase>,2,DefaultDecimalBase> TPi2Dec;
 
-/// Metafunctions template classes
-/*!
-Template classes under this namespace are dedicated to the calculation of
-different mathematical functions at compile time. Return values can be static constants, 
-if they can be represented as integers, or static functions returning floating point values.
-*/
-namespace MF {
 
 
 // Works with SFraction of decimal bases (10^n) only
@@ -85,7 +78,7 @@ struct FractionToDecimal;
 
 template<class Numer, class Denom, int_t NDigits, base_t DecBase>
 struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
-  typedef typename IPowBig<SInt<DecBase>,NDigits>::Result D;
+  typedef typename MF::IPowBig<SInt<DecBase>,NDigits>::Result D;
   typedef typename Mult<Numer,D>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
   typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
@@ -112,6 +105,22 @@ struct FractionToDecimal<SDecimalFraction<BI,ND,Base>,NDigits,DecBase> {
 };
 
 /////////////////////////////////////////////////////
+
+template<class N, class D, int Accuracy, base_t Base>
+struct Reduce<SFraction<N,D>,Accuracy,Base> {
+  typedef typename MF::IPowBig<SInt<Base>,Accuracy>::Result Denom;
+  typedef typename FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
+  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
+};
+
+
+/// Metafunctions template classes
+/*!
+Template classes under this namespace are dedicated to the calculation of
+different mathematical functions at compile time. Return values can be static constants, 
+if they can be represented as integers, or static functions returning floating point values.
+*/
+namespace MF {
 
 template<class X,
 template<int,class,class> class FuncStep,
@@ -290,29 +299,6 @@ struct GenericLengthBasedFunc
 };
 
 /////////////////////////////////////////////////////
-
-template<class T, int Accuracy, base_t Base = DefaultBase>
-struct Reduce;
-
-template<class N, class D, int Accuracy, base_t Base>
-struct Reduce<SFraction<N,D>,Accuracy,Base> {
-  typedef typename IPowBig<SInt<Base>,Accuracy>::Result Denom;
-  typedef typename FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
-  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
-};
-
-template<int_t N, int Accuracy, base_t Base>
-struct Reduce<SInt<N>,Accuracy,Base> {
-  typedef SInt<N> Result;
-};
-
-template<class BI, int_t ND, int Accuracy, base_t Base>
-struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
-  typedef typename BI::Num NList;
-  typedef typename Loki::Select<(ND>Accuracy),
-          typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
-  typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
-};
 
 
 template<class SFrac, int Accuracy, class RetType = long double>

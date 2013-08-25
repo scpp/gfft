@@ -19,8 +19,7 @@
     \brief Factorization meta-algorithms 
 */
 
-#include "gfftspec.h"
-
+#include "sint.h"
 
 namespace GFFT {
 
@@ -102,24 +101,37 @@ template<int_t> class IntHolder = SInt,
 typename StartList = InitialPrimesList>
 struct Factorization;
 
-template<typename Num, template<int_t> class IntHolder, typename H, typename Tail>
-struct Factorization<Num, IntHolder, Loki::Typelist<H,Tail> >
+template<int_t N, template<int_t> class IntHolder, typename H, typename Tail>
+struct Factorization<SIntID<N>, IntHolder, Loki::Typelist<H,Tail> >
 {
-  static const int_t P = IsMultipleOf<Num::value, H::value>::value;
-  typedef IntHolder<Num::value / IPow<H::value,P>::value> NextNum;
+  //static const int_t N = Num::value;
+  static const int_t P = IsMultipleOf<N, H::value>::value;
+  typedef SIntID<N / IPow<H::value,P>::value> NextNum;
   typedef typename Factorization<NextNum,IntHolder,Tail>::Result Next;
   typedef typename Loki::Select<(P > 0), 
      Loki::Typelist<Pair<IntHolder<H::value>, IntHolder<P> >, Next>, Next>::Result Result;
 };
 
-template<typename Num, template<int_t> class IntHolder>
-struct Factorization<Num, IntHolder, Loki::NullType> : public FactorizationLoop<Num::value, 2> {};
+template<int_t N, template<int_t> class IntHolder>
+struct Factorization<SIntID<N>, IntHolder, Loki::NullType> : public FactorizationLoop<N, 2, IntHolder> {};
 
-template<template<int_t> class IntHolder>
-struct Factorization<IntHolder<1>, IntHolder, Loki::NullType> {
+template<template<int_t> class IntHolder, typename H, typename Tail>
+struct Factorization<SIntID<1>, IntHolder, Loki::Typelist<H,Tail> > {
   typedef Loki::NullType Result;
 };
 
+
+template<int_t M, int_t P>
+struct PowerHolder;
+
+// The power is predefined, no factorization needed
+template<int_t M, int_t P,
+template<int_t> class IntHolder, typename StartList>
+struct Factorization<PowerHolder<M,P>, IntHolder, StartList> {
+  typedef Loki::Typelist<Pair<IntHolder<M>, IntHolder<P> >,Loki::NullType> Result;
+};
+
+  
 }  //namespace DFT
 
 #endif /*__gfftfactor_h*/

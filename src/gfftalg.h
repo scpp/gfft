@@ -257,14 +257,14 @@ class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   //IterateInTime<M,T,LastK,K-1> iter;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
    DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {
-      for (int_t m = 0; m < N2; m+=M2)
+      int_t lk = 0;
+      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
 	dft_str.apply(data + m);
 
       dft_scaled.apply(data);
@@ -304,7 +304,6 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   //IterateInTime<M,T,LastK,K-1> iter;
    InTimeOOP<M,NFactNext,T,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
@@ -314,7 +313,6 @@ public:
       int_t lk = 0;
       for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
         dft_str.apply(src + lk, dst + m, buf);
-//      iter.apply(step, src, dst);
 
       dft_scaled.apply(dst);
    }

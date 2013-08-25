@@ -26,11 +26,22 @@ struct SDecimalFraction {
 };
 
 
+template<class BI, int_t ND, int Accuracy, base_t Base>
+struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
+  typedef typename BI::Num NList;
+  typedef typename Loki::Select<(ND>Accuracy),
+          typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
+  typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
+};
+
+
 template<class BI1, int_t ND1, class BI2, int_t ND2, base_t DecBase>
 class Mult<SDecimalFraction<BI1,ND1,DecBase>,SDecimalFraction<BI2,ND2,DecBase> > {
+  static const int_t MaxND = (ND1 > ND2) ? ND1 : ND2;
   typedef typename Mult<BI1,BI2>::Result Prod;
+  typedef SDecimalFraction<Prod,ND1+ND2,DecBase> NewDec;
 public:
-  typedef SDecimalFraction<Prod,ND1+ND2,DecBase> Result;
+  typedef typename Reduce<NewDec,MaxND,DecBase>::Result Result;
 };
 
 template<int_t N, class BI, int_t ND, base_t DecBase>

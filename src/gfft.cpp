@@ -60,7 +60,7 @@ typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-static const int_t N = 16;
+static const int_t N = 4;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     cout << mx1 << endl;
 
 
-//    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539
+//    typedef Print<Factorization<SIntID<N>, SIntID>::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;

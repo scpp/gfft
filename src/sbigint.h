@@ -92,6 +92,16 @@ class Sign;
 template<class N, base_t Base>
 struct CreateBigInt;
 
+
+template<class T, int Accuracy, base_t Base = DefaultBase>
+struct Reduce;
+
+template<int_t N, int Accuracy, base_t Base>
+struct Reduce<SInt<N>,Accuracy,Base> {
+  typedef SInt<N> Result;
+};
+
+
 /////////////////////////////////////////////////////////////////////////
 // bool isInt = Loki::TypeTraits<RetType>::isIntegral,
 // bool isFloat = Loki::TypeTraits<RetType>::isFloat

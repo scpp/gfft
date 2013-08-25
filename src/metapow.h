@@ -59,7 +59,7 @@ struct IPow<N,0> {
 
 template<class N, int_t P>
 struct IPowBig {
-  typedef typename Mult<typename IPowBig<N,P-1>::Result, N>::Result Result;
+  typedef typename Mult<N, typename IPowBig<N,P-1>::Result>::Result Result;
 };
 
 template<class N>

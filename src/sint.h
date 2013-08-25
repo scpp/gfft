@@ -51,7 +51,7 @@ STATIC_INTEGER_CLASS(int, int)
 STATIC_INTEGER_CLASS(unsigned int, uint)
 STATIC_INTEGER_CLASS(long, long)
 STATIC_INTEGER_CLASS(unsigned long, ulong)
-
 #undef STATIC_INTEGER_CLASS
+
 
 #endif
