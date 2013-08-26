@@ -323,6 +323,8 @@ public:
       data[M+1] = data[1]-ti;
       data[0] += tr;
       data[1] += ti;
+//       std::swap(data[0], data[M]);
+//       std::swap(data[1], data[M+1]);
 // To test
 //       const T tr = data[0] - data[M];
 //       const T ti = data[1] - data[M+1];

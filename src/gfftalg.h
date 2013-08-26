@@ -40,7 +40,7 @@ struct StaticAssert<true> { };
 #define GFFT_STATIC_ASSERT(c) StaticAssert<c> static__assert; 
 
 
-static const int_t StaticLoopLimit = 128;
+static const int_t StaticLoopLimit = 8;
 
 
 template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
@@ -170,17 +170,21 @@ class DFTk_x_Im_T<3,M,T,S,W,false> {
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
    DFTk_inp<3,M2,T,S> spec_inp;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
 
       LocalVType wr[2],wi[2],t;
-      t = Sin<N,1,LocalVType>::value();
+      //t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr1, wpi1)
-      const LocalVType wpr1 = 1 - 2.0*t*t;
-      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+//       const LocalVType wpr1 = 1 - 2.0*t*t;
+//       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpr1 = WR::value();
+      const LocalVType wpi1 = WI::value();
       
       // W^2 = (wpr2, wpi2)
       const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
@@ -208,23 +212,27 @@ class DFTk_x_Im_T<2,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t N = 2*M;
    DFTk_inp<2,N,T,S> spec_inp;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
 
       LocalVType wr,wi,t;
-      t = Sin<N,1,LocalVType>::value();
-      const LocalVType wpr = -2.0*t*t;
-      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      wr = 1+wpr;
+//      t = Sin<N,1,LocalVType>::value();
+//       const LocalVType wpr = 1-2.0*t*t;
+//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpr = WR::value();
+      const LocalVType wpi = WI::value();
+      wr = wpr;
       wi = wpi;
       for (int_t i=2; i<N; i+=2) {
 	spec_inp.apply(data+i, &wr, &wi);
 
         t = wr;
-        wr += wr*wpr - wi*wpi;
-        wi += wi*wpr + t*wpi;
+        wr = wr*wpr - wi*wpi;
+        wi = wi*wpr + t*wpi;
       }
    }
 };
@@ -245,8 +253,14 @@ Therefore, it has two specializations for N=2 and N=1 (the trivial and empty cas
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InTime;
 
-template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
+// template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+// class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
+// {
+//   // Not implemented, because not allowed
+// };
+
+template<int_t N, typename Head, typename T, int S, class W1, int_t LastK>
+class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
@@ -256,16 +270,20 @@ class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    static const int_t LastK2 = LastK*2;
    
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
-//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
    void apply(T* data) 
    {
-      int_t lk = 0;
-      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+//       for (int_t i=2; i<N; i+=2) {
+// //      for (int_t m=0, lk=0; m < N2; m+=M2, lk+=LastK2) {
+// 	std::swap(data[m],data[lk]);
+// 	std::swap(data[m+1],data[lk+1]);
+//       }
+      for (int_t m=0, lk=0; m < N2; m+=M2, lk+=LastK2) {
 	dft_str.apply(data + m);
+      }
 
       dft_scaled.apply(data);
    }

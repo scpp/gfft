@@ -434,8 +434,14 @@ Therefore, it has two specializations for N=2 and N=1 (the trivial and empty cas
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InFreq;
 
-template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InFreq<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
+// template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+// class InFreq<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
+// {
+//   // Not implemented, because not allowed
+// };
+  
+template<int_t N, typename Head, typename T, int S, class W1, int_t LastK>
+class InFreq<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
@@ -446,7 +452,7 @@ class InFreq<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    
 //    typedef typename Loki::TL::Next<RList,K-1>::Result RListK;
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InFreq<M,NFactNext,T,S,WK,K*LastK> dft_str;
    T_DFTk_x_Im<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 

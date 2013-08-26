@@ -68,6 +68,7 @@ class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public Fac
    typedef Separate<N::value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
    typedef typename Factorization<N, SInt>::Result NFact;
+   //typedef typename IN_PLACE::template Check<NFact>::Result Checked;
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
    static const int Accuracy = 2;
