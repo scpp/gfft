@@ -270,10 +270,9 @@ struct Serial {
    static const id_t ID = 0;
    static const uint NParProc = 1;
 
-   template<uint N, class T>
+   template<uint M, uint P, class T>
    struct Swap {
-      //enum { N = 1<<P };
-      typedef GFFTswap<N,T> Result;
+      typedef GFFTswap2<M,P,T> Result;
    };
 
    template<typename T>
@@ -296,10 +295,9 @@ struct OpenMP {
    static const id_t ID = NT-1;
    static const uint NParProc = NT;
 
-   template<uint P, class T>
+   template<uint_t M, uint_t P, class T>
    struct Swap {
-      //typedef GFFTswap<(1<<P),T> Result;
-      typedef GFFTswap2OMP<NT,P,T> Result;
+      typedef GFFTswap2OMP<NT,M,P,T> Result;
    };
 
    template<typename T>
@@ -309,16 +307,10 @@ struct OpenMP {
    }
 
    template<typename T>
-   void apply(const T*, T*) {
-      omp_set_num_threads(NT);
-      omp_set_nested(true);
-   }
+   void apply(const T*, T* d) { apply(d); }
 
    template<typename T>
-   void apply(const T*, T*, T*) {
-      omp_set_num_threads(NT);
-      omp_set_nested(true);
-   }
+   void apply(const T*, T* d, T*) { apply(d); }
 };
 
 template<>

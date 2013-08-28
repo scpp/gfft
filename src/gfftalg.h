@@ -257,6 +257,7 @@ class InTime;
 // class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
 // {
 //   // Not implemented, because not allowed
+//   // Transforms in-place are allowed for powers of primes only!!!
 // };
 
 template<int_t N, typename Head, typename T, int S, class W1, int_t LastK>
@@ -276,14 +277,8 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
 public:
    void apply(T* data) 
    {
-//       for (int_t i=2; i<N; i+=2) {
-// //      for (int_t m=0, lk=0; m < N2; m+=M2, lk+=LastK2) {
-// 	std::swap(data[m],data[lk]);
-// 	std::swap(data[m+1],data[lk+1]);
-//       }
-      for (int_t m=0, lk=0; m < N2; m+=M2, lk+=LastK2) {
+      for (int_t m=0; m < N2; m+=M2) 
 	dft_str.apply(data + m);
-      }
 
       dft_scaled.apply(data);
    }

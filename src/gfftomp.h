@@ -216,15 +216,15 @@ public:
         parallelization is meaningless and the sequential implementation GFFTswap2
         is inherited.
 */
-template<short_t NThreads, int_t P, typename T,
+template<short_t NThreads, uint_t M, uint_t P, typename T,
 unsigned int I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
 class GFFTswap2OMP;
 
-template<short_t NThreads, int_t P, typename T, int_t I>
-class GFFTswap2OMP<NThreads,P,T,I,true> {
+template<short_t NThreads, uint_t P, typename T, int_t I>
+class GFFTswap2OMP<NThreads,2,P,T,I,true> {
    static const int_t BN = 1<<(I+1);
    static const int_t BR = 1<<(P-I);
-   GFFTswap2OMP<NThreads/2,P,T,I+1> next;
+   GFFTswap2OMP<NThreads/2,2,P,T,I+1> next;
 public:
    void apply(T* data, const int_t n=0, const int_t r=0) {
      #pragma omp parallel shared(data)
@@ -241,8 +241,8 @@ public:
    }
 };
 
-template<short_t NThreads, int_t P, typename T>
-class GFFTswap2OMP<NThreads,P,T,P,true> {
+template<short_t NThreads, uint_t P, typename T>
+class GFFTswap2OMP<NThreads,2,P,T,P,true> {
 public:
    void apply(T* data, const int_t n, const int_t r) {
       if (n>r) {
@@ -253,13 +253,13 @@ public:
 };
 
 template<int_t P, typename T, int_t I>
-class GFFTswap2OMP<1,P,T,I,true> : public GFFTswap2<P,T,I> { };
+class GFFTswap2OMP<1,2,P,T,I,true> : public GFFTswap2<2,P,T,I> { };
 
 template<int_t P, typename T>
-class GFFTswap2OMP<1,P,T,P,true> : public GFFTswap2<P,T,P> { };
+class GFFTswap2OMP<1,2,P,T,P,true> : public GFFTswap2<2,P,T,P> { };
 
 template<short_t NThreads, int_t P, typename T, int_t I>
-class GFFTswap2OMP<NThreads,P,T,I,false> : public GFFTswap2<P,T,I> { };
+class GFFTswap2OMP<NThreads,2,P,T,I,false> : public GFFTswap2<2,P,T,I> { };
 
 
 

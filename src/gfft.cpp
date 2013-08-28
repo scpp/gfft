@@ -60,7 +60,7 @@ typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-static const int_t N = 8;
+static const int_t N = 16;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
-    cout.precision(2);
+    cout.precision(3);
     cout<<"Result of transform:"<<endl;
     for (i=0; i < n; ++i)
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
@@ -146,6 +146,6 @@ int main(int argc, char *argv[])
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
 //    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 
-  
+  cout << (1<<3) << endl;
 }
 

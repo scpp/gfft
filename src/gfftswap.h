@@ -36,8 +36,9 @@ similar to the one presented in the book
 "Numerical recipes in C++".
 \sa GFFTswap2
 */
-template<int_t N, typename T>
-class GFFTswap {
+template<uint M, uint P, typename T>
+class SwapNR {
+  static const uint N = IPow<M,P>::value;
 public:
    void apply(T* data) {
      int_t m, j = 0;
@@ -54,9 +55,6 @@ public:
         j += m;
      }
    }
-
-   void apply(const T*, T*) { }
-   void apply(const T*, T* dst, T*) { }
 };
 
 
@@ -77,12 +75,15 @@ allows parallelization of this algorithm, which is
 implemented in template class GFFTswap2OMP.
 \sa GFFTswap, GFFTswap2OMP
 */
-template<unsigned int P, typename T,
+template<uint M, uint P, typename T,
 unsigned int I=0>
-class GFFTswap2 {
+class GFFTswap2;
+
+template<uint P, typename T, uint I>
+class GFFTswap2<2,P,T,I> {
    static const int_t BN = 1<<(I+1);
    static const int_t BR = 1<<(P-I);
-   GFFTswap2<P,T,I+1> next;
+   GFFTswap2<2,P,T,I+1> next;
 public:
    void apply(T* data, int_t n=0, int_t r=0) {
       next.apply(data,n,r);
@@ -90,17 +91,46 @@ public:
    }
 };
 
-template<unsigned int P, typename T>
-class GFFTswap2<P,T,P> {
+template<uint P, typename T>
+class GFFTswap2<2,P,T,P> {
 public:
    void apply(T* data, int_t n=0, int_t r=0) {
       if (n>r) {
-        swap(data[n],data[r]);
-        swap(data[n+1],data[r+1]);
+        std::swap(data[n],data[r]);
+        std::swap(data[n+1],data[r+1]);
       }
    }
 };
 
+
+template<uint_t M, uint_t P, typename T, uint_t I=0, uint_t L=0, uint_t R=0>
+class StaticSwap;
+
+template<uint_t P, typename T, uint_t I, uint_t L, uint_t R>
+class StaticSwap<2,P,T,I,L,R> {
+   static const uint_t BN = 1<<(I+1);
+   static const uint_t BR = 1<<(P-I);
+   static const uint_t NL = L|BN;
+   static const uint_t NR = R|BN;
+   StaticSwap<2,P,T,I+1,0,0> NextL;
+   StaticSwap<2,P,T,I+1,NL,NR> NextR;
+public:
+   void apply(T* data, int_t n=0, int_t r=0) {
+//       next.apply(data,n,r);
+//       next.apply(data,n|BN,r|BR);
+   }
+};
+
+template<uint_t P, typename T, uint_t L, uint_t R>
+class StaticSwap<2,P,T,P,L,R> {
+public:
+   void apply(T* data, int_t n=0, int_t r=0) {
+      if (n>r) {
+//         swap(data[n],data[r]);
+//         swap(data[n+1],data[r+1]);
+      }
+   }
+};
 
 /// Reordering of data for real-valued transforms
 /*!

@@ -438,6 +438,7 @@ class InFreq;
 // class InFreq<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
 // {
 //   // Not implemented, because not allowed
+//   // Transforms in-place are allowed for powers of primes only!!!
 // };
   
 template<int_t N, typename Head, typename T, int S, class W1, int_t LastK>

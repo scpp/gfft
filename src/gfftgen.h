@@ -63,12 +63,11 @@ uint IDN>
 class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
    typedef typename VType::ValueType T;
-   typedef typename Parall::template Swap<N::value,T>::Result Swap;
+   typedef typename Factorization<N, SInt>::Result NFact;
+   typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
    typedef Separate<N::value,T,Dir::Sign> Sep;
-   typedef Caller<Loki::NullType> EmptySwap;
-   typedef typename Factorization<N, SInt>::Result NFact;
-   //typedef typename IN_PLACE::template Check<NFact>::Result Checked;
+   //typedef Caller<Loki::NullType> EmptySwap;
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
    static const int Accuracy = 2;
