@@ -75,11 +75,37 @@ allows parallelization of this algorithm, which is
 implemented in template class GFFTswap2OMP.
 \sa GFFTswap, GFFTswap2OMP
 */
-template<uint M, uint P, typename T,
-unsigned int I=0>
-class GFFTswap2;
+template<uint_t M, uint_t P, typename T, uint_t I=0>
+class GFFTswap2 {
+   static const int_t BN = IPow<M,I>::value;
+   static const int_t BR = IPow<M,P-I-1>::value;
+   GFFTswap2<M,P,T,I+1> next;
+public:
+   void apply(T* data, int_t n=0, int_t r=0) {
+     const int_t qn = n/BN;
+     const int_t rn = n%BN;
+     const int_t qr = r/BR;
+     const int_t rr = r%BR;
+     for (uint_t i = 0; i < M; ++i) { 
+       next.apply(data,(qn+i)*BN+rn,(qr+i)*BR+rr);
+     }
+   }
+};
 
-template<uint P, typename T, uint I>
+template<uint_t M, uint_t P, typename T>
+class GFFTswap2<M,P,T,P> { 
+public:
+   void apply(T* data, int_t n=0, int_t r=0) {
+      if (n>r) {
+	const int_t n2 = 2*n;
+	const int_t r2 = 2*r;
+        std::swap(data[n2],data[r2]);
+        std::swap(data[n2+1],data[r2+1]);
+      }
+   }
+};
+
+template<uint_t P, typename T, uint_t I>
 class GFFTswap2<2,P,T,I> {
    static const int_t BN = 1<<(I+1);
    static const int_t BR = 1<<(P-I);
@@ -91,7 +117,7 @@ public:
    }
 };
 
-template<uint P, typename T>
+template<uint_t P, typename T>
 class GFFTswap2<2,P,T,P> {
 public:
    void apply(T* data, int_t n=0, int_t r=0) {
@@ -101,7 +127,6 @@ public:
       }
    }
 };
-
 
 template<uint_t M, uint_t P, typename T, uint_t I=0, uint_t L=0, uint_t R=0>
 class StaticSwap;

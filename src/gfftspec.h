@@ -112,8 +112,8 @@ public:
       const int_t k = (i+1)*M;
       const T tr1 = data[k]*wr[i] - data[k+1]*wi[i];
       const T ti1 = data[k]*wi[i] + data[k+1]*wr[i];
-      const T tr2 = data[NM-k]*wr[K-i] - data[NM-k+1]*wi[K-i];
-      const T ti2 = data[NM-k]*wi[K-i] + data[NM-k+1]*wr[K-i];
+      const T tr2 = data[NM-k]*wr[N-i-2] - data[NM-k+1]*wi[N-i-2];
+      const T ti2 = data[NM-k]*wi[N-i-2] + data[NM-k+1]*wr[N-i-2];
       sr[i] = tr1 + tr2;
       si[i] = ti1 + ti2;
       dr[i] = tr1 - tr2;
@@ -240,6 +240,7 @@ public:
   }
 };
 */
+
 template<int_t M, typename T, int S>
 class DFTk_inp<3,M,T,S> 
 {

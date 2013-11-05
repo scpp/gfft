@@ -142,6 +142,18 @@ struct INFREQ {
    };
 };
 
+struct INFREQ_OOP {
+   static const id_t ID = 1;
+   template<int_t N, typename NFact, typename T,
+            class Swap, class Direction, short_t NT, class W1>
+   class List {
+      typedef InFreqOOP<N,NFact,T,Direction::Sign,W1> InF;
+//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
+   public:
+      typedef TYPELIST_3(InF,Swap,Direction) Result;
+   };
+};
+
 /*! \brief In-place algorithm 
 \ingroup gr_params
 */
@@ -169,7 +181,7 @@ struct OUT_OF_PLACE {
    };
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
-   class List {
+   struct List {
       typedef typename INTIME_OOP::template List<N,NFact,T,Swap,Direction,NT,W1>::Result Result;
    };
 };

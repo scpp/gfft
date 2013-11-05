@@ -55,25 +55,26 @@ struct IsMultipleOf<0, Factor, true> {
 
 template<int_t N, int_t K,  
 template<int_t> class IntHolder = SInt,
+int_t AddPower = 0,
 bool C1 = ((6*K+1)*(6*K+1) <= N),
 bool C2 = ((N % (6*K+1) == 0) || (N % (6*K+5) == 0))>
 struct FactorizationLoop;
 
 template<int_t N, int_t K,
-template<int_t> class IntHolder>
-struct FactorizationLoop<N, K, IntHolder, true, true>
+template<int_t> class IntHolder, int_t AddPower>
+struct FactorizationLoop<N, K, IntHolder, AddPower, true, true>
 {
   static const int_t Candidate1 = 6*K + 1;
   static const int_t Candidate2 = 6*K + 5;
-  static const int_t P1 = IsMultipleOf<N, Candidate1>::value;
-  static const int_t P2 = IsMultipleOf<N, Candidate2>::value;
+  static const int_t P1 = IsMultipleOf<N, Candidate1>::value + AddPower;
+  static const int_t P2 = IsMultipleOf<N, Candidate2>::value + AddPower;
   static const int_t F1 = IPow<Candidate1, P1>::value;
   static const int_t F2 = IPow<Candidate2, P2>::value;
   typedef Pair<IntHolder<Candidate1>, IntHolder<P1> > T1;
   typedef Pair<IntHolder<Candidate2>, IntHolder<P2> > T2;
   
   static const int_t NextN = N/F1/F2;
-  typedef typename FactorizationLoop<NextN, K+1>::Result NextIter;
+  typedef typename FactorizationLoop<NextN, K+1, IntHolder, AddPower>::Result NextIter;
   
   typedef typename Loki::Select<(P1>0) && (P2>0), 
     Loki::Typelist<T1, Loki::Typelist<T2, NextIter> >, 
@@ -82,14 +83,15 @@ struct FactorizationLoop<N, K, IntHolder, true, true>
 };
 
 template<int_t N, int_t K,
-template<int_t> class IntHolder>
-struct FactorizationLoop<N, K, IntHolder, true, false> : public FactorizationLoop<N, K+1> {};
+template<int_t> class IntHolder, int_t AddPower>
+struct FactorizationLoop<N, K, IntHolder, AddPower, true, false> 
+: public FactorizationLoop<N, K+1, IntHolder, AddPower> {};
 
 template<int_t N, int_t K, 
-template<int_t> class IntHolder, bool C>
-struct FactorizationLoop<N, K, IntHolder, false, C>
+template<int_t> class IntHolder, int_t AddPower, bool C>
+struct FactorizationLoop<N, K, IntHolder, AddPower, false, C>
 {
-  typedef Pair<IntHolder<N>, IntHolder<1> > T;
+  typedef Pair<IntHolder<N>, IntHolder<1+AddPower> > T;
   typedef Loki::Typelist<T, Loki::NullType> Result;
 };
 
@@ -98,25 +100,30 @@ typedef TYPELIST_5(SInt<2>, SInt<3>, SInt<5>, SInt<7>, SInt<11>) InitialPrimesLi
 
 template<typename Num,
 template<int_t> class IntHolder = SInt,
-typename StartList = InitialPrimesList>
+typename StartList = InitialPrimesList, 
+int_t AddPower = 0>
 struct Factorization;
 
-template<int_t N, template<int_t> class IntHolder, typename H, typename Tail>
-struct Factorization<SIntID<N>, IntHolder, Loki::Typelist<H,Tail> >
+// Factorization using trial deletion from InitialPrimesList
+template<int_t N, template<int_t> class IntHolder, typename H, typename Tail, int_t AddPower>
+struct Factorization<SIntID<N>, IntHolder, Loki::Typelist<H,Tail>, AddPower>
 {
   //static const int_t N = Num::value;
   static const int_t P = IsMultipleOf<N, H::value>::value;
   typedef SIntID<N / IPow<H::value,P>::value> NextNum;
-  typedef typename Factorization<NextNum,IntHolder,Tail>::Result Next;
+  typedef typename Factorization<NextNum,IntHolder,Tail,AddPower>::Result Next;
   typedef typename Loki::Select<(P > 0), 
-     Loki::Typelist<Pair<IntHolder<H::value>, IntHolder<P> >, Next>, Next>::Result Result;
+     Loki::Typelist<Pair<IntHolder<H::value>, IntHolder<P+AddPower> >, Next>, Next>::Result Result;
 };
 
-template<int_t N, template<int_t> class IntHolder>
-struct Factorization<SIntID<N>, IntHolder, Loki::NullType> : public FactorizationLoop<N, 2, IntHolder> {};
+// Further factorization 
+template<int_t N, template<int_t> class IntHolder, int_t AddPower>
+struct Factorization<SIntID<N>, IntHolder, Loki::NullType, AddPower> 
+: public FactorizationLoop<N, 2, IntHolder, AddPower> {};
 
-template<template<int_t> class IntHolder, typename H, typename Tail>
-struct Factorization<SIntID<1>, IntHolder, Loki::Typelist<H,Tail> > {
+// End of factorization
+template<template<int_t> class IntHolder, typename H, typename Tail, int_t AddPower>
+struct Factorization<SIntID<1>, IntHolder, Loki::Typelist<H,Tail>, AddPower> {
   typedef Loki::NullType Result;
 };
 
@@ -126,10 +133,12 @@ struct PowerHolder;
 
 // The power is predefined, no factorization needed
 template<int_t M, int_t P,
-template<int_t> class IntHolder, typename StartList>
-struct Factorization<PowerHolder<M,P>, IntHolder, StartList> {
-  typedef Loki::Typelist<Pair<IntHolder<M>, IntHolder<P> >,Loki::NullType> Result;
-};
+template<int_t> class IntHolder, typename StartList, int_t AddPower>
+struct Factorization<PowerHolder<M,P>, IntHolder, StartList, AddPower> 
+: public Factorization<SIntID<M>, IntHolder, StartList, P-1> { };
+//{
+//  typedef Loki::Typelist<Pair<IntHolder<M>, IntHolder<P> >,Loki::NullType> Result;
+//};
 
   
 }  //namespace DFT

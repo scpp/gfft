@@ -170,21 +170,21 @@ class DFTk_x_Im_T<3,M,T,S,W,false> {
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
    DFTk_inp<3,M2,T,S> spec_inp;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
+//    typedef Compute<typename W::Re,2> WR;
+//    typedef Compute<typename W::Im,2> WI;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
 
       LocalVType wr[2],wi[2],t;
-      //t = Sin<N,1,LocalVType>::value();
+      t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr1, wpi1)
-//       const LocalVType wpr1 = 1 - 2.0*t*t;
-//       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr1 = WR::value();
-      const LocalVType wpi1 = WI::value();
+      const LocalVType wpr1 = 1 - 2.0*t*t;
+      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+//       const LocalVType wpr1 = WR::value();
+//       const LocalVType wpi1 = WI::value();
       
       // W^2 = (wpr2, wpi2)
       const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
@@ -274,6 +274,7 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {

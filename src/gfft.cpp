@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009-2013 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2009-2013 by Volodymyr Myrnyy                           *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -51,16 +51,11 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 
 
 
-//typedef SFraction<SInt<157>,SInt<100> > X;
-//typedef SInt<1> X;
-// typedef TPi2 X;
-// typedef Mult<TPi2,SFraction<SInt<1>,SInt<4> > >::Result X4;
-
 typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-static const int_t N = 16;
+static const int_t N = 25;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -108,8 +103,10 @@ int main(int argc, char *argv[])
 //     for (i=0; i < 2*n; ++i)
 //       dataout[i] = data[i];
 
+//       GFFTswap2<5,2,double> swp;
+//       swp.apply(data);
     fftobj->fft(data);
-//    fftobj->fft(data, dataout);
+//   fftobj->fft(data, dataout);
     dft1(dataout1, data1, n, false);
 
 // print out transformed data
@@ -118,7 +115,7 @@ int main(int argc, char *argv[])
     for (i=0; i < n; ++i)
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
 //    for (i=0; i < n; ++i)
-//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")"<<endl;
+//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
 
    //ifftobj->fft(data);
 //   ifftobj->fft(dataout, data);
@@ -135,17 +132,20 @@ int main(int argc, char *argv[])
       cout<<"("<<fabs(data[2*i]-dataout1[2*i])<<","<<fabs(data[2*i+1]-dataout1[2*i+1])<<")"<<endl;
       mx1 = max(mx1, fabs(data[2*i]-dataout1[2*i]));
       mx1 = max(mx1, fabs(data[2*i+1]-dataout1[2*i+1]));
+//       cout<<"("<<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
+//       mx1 = max(mx1, fabs(dataout[2*i]-dataout1[2*i]));
+//       mx1 = max(mx1, fabs(dataout[2*i+1]-dataout1[2*i+1]));
     }
     cout<<"---------------------------------------------"<<endl;
     cout << mx1 << endl;
 
-
-//    typedef Print<Factorization<SIntID<N>, SIntID>::Result>::Result TTT;  // 2*3*18539
+//    typedef Print<Factorization<PowerHolder<6,5>,SIntID>::Result>::Result TTT;  
+//    typedef Print<Factorization<SIntID<N>, SIntID>::Result>::Result TTT;  
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
 //    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 
-  cout << (1<<3) << endl;
+//  cout << (1<<1) << endl;
 }
 
