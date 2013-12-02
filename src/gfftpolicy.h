@@ -141,7 +141,10 @@ struct INFREQ {
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
 };
-
+/*
+// FFT in-frequency out-of-place needs an additional storage array of length N (size of transform)
+// and is therefore eliminated
+// in-time version is prefered, because doesn't need additional storage
 struct INFREQ_OOP {
    static const id_t ID = 1;
    template<int_t N, typename NFact, typename T,
@@ -153,7 +156,7 @@ struct INFREQ_OOP {
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
 };
-
+*/
 /*! \brief In-place algorithm 
 \ingroup gr_params
 */

@@ -34,7 +34,7 @@ using namespace boost::gregorian;
 const char space = '\t';
 
 
-template<class GenListResult>
+template<class NList>
 class GFFTbench;
 
 template<class H, class T>
@@ -52,7 +52,7 @@ public:
      double t,mt;
      progClock* cl=new progClock();
 
-     it = size_t(5000000./(double)H::Len)+1;
+     it = size_t(2000000./(double)H::Len)+1;
 
      Tp* data = new Tp [2*H::Len*it];
 
@@ -107,7 +107,7 @@ public:
 
      size_t i,it;
 
-     it = size_t(5000000./(double)H::Len)+1;
+     it = size_t(2000000./(double)H::Len)+1;
 
      Tp* data = new Tp [2*H::Len*it];
      Tp* dataout = new Tp [2*H::Len*it];
@@ -126,8 +126,8 @@ public:
       for (i=0; i<3; ++i) {
         d=data;
         for (size_t j=0; j<it; ++j) {
-//           gfft.fft(d, dataout);
-          gfft.fft(d);
+          gfft.fft(d, dataout);
+//          gfft.fft(d);
           d+=2*H::Len;
         }
       }
@@ -175,10 +175,10 @@ int main(int argc, char *argv[])
     }
 
 //     typedef GenNumList<MinP, MaxP, Power2holder>::Result NList;
-//    typedef GenNumList<2, 10, SIntID>::Result NList;
-    typedef GenPowerList<2, 10, 2>::Result NList;
+    typedef GenNumList<2, 10, SIntID>::Result NList;
+//    typedef GenPowerList<2, 29, 2>::Result NList;
     typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
-       ParallelizationGroup::Default, IN_PLACE> List_ds;
+       ParallelizationGroup::Default, OUT_OF_PLACE> List_ds;
 //    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;

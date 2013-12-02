@@ -84,7 +84,8 @@ public:
    typedef Parall ParallType;
    typedef IN_PLACE PlaceType;
 
-   enum { ID = IDN, Len = N::value };
+   enum { ID = IDN };
+   static const int_t Len = N::value;
 
    static FactoryPolicy* Create() {
       return new Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,ID>();
@@ -123,8 +124,6 @@ class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public
    
    Caller<Loki::Typelist<Parall,Alg> > run;
    
-   T* buf;
-   
 public:
    typedef VType ValueType;
    typedef Type TransformType;
@@ -139,16 +138,14 @@ public:
 
    Transform() 
    {
-       buf = new T[2*N::value];
    }
  
    ~Transform() 
    {
-       delete [] buf;
    }
 
    // out-of-place transform
-   void fft(const T* src, T* dst) { run.apply(src, dst, buf); }
+   void fft(const T* src, T* dst) { run.apply(src, dst); }
 };
 
 

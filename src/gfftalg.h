@@ -125,6 +125,8 @@ template<int_t K, int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<K,M,T,S,W,false>
 {
    typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
    DFTk_inp<K,M2,T,S> spec_inp;
@@ -137,8 +139,10 @@ public:
       t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr[0], wpi[0])
-      wpr[0] = 1 - 2.0*t*t;
-      wpi[0] = -S*Sin<N,2,LocalVType>::value();
+      wpr[0] = WR::value();
+      wpi[0] = WI::value();
+//       wpr[0] = 1 - 2.0*t*t;
+//       wpi[0] = -S*Sin<N,2,LocalVType>::value();
       
       // W^i = (wpr2, wpi2)
       for (int_t i=0; i<K-2; ++i) {
@@ -167,11 +171,11 @@ public:
 template<int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<3,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
    DFTk_inp<3,M2,T,S> spec_inp;
-//    typedef Compute<typename W::Re,2> WR;
-//    typedef Compute<typename W::Im,2> WI;
 public:
    void apply(T* data) 
    {
@@ -181,10 +185,10 @@ public:
       t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr1, wpi1)
-      const LocalVType wpr1 = 1 - 2.0*t*t;
-      const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
-//       const LocalVType wpr1 = WR::value();
-//       const LocalVType wpi1 = WI::value();
+//       const LocalVType wpr1 = 1 - 2.0*t*t;
+//       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpr1 = WR::value();
+      const LocalVType wpi1 = WI::value();
       
       // W^2 = (wpr2, wpi2)
       const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
@@ -210,10 +214,10 @@ public:
 template<int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<2,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
-   static const int_t N = 2*M;
-   DFTk_inp<2,N,T,S> spec_inp;
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
+   static const int_t N = 2*M;
+   DFTk_inp<2,N,T,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -273,8 +277,8 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-//   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -319,14 +323,15 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InTimeOOP<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
 
-   void apply(const T* src, T* dst, T* buf) 
+   void apply(const T* src, T* dst) 
    {
       int_t lk = 0;
       for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
-        dft_str.apply(src + lk, dst + m, buf);
+        dft_str.apply(src + lk, dst + m);
 
       dft_scaled.apply(dst);
    }
@@ -343,7 +348,7 @@ template<int_t N, typename T, int S, class W1, int_t LastK>
 class InTimeOOP<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
   DFTk<N, LastK*2, 2, T, S> spec;
 public:
-  void apply(const T* src, T* dst, T*) 
+  void apply(const T* src, T* dst) 
   { 
     spec.apply(src, dst);
   }

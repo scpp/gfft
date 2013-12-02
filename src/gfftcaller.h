@@ -52,11 +52,6 @@ struct Caller<Loki::Typelist<Head,Tail> >
       next_.apply(src, dst);
    }
 
-   template<typename T>
-   void apply(const T* src, T* dst, T* buf) {
-      obj_.apply(src, dst, buf);
-      next_.apply(src, dst, buf);
-   }
 private:
    Head obj_;
    Caller<Tail> next_;
@@ -72,9 +67,6 @@ struct Caller<Loki::NullType>
 
    template<typename T>
    void apply(const T*, T*) { }
-
-   template<typename T>
-   void apply(const T*, T*, T*) { }
 };
 
 
@@ -103,12 +95,6 @@ struct StaticCaller<Loki::Typelist<Head,Tail> >
       Head::apply(src, dst);
       StaticCaller<Tail>::apply(src, dst);
    }
-
-   template<typename T>
-   static void apply(const T* src, T* dst, T* buf) {
-      Head::apply(src, dst, buf);
-      StaticCaller<Tail>::apply(src, dst, buf);
-   }
 };
 
 template<>
@@ -119,9 +105,6 @@ struct StaticCaller<Loki::NullType>
 
    template<typename T>
    static void apply(const T*, T*) { }
-
-   template<typename T>
-   static void apply(const T*, T*, T*) { }
 };
 
 } // namespace GFFT

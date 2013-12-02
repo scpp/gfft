@@ -99,7 +99,7 @@ public:
 };
 
 
-
+/*
 template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
 class IterateInFreqOOP
 {
@@ -164,7 +164,7 @@ public:
       next.apply(src,dst);
    }
 };
-
+*/
 /////////////////////////////////////////////////////////
 
 template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
@@ -294,7 +294,7 @@ public:
 };
 
 
-
+/*
 template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
 class T_DFTk_x_Im_OOP;
 
@@ -417,7 +417,7 @@ public:
       }
    }
 };
-
+*/
 /// Danielson-Lanczos section of the decimation-in-frequency FFT version
 /**
 \tparam N current transform length
@@ -487,7 +487,7 @@ public:
 };
 
 
-
+/*
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InFreqOOP;
 
@@ -535,7 +535,7 @@ public:
     spec.apply(src, dst);
   }
 };
-
+*/
 
 }  //namespace DFT
 

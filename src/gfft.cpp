@@ -55,7 +55,7 @@ typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-static const int_t N = 25;
+static const int_t N = 5;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -112,10 +112,10 @@ int main(int argc, char *argv[])
 // print out transformed data
     cout.precision(3);
     cout<<"Result of transform:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
-//    for (i=0; i < n; ++i)
-//      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+   for (i=0; i < n; ++i)
+     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
 
    //ifftobj->fft(data);
 //   ifftobj->fft(dataout, data);
@@ -129,12 +129,12 @@ int main(int argc, char *argv[])
     cout<<"Check against DFT:"<<endl;
     double mx1(-1);
     for (i=0; i < n; ++i) {
-      cout<<"("<<fabs(data[2*i]-dataout1[2*i])<<","<<fabs(data[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(data[2*i]-dataout1[2*i]));
-      mx1 = max(mx1, fabs(data[2*i+1]-dataout1[2*i+1]));
-//       cout<<"("<<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-//       mx1 = max(mx1, fabs(dataout[2*i]-dataout1[2*i]));
-//       mx1 = max(mx1, fabs(dataout[2*i+1]-dataout1[2*i+1]));
+//       cout<<"("<<fabs(data[2*i]-dataout1[2*i])<<","<<fabs(data[2*i+1]-dataout1[2*i+1])<<")"<<endl;
+//       mx1 = max(mx1, fabs(data[2*i]-dataout1[2*i]));
+//       mx1 = max(mx1, fabs(data[2*i+1]-dataout1[2*i+1]));
+      cout<<"("<<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
+      mx1 = max(mx1, fabs(dataout[2*i]-dataout1[2*i]));
+      mx1 = max(mx1, fabs(dataout[2*i+1]-dataout1[2*i+1]));
     }
     cout<<"---------------------------------------------"<<endl;
     cout << mx1 << endl;

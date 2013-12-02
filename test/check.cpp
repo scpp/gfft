@@ -73,14 +73,138 @@ void dft1(double* output_data, const double* input_data, const unsigned int size
 
 //==============================================================
 
+template<class NList>
+class GFFTcheck;
+
+template<class H, class T>
+class GFFTcheck<Loki::Typelist<H,T> > {
+  typedef typename H::ValueType::ValueType Tp;
+  GFFTcheck<T> next;
+
+  static const int_t N = H::Len;
+  static const int_t N2 = 2*N;
+  
+  H gfft;
+  
+public:
+  void check_vs_dft() 
+  {
+    next.check_vs_dft();
+    
+    int_t i;
+    double d, nr2, nrinf;
+
+    srand(17);
+    
+    Tp *data;
+    Tp *datain, *dataout;
+
+// sample data
+    data = new Tp [N2];
+    datain  = new Tp [N2];
+    dataout = new Tp [N2];
+    
+    for (i=0; i < N; ++i) {
+       data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+       data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
+       datain[2*i] = data[2*i];
+       datain[2*i+1] = data[2*i+1];
+    }
+
+// apply FFT in-place
+    gfft.fft(data);
+    dft1(dataout, datain, N, false);
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<nrdata[2*i]<<","<<data[2*i+1]<<")"<<endl;
+
+    d = norm_inf(data, N2);
+    for (i=0; i<N2; ++i) 
+      data[i] -= dataout[i];
+    nr2 = norm2(data, N2);
+    nrinf = norm_inf(data, N2);
+    cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
+
+    delete [] data;
+    delete [] datain;
+    delete [] dataout;
+  }
+
+#ifdef FFTW
+  void check_vs_fftw() 
+  {
+    unsigned int i,p;
+    double d, nr2, nrinf, dftn2, dftninf;
+    unsigned n;
+
+    srand(17);
+    
+    Tp *data = new Tp [N2];
+
+    fftw_complex* in;
+    fftw_complex* out;
+    fftw_plan plan;
+    double fftwinf, fftw2;
+
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+    for (i=0; i < N; ++i) {
+       data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+       data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
+       in[i][0] = data[2*i];
+       in[i][1] = data[2*i+1];
+    }
+
+// apply FFT in-place
+    gfft.fft(data);
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Result of transform:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<nrdata[2*i]<<","<<data[2*i+1]<<")"<<endl;
+
+    plan = fftw_plan_dft_1d(n, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+//     plan = fftw_plan_dft_1d(n, in, out, FFTW_BACKWARD, FFTW_ESTIMATE);
+    fftw_execute(plan);
+
+    d = norm_inf(data, N2);
+    for (i=0; i<N; ++i) {
+      data[2*i]   -= out[i][0];
+      data[2*i+1] -= out[i][1];
+    }
+    fftw2 = norm2(data, N2);
+    fftwinf = norm_inf(data, N2);
+    cout << fftw2 << "\t" << fftwinf << "\t" << fftwinf/d << endl;
+
+    delete [] data;
+    fftw_free(in);
+    fftw_free(out);
+  }
+#endif
+};
+
+template<>
+class GFFTcheck<Loki::NullType> {
+public:
+  void check_vs_dft() { }
+  void check_vs_fftw() { }
+};
+
 typedef DOUBLE VType;
+typedef IN_PLACE Place;
+//typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 10;
 const unsigned Max = 14;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
-typedef GenerateTransform<Min, Max, VType, TransformTypeGroup::Default, SIntID<1>, ParallList > Trans;
-static Trans gfft;
+//typedef GenNumList<2, 10, SIntID>::Result NList;
+typedef GenPowerList<2, 20, 2>::Result NList;
+typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
 
 void check_complex_gfft(const int sign) 
@@ -199,13 +323,13 @@ void check_complex_gfft(const int sign)
 
 int main(int argc, char *argv[])
 {
-    cout << "Forward transforms:" << endl;
-    check_complex_gfft(1);
+  cout << "Forward transforms in place:" << endl;
+  GFFTcheck<Trans::Result> check;
+  check.check_vs_dft();
+    
+//     cout << "Backward transforms:" << endl;
+//     check_complex_gfft(-1);
 
-    cout << "Backward transforms:" << endl;
-    check_complex_gfft(-1);
-
-
-    return 0;
+  return 0;
 }
 

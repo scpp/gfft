@@ -414,11 +414,12 @@ public:
       dst[1] += si[i];
     }
   }
-
+/*
   template<class LT>
   void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
   { 
   }
+  */
 };
 
 template<int_t SI, int_t DI, typename T, int S>
@@ -447,6 +448,7 @@ public:
       dst[DI2]   = tr - di;
       dst[DI2+1] = ti + dr;     
   }
+/*
   template<class LT>
   void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
   { 
@@ -468,6 +470,7 @@ public:
       dst[DI2]   = trmdi*wr[1] - tipdr*wi[1];
       dst[DI2+1] = trmdi*wi[1] + tipdr*wr[1];     
   }
+  */
 };
 
 template<int_t SI, int_t DI, typename T, int S>
@@ -484,6 +487,7 @@ public:
         dst[DI]   = tr;
         dst[DI+1] = ti;
   }
+  /*
   template<class LT>
   void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
   { 
@@ -494,6 +498,7 @@ public:
         dst[DI]   = tr * (*wr) - ti * (*wi);
         dst[DI+1] = ti * (*wr) + tr * (*wi);
   }
+  */
 };
 
 /// Specialization for complex-valued radix 2 FFT in-place
