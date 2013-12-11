@@ -6,8 +6,8 @@ project(gfft)
 include_directories(../src)
 
 #add definitions, compiler switches, etc.
-#add_definitions(-time -Wall -O0 -g3 -fopenmp)
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
+add_definitions(-time -Wall -O0 -g3 -fopenmp)
+#add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
 #add_definitions(-O3 -openmp -DGFFTDOC)
 #add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
@@ -19,6 +19,6 @@ add_executable(check check.cpp)
 #need to link to some other libraries ? just add them here
 #target_link_libraries(bench gomp)
 #target_link_libraries(gfft_bench gomp)
-target_link_libraries(check gomp fftw3)
+target_link_libraries(check gomp fftw3 arprec)
 #target_link_libraries(bench iomp5 pthread)
 
