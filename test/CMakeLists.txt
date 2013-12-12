@@ -6,8 +6,8 @@ project(gfft)
 include_directories(../src)
 
 #add definitions, compiler switches, etc.
-add_definitions(-time -Wall -O0 -g3 -fopenmp)
-#add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
+#add_definitions(-time -Wall -O0 -g3 -fopenmp -DFFTW)
+add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
 #add_definitions(-O3 -openmp -DGFFTDOC)
 #add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 

@@ -224,11 +224,13 @@ public:
       spec_inp.apply(data);
 
       LocalVType wr,wi,t;
-//      t = Sin<N,1,LocalVType>::value();
-//       const LocalVType wpr = 1-2.0*t*t;
-//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr = WR::value();
-      const LocalVType wpi = WI::value();
+      t = Sin<N,1,LocalVType>::value();
+      const LocalVType wpr = 1-2.0*t*t;
+      const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+// std::cout << wpr << "  " << wpi << std::endl;
+//       const LocalVType wpr1 = WR::value();
+//       const LocalVType wpi1 = WI::value();
+// std::cout << wpr1 << "  " << wpi1 << std::endl;
       wr = wpr;
       wi = wpi;
       for (int_t i=2; i<N; i+=2) {

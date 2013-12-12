@@ -181,6 +181,8 @@ public:
     delete [] y;
   }
   
+  T* getdata() const { return in; }
+  
   void init(const T* data, int_t n)
   {
      in = new T [n * 2];
@@ -189,10 +191,15 @@ public:
      m1 = ((m + 1) / 2);
      m2 = (m - (m + 1) / 2);
      int n1 = 1 << m1;
-//      y = new T [(n + n1 * mp::mpnsp1) * 2];
-     y = new T [n * 4];
+     y = new T [(n + n1 * mp::mpnsp1) * 2];
+//     y = new T [n * 4];
      mp_real::mpinix(n);
    
+// print out sample data
+//     cout<<"Input data:"<<endl;
+//     for (int i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+
      for (int_t i=0; i < 2*n; ++i) {
        in[i] = data[i];
      }
@@ -200,13 +207,18 @@ public:
   
   void apply()
   {
-    mp_real::mpfft1(1, m, m1, m2, in, y);
+    mp_real::mpfft1(-1, m, m1, m2, in, y);
+
+    // print out sample data
+//     cout<<"Output data:"<<endl;
+//     for (int i=0; i < size; ++i)
+//       cout<<"("<<in[2*i]<<","<<in[2*i+1]<<")"<<endl;
   }
   
   void diff(T* data)
   {
     for (int_t i=0; i<2*size; ++i) {
-      data[i]   -= y[i];
+      data[i]   -= in[i];
     }
   }
 };
@@ -227,6 +239,53 @@ class GFFTcheck<Loki::Typelist<H,T>, FFTWrapper> {
   H gfft;
   
 public:
+  void arprec_vs_fftw() 
+  {
+    next.apply();
+    
+    int_t i;
+    double d, nr2, nrinf;
+
+    Tp *data = new Tp [N2];
+
+    srand(17);
+    
+    for (i=0; i < N; ++i) {
+	data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+	data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
+    }
+//     for (i=0; i < N; ++i) {
+//        data[2*i] = 2*i;
+//        data[2*i+1] = 2*i+1; 
+//     }
+    
+    Arprec_wrapper<Tp> adft(data, N);
+
+    FFTW_wrapper<Tp> fftw(data, N);
+
+// apply FFT in-place
+//    gfft.fft(data);
+    
+    adft.apply();
+
+    for (i=0; i < N; ++i) {
+       data[2*i] = adft.getdata()[2*i];
+       data[2*i+1] = adft.getdata()[2*i+1]; 
+    }
+    
+    fftw.apply();
+    
+    d = norm_inf(data, N2);
+    
+    fftw.diff(data);
+    
+    nr2 = norm2(data, N2);
+    nrinf = norm_inf(data, N2);
+    cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
+
+    delete [] data;
+  }
+
   void apply() 
   {
     next.apply();
@@ -242,7 +301,11 @@ public:
 	data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
 	data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
     }
-
+//     for (i=0; i < N; ++i) {
+//        data[2*i] = 2*i;
+//        data[2*i+1] = 2*i+1; 
+//     }
+    
     FFTWrapper<Tp> dft(data, N);
 
 // apply FFT in-place
@@ -260,7 +323,6 @@ public:
 
     delete [] data;
   }
-
 };
 
 template<template<class> class FFTWrapper>
@@ -273,8 +335,8 @@ typedef DOUBLE VType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-const unsigned Min = 2;
-const unsigned Max = 10;
+const unsigned Min = 3;
+const unsigned Max = 3;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
 //typedef GenNumList<2, 10, SIntID>::Result NList;
@@ -285,13 +347,19 @@ typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, 
 
 int main(int argc, char *argv[])
 {
+  cout.precision(16);
   //B<C,A> a;
-  cout << "Forward transforms in place:" << endl;
-  //GFFTcheck<typename Trans::Result, DFT_wrapper> check;
-//   GFFTcheck<typename Trans::Result, FFTW_wrapper> check;
-  GFFTcheck<typename Trans::Result, Arprec_wrapper> check;
-  check.apply();
+//   cout << "Simple DFT:" << endl;
+//   GFFTcheck<typename Trans::Result, DFT_wrapper> check_dft;
+//   check_dft.apply();
+  
+  cout << "FFTW:" << endl;
+  GFFTcheck<typename Trans::Result, FFTW_wrapper> check_fftw;
+  check_fftw.apply();
 
+//   cout << "ARPREC:" << endl;
+//   GFFTcheck<typename Trans::Result, Arprec_wrapper> check_arprec;
+//   check_arprec.apply();
   
   return 0;
 }
