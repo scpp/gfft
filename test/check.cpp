@@ -175,7 +175,7 @@ typedef DOUBLE VType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-const unsigned Min = 9;
+const unsigned Min = 2;
 const unsigned Max = 10;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
