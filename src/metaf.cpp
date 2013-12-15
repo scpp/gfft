@@ -210,9 +210,9 @@ typedef long double RetType;
 // typedef GenerateRootList<N,1,2>::Result List;
 // PrintRootList<List,N>::apply();
 
-typedef SinPiDecimal<1,10,2>::Result SinPiDec;
+typedef SinPiDecimal<1,4,2>::Result SinPiDec;
 
-cout << sin(M_PI/10.) << endl;
+cout << sin(M_PI/4.) << endl;
 // Cout<SinPi4Dec>::apply(cout);
 // cout << endl;
 Cout<SinPiDec>::apply(cout);

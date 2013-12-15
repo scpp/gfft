@@ -112,13 +112,13 @@ template<bool S, class H, class T, base_t Base, class RetType, unsigned long Acc
 struct Evaluate2IntLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType,AccumBase>
 {
   static const RetType Next = Evaluate2IntLoop<SBigInt<S,T,Base>,RetType,AccumBase*Base>::value;
-  static const RetType Value = H::value*AccumBase + Next;
+  static const RetType value = H::value*AccumBase + Next;
 };
 
 template<bool S, base_t Base, class RetType, unsigned long AccumBase>
 struct Evaluate2IntLoop<SBigInt<S,Loki::NullType,Base>,RetType,AccumBase>
 {
-  static const RetType Value = 0;
+  static const RetType value = 0;
 };
 
 template<class BInt, class RetType>
@@ -146,20 +146,20 @@ struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,T>,Base>,RetType>
 {
   static RetType value() 
   {
-    return (RetType)H::value + Base * EvaluateToFloatLoop<SBigInt<S,T,Base>,RetType>::value();
+    return static_cast<RetType>(H::value) + Base * EvaluateToFloatLoop<SBigInt<S,T,Base>,RetType>::value();
   }
 };
 
 template<bool S, class H, base_t Base, class RetType>
 struct EvaluateToFloatLoop<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,RetType>
 {
-  static RetType value() { return H::value; }
+  static RetType value() { return static_cast<RetType>(H::value); }
 };
 
 template<bool S, base_t Base, class RetType>
 struct EvaluateToFloatLoop<SBigInt<S,Loki::NullType,Base>,RetType>
 {
-  static RetType value() { return 0; }
+  static RetType value() { return static_cast<RetType>(0); }
 };
 
 

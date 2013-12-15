@@ -20,7 +20,7 @@ add_executable(gfft gfft.cpp)
 #add_executable(metaf metaf.cpp)
 
 ### Use following lines for GCC compiler
-target_link_libraries(gfft gomp)
+#target_link_libraries(gfft gomp qd)
 #target_link_libraries(cgfft gomp)
 
 ### Use following lines for Intel compiler

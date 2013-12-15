@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009 by Volodymyr Myrnyy                                *
+ *   Copyright (C) 2014 by Vladimir Mirnyy                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -18,15 +18,8 @@
 
 #include <iostream>
 
-#ifdef FFTW
-#include <fftw3.h>
-#include <boost/iterator/iterator_concepts.hpp>
-#endif
-
 #include "gfft.h"
-#include "nrfft.h"
-
-#include <arprec/mp_real.h>
+#include "thirdparty.h"
 
 
 using namespace std;
@@ -52,185 +45,73 @@ T norm2(const T* data, const unsigned int n) {
    return sqrt(s);
 }
 
-
-template<class T>
-class DFT_wrapper 
-{
-  void dft1(T* output_data, const T* input_data, const int_t size, bool inverse)
-  {
-    T pi2 = (inverse) ? 2.0 * M_PI : -2.0 * M_PI;
-    T a, ca, sa;
-    T invs = 1.0 / size;
-    for(unsigned int y = 0; y < size; y++) {
-      output_data[2*y] = 0;
-      output_data[2*y+1] = 0;
-      for(unsigned int x = 0; x < size; x++) {
-	a = pi2 * y * x * invs;
-	ca = cos(a);
-	sa = sin(a);
-	output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
-	output_data[2*y+1] += input_data[2*x] * sa + input_data[2*x+1] * ca;
-      }
-      if(inverse) {
-	output_data[2*y]   *= invs;
-	output_data[2*y+1] *= invs;
-      }
-    }
-  }
-  
-  T* input_data;
-  T* output_data;
-  int_t size;
-  
-public:
-  
-  DFT_wrapper(const T* data, int_t n) : size(n)
-  {
-    init(data, n);
-  }
-  ~DFT_wrapper() 
-  {
-    delete [] input_data;
-    delete [] output_data;
-  }
-  
-  void init(const T* data, int_t n)
-  {
-    input_data = new T [n*2];
-    output_data = new T [n*2];
-   
-    for (int_t i=0; i < n*2; ++i) {
-       input_data[i] = data[i];
-    }
-  }
-  
-  void apply()
-  {
-    dft1(output_data, input_data, size, false);
-  }
-  
-  void diff(T* data)
-  {
-    for (int_t i=0; i<size*2; ++i) 
-      data[i] -= output_data[i];
-  }
-};
-
-
-#ifdef FFTW
-template<class T>
-class FFTW_wrapper 
-{
-    fftw_complex* in;
-    fftw_complex* out;
-    fftw_plan plan;
-    int_t size;
-public:
-  FFTW_wrapper(const T* data, int_t n) : size(n)
-  {
-    init(data, n);
-  }
-  ~FFTW_wrapper() 
-  {
-    fftw_free(in);
-    fftw_free(out);
-  }
-  
-  void init(const T* data, int_t n)
-  {
-    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*n);
-    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*n);
-   
-    for (int_t i=0; i < n; ++i) {
-       in[i][0] = data[2*i];
-       in[i][1] = data[2*i+1];
-    }
-  }
-  
-  void apply()
-  {
-    plan = fftw_plan_dft_1d(size, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute(plan);
-  }
-  
-  void diff(T* data)
-  {
-    for (int_t i=0; i<size; ++i) {
-      data[2*i]   -= out[i][0];
-      data[2*i+1] -= out[i][1];
-    }
-  }
-};
-#endif
-
-template<class T>
-class Arprec_wrapper 
-{
-    T* y;
-    T* in;
-    int_t size;
-    int m, m1, m2;
-public:
-  Arprec_wrapper(const T* data, int_t n) : size(n)
-  {
-    init(data, n);
-  }
-  ~Arprec_wrapper() 
-  {
-    delete [] in;
-    delete [] y;
-  }
-  
-  T* getdata() const { return in; }
-  
-  void init(const T* data, int_t n)
-  {
-     in = new T [n * 2];
-
-     m = log(n)/log(2);
-     m1 = ((m + 1) / 2);
-     m2 = (m - (m + 1) / 2);
-     int n1 = 1 << m1;
-     y = new T [(n + n1 * mp::mpnsp1) * 2];
-//     y = new T [n * 4];
-     mp_real::mpinix(n);
-   
-// print out sample data
-//     cout<<"Input data:"<<endl;
-//     for (int i=0; i < n; ++i)
-//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-
-     for (int_t i=0; i < 2*n; ++i) {
-       in[i] = data[i];
-     }
-  }
-  
-  void apply()
-  {
-    mp_real::mpfft1(-1, m, m1, m2, in, y);
-
-    // print out sample data
-//     cout<<"Output data:"<<endl;
-//     for (int i=0; i < size; ++i)
-//       cout<<"("<<in[2*i]<<","<<in[2*i+1]<<")"<<endl;
-  }
-  
-  void diff(T* data)
-  {
-    for (int_t i=0; i<2*size; ++i) {
-      data[i]   -= in[i];
-    }
-  }
-};
-
 //==============================================================
 
-template<class NList, template<class> class FFTWrapper>
+template<class FFT1, class FFT2>
+class FFTcompare 
+{
+  typedef typename FFT1::value_type T1;
+  typedef typename FFT2::value_type T2;
+
+public:
+  void apply(int_t pmin, int_t pmax) 
+  {
+    int_t i;
+
+    double *data = new double [(1 << pmax)*2];
+
+    srand(17);
+    
+    for (int_t p = pmin; p <= pmax; ++p) 
+    {
+      int_t n = 1 << p;
+      
+      for (i=0; i < n; ++i) {
+	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+	data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
+      }
+//       for (i=0; i < n; ++i) {
+//          data[2*i] = 2*i;
+//          data[2*i+1] = 2*i+1; 
+//       }
+      
+      FFT1 fft1(data, n);
+      FFT2 fft2(data, n);
+
+      fft1.apply();
+      fft2.apply();
+
+      T1* out = fft1.getdata();
+
+  //     for (i=0; i < n; ++i) {
+  //        data[2*i] = adft.getdata()[2*i];
+  //        data[2*i+1] = adft.getdata()[2*i+1]; 
+  //     }
+      
+      const int n2 = n+n;
+      
+      T1 d = norm_inf(out, n2);
+      
+      fft2.diff(out);
+      
+      T1 nr2 = norm2(out, n2);
+      T1 nrinf = norm_inf(out, n2);
+      cout << n << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
+    }
+    
+    delete [] data;
+  }
+};
+
+//============================================================
+
+template<class NList, class FFTWrapper>
 class GFFTcheck;
 
-template<class H, class T, template<class> class FFTWrapper>
+template<class H, class T, class FFTWrapper>
 class GFFTcheck<Loki::Typelist<H,T>, FFTWrapper> {
-  typedef typename H::ValueType::ValueType Tp;
+  typedef typename H::ValueType::ValueType T1;
+  typedef typename FFTWrapper::value_type T2;
   GFFTcheck<T,FFTWrapper> next;
 
   static const int_t N = H::Len;
@@ -239,93 +120,52 @@ class GFFTcheck<Loki::Typelist<H,T>, FFTWrapper> {
   H gfft;
   
 public:
-  void arprec_vs_fftw() 
-  {
-    next.apply();
-    
-    int_t i;
-    double d, nr2, nrinf;
-
-    Tp *data = new Tp [N2];
-
-    srand(17);
-    
-    for (i=0; i < N; ++i) {
-	data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-	data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
-    }
-//     for (i=0; i < N; ++i) {
-//        data[2*i] = 2*i;
-//        data[2*i+1] = 2*i+1; 
-//     }
-    
-    Arprec_wrapper<Tp> adft(data, N);
-
-    FFTW_wrapper<Tp> fftw(data, N);
-
-// apply FFT in-place
-//    gfft.fft(data);
-    
-    adft.apply();
-
-    for (i=0; i < N; ++i) {
-       data[2*i] = adft.getdata()[2*i];
-       data[2*i+1] = adft.getdata()[2*i+1]; 
-    }
-    
-    fftw.apply();
-    
-    d = norm_inf(data, N2);
-    
-    fftw.diff(data);
-    
-    nr2 = norm2(data, N2);
-    nrinf = norm_inf(data, N2);
-    cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
-
-    delete [] data;
-  }
-
   void apply() 
   {
     next.apply();
     
     int_t i;
-    double d, nr2, nrinf;
 
-    Tp *data = new Tp [N2];
+    T1 *data = new T1 [N2];
 
     srand(17);
     
     for (i=0; i < N; ++i) {
-	data[2*i] = rand()/(Tp)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-	data[2*i+1] = rand()/(Tp)RAND_MAX - 0.5;
+	data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+	data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
     }
 //     for (i=0; i < N; ++i) {
 //        data[2*i] = 2*i;
 //        data[2*i+1] = 2*i+1; 
 //     }
     
-    FFTWrapper<Tp> dft(data, N);
+    FFTWrapper dft(data, N);
 
 // apply FFT in-place
     gfft.fft(data);
     
     dft.apply();
 
-    d = norm_inf(data, N2);
+    T2* out = dft.getdata();
     
-    dft.diff(data);
+    T1 d = norm_inf(data, N2);
+
+    for (i=0; i < N; ++i) {
+       out[2*i] -= data[2*i];
+       out[2*i+1] -= data[2*i+1]; 
+    }
     
-    nr2 = norm2(data, N2);
-    nrinf = norm_inf(data, N2);
+    //dft.diff(data);
+    
+    T2 nr2 = norm2(out, N2);
+    T2 nrinf = norm_inf(out, N2);
     cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
 
     delete [] data;
   }
 };
 
-template<template<class> class FFTWrapper>
+template<class FFTWrapper>
 class GFFTcheck<Loki::NullType, FFTWrapper> {
 public:
   void apply() { }
@@ -335,32 +175,50 @@ typedef DOUBLE VType;
 typedef IN_PLACE Place;
 //typedef OUT_OF_PLACE Place;
 
-const unsigned Min = 3;
-const unsigned Max = 3;
+const unsigned Min = 9;
+const unsigned Max = 10;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
 //typedef GenNumList<2, 10, SIntID>::Result NList;
 typedef GenPowerList<Min, Max, 2>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
+ostream& operator<<(ostream& os, const dd_real& v)
+{
+  os << v.to_string(16);
+  return os;
+}
 
+ostream& operator<<(ostream& os, const qd_real& v)
+{
+  os << v.to_string(16);
+  return os;
+}
 
 int main(int argc, char *argv[])
 {
-  cout.precision(16);
-  //B<C,A> a;
-//   cout << "Simple DFT:" << endl;
-//   GFFTcheck<typename Trans::Result, DFT_wrapper> check_dft;
-//   check_dft.apply();
+  unsigned int oldcw;
+  fpu_fix_start(&oldcw);
   
-  cout << "FFTW:" << endl;
-  GFFTcheck<typename Trans::Result, FFTW_wrapper> check_fftw;
-  check_fftw.apply();
+  cout.precision(16);
+
+  cout << "Simple DFT vs. FFTW:" << endl;
+  FFTcompare<DFT_wrapper<qd_real>, FFTW_wrapper<fftw_complex> > comp;
+  comp.apply(Min,Max);
+  
+  cout << "Simple DFT:" << endl;
+  GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real> > check_dft;
+  check_dft.apply();
+  
+//   cout << "FFTW:" << endl;
+//   GFFTcheck<typename Trans::Result, FFTW_wrapper> check_fftw;
+//   check_fftw.apply();
 
 //   cout << "ARPREC:" << endl;
 //   GFFTcheck<typename Trans::Result, Arprec_wrapper> check_arprec;
 //   check_arprec.apply();
   
+  fpu_fix_end(&oldcw);
   return 0;
 }
 

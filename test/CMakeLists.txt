@@ -19,6 +19,6 @@ add_executable(check check.cpp)
 #need to link to some other libraries ? just add them here
 #target_link_libraries(bench gomp)
 #target_link_libraries(gfft_bench gomp)
-target_link_libraries(check gomp fftw3 arprec)
+target_link_libraries(check gomp fftw3 fftw3l arprec qd)
 #target_link_libraries(bench iomp5 pthread)
 

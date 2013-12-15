@@ -26,7 +26,7 @@ namespace MF {
 template<int_t A, int_t P, class RetType = long double>
 struct DPow {
   static RetType value() {
-    return (RetType)A * DPow<A,P-1,RetType>::value();
+    return static_cast<RetType>(A) * DPow<A,P-1,RetType>::value();
   }
 };
 

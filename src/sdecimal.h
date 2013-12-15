@@ -34,6 +34,10 @@ struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
   typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
 };
 
+template<int_t N, int_t ND, int Accuracy, base_t Base>
+struct Reduce<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,Base> {
+  typedef SDecimalFraction<SInt<N>,Accuracy,Base> Result;
+};
 
 template<class BI1, int_t ND1, class BI2, int_t ND2, base_t DecBase>
 class Mult<SDecimalFraction<BI1,ND1,DecBase>,SDecimalFraction<BI2,ND2,DecBase> > {
