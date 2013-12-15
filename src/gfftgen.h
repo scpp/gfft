@@ -70,8 +70,7 @@ class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public Fac
    //typedef Caller<Loki::NullType> EmptySwap;
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
-   static const int Accuracy = 2;
-   typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
+   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
    typedef typename IN_PLACE::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
@@ -116,8 +115,7 @@ class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public
    typedef typename Factorization<N, SInt>::Result NFact;
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
-   static const int Accuracy = 2;
-   typedef typename GetFirstRoot<N::value,Dir::Sign,Accuracy>::Result W1;
+   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
    typedef typename OUT_OF_PLACE::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;

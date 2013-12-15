@@ -66,14 +66,14 @@ public:
     {
       int_t n = 1 << p;
       
-      for (i=0; i < n; ++i) {
-	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-	data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
-      }
 //       for (i=0; i < n; ++i) {
-//          data[2*i] = 2*i;
-//          data[2*i+1] = 2*i+1; 
+// 	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+// 	data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
 //       }
+      for (i=0; i < n; ++i) {
+         data[2*i] = 2*i;
+         data[2*i+1] = 2*i+1; 
+      }
       
       FFT1 fft1(data, n);
       FFT2 fft2(data, n);
@@ -83,11 +83,6 @@ public:
 
       T1* out = fft1.getdata();
 
-  //     for (i=0; i < n; ++i) {
-  //        data[2*i] = adft.getdata()[2*i];
-  //        data[2*i+1] = adft.getdata()[2*i+1]; 
-  //     }
-      
       const int n2 = n+n;
       
       T1 d = norm_inf(out, n2);
@@ -130,14 +125,14 @@ public:
 
     srand(17);
     
-    for (i=0; i < N; ++i) {
-	data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-	data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
-    }
 //     for (i=0; i < N; ++i) {
-//        data[2*i] = 2*i;
-//        data[2*i+1] = 2*i+1; 
+// 	data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+// 	data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
 //     }
+    for (i=0; i < N; ++i) {
+       data[2*i] = 2*i;
+       data[2*i+1] = 2*i+1; 
+    }
     
     FFTWrapper dft(data, N);
 
@@ -202,9 +197,9 @@ int main(int argc, char *argv[])
   
   cout.precision(16);
 
-  cout << "Simple DFT vs. FFTW:" << endl;
-  FFTcompare<DFT_wrapper<qd_real>, FFTW_wrapper<fftw_complex> > comp;
-  comp.apply(Min,Max);
+//   cout << "Simple DFT vs. FFTW:" << endl;
+//   FFTcompare<DFT_wrapper<qd_real>, FFTW_wrapper<fftw_complex> > comp;
+//   comp.apply(Min,Max);
   
   cout << "Simple DFT:" << endl;
   GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real> > check_dft;

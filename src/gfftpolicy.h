@@ -72,6 +72,11 @@ class Empty { };
 struct DOUBLE {
    static const id_t ID = 0;
    typedef double ValueType;
+#ifdef _WIN32
+   static const int Accuracy = 4;
+#else  // WIN64 assumed
+   static const int Accuracy = 2;
+#endif
 };
 
 /*! \brief Single precision type representation
@@ -80,6 +85,11 @@ struct DOUBLE {
 struct FLOAT {
    static const id_t ID = 1;
    typedef float ValueType;
+#ifdef _WIN32
+   static const int Accuracy = 2;
+#else  // WIN64 assumed
+   static const int Accuracy = 1;
+#endif
 };
 
 /*! \brief Complex number of double precision type representation
@@ -141,22 +151,7 @@ struct INFREQ {
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
 };
-/*
-// FFT in-frequency out-of-place needs an additional storage array of length N (size of transform)
-// and is therefore eliminated
-// in-time version is prefered, because doesn't need additional storage
-struct INFREQ_OOP {
-   static const id_t ID = 1;
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   class List {
-      typedef InFreqOOP<N,NFact,T,Direction::Sign,W1> InF;
-//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
-   public:
-      typedef TYPELIST_3(InF,Swap,Direction) Result;
-   };
-};
-*/
+
 /*! \brief In-place algorithm 
 \ingroup gr_params
 */
