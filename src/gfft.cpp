@@ -60,6 +60,7 @@ static const int_t N = 8;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, Place> TransformSet;
+//typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, OpenMP<2>, Place> TransformSet;
 
 int main(int argc, char *argv[])
 {

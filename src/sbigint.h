@@ -339,6 +339,16 @@ struct Add<SInt<N1>, SInt<N2> > {
    typedef typename __SwitchToBigInt<N1+N2>::Result Result;
 };
 
+template<int_t N>
+struct Add<SInt<N>, Loki::NullType> {
+   typedef SInt<N> Result;
+};
+
+template<int_t N>
+struct Add<Loki::NullType, SInt<N> > {
+   typedef SInt<N> Result;
+};
+
 /// \brief Compile-time subtraction of two integers.
 /// \param N1 an integer
 /// \param N2 an integer

@@ -26,12 +26,69 @@ struct SDecimalFraction {
 };
 
 
+template<class BI, unsigned int N, unsigned int I=N>
+struct ShiftLeftRound;
+
+template<bool S, class H1, class H2, class T, base_t Base, unsigned int N, unsigned int I>
+struct ShiftLeftRound<SBigInt<S,Loki::Typelist<H1,Loki::Typelist<H2,T> >,Base>,N,I>
+{
+  static const base_t HalfBase = Base >> 1;
+  typedef typename Loki::Select<(H1::value >= HalfBase),
+     Loki::Typelist<SInt<H2::value+1>,T>,Loki::Typelist<H2,T> >::Result TList;
+  typedef typename ShiftLeftRound<SBigInt<S,TList,Base>,N,I-1>::Result Result;
+};
+
+template<bool S, class H1, class H2, class T, base_t Base, unsigned int N>
+struct ShiftLeftRound<SBigInt<S,Loki::Typelist<H1,Loki::Typelist<H2,T> >,Base>,N,0>
+{
+  typedef SBigInt<S,Loki::Typelist<H1,Loki::Typelist<H2,T> >,Base> Result;
+};
+
+template<bool S, class H1, base_t Base, unsigned int N, unsigned int I>
+struct ShiftLeftRound<SBigInt<S,Loki::Typelist<H1,Loki::NullType>,Base>,N,I>
+{
+  static const base_t HalfBase = Base >> 1;
+  typedef typename Loki::Select<(H1::value >= HalfBase),
+     Loki::Typelist<SInt<1>,Loki::NullType>,Loki::NullType>::Result TList;
+  typedef typename ShiftLeftRound<SBigInt<S,TList,Base>,N,I-1>::Result Result;
+};
+
+template<bool S, class H1, base_t Base, unsigned int N>
+struct ShiftLeftRound<SBigInt<S,Loki::Typelist<H1,Loki::NullType>,Base>,N,0>
+{
+  typedef SBigInt<S,Loki::Typelist<H1,Loki::NullType>,Base> Result;
+};
+
+template<bool S, class TList, base_t Base, unsigned int N>
+struct ShiftLeftRound<SBigInt<S,TList,Base>,N,0>
+{
+   typedef SBigInt<S,TList,Base> Result;
+};
+
+template<bool S, base_t Base, unsigned int N, unsigned int I>
+struct ShiftLeftRound<SBigInt<S,Loki::NullType,Base>,N,I>
+{
+   typedef SBigInt<S,Loki::NullType,Base> Result;
+};
+
+template<bool S, base_t Base, unsigned int N>
+struct ShiftLeftRound<SBigInt<S,Loki::NullType,Base>,N,0>
+{
+   typedef SBigInt<S,Loki::NullType,Base> Result;
+};
+
+
 template<class BI, int_t ND, int Accuracy, base_t Base>
 struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
-  typedef typename BI::Num NList;
+//   typedef typename BI::Num NList;
+//   typedef typename Loki::Select<(ND>Accuracy),
+//           typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
+//   typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
+
+  // without rounding seems to be better
   typedef typename Loki::Select<(ND>Accuracy),
-          typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
-  typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
+          typename ShiftLeftRound<BI,ND-Accuracy>::Result,BI>::Result NewBI;
+  typedef SDecimalFraction<NewBI,Accuracy,Base> Result;
 };
 
 template<int_t N, int_t ND, int Accuracy, base_t Base>

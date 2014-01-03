@@ -66,14 +66,14 @@ public:
     {
       int_t n = 1 << p;
       
-//       for (i=0; i < n; ++i) {
-// 	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-// 	data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
-//       }
       for (i=0; i < n; ++i) {
-         data[2*i] = 2*i;
-         data[2*i+1] = 2*i+1; 
+	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+	data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
       }
+//       for (i=0; i < n; ++i) {
+//          data[2*i] = 2*i;
+//          data[2*i+1] = 2*i+1; 
+//       }
       
       FFT1 fft1(data, n);
       FFT2 fft2(data, n);
@@ -100,14 +100,14 @@ public:
 
 //============================================================
 
-template<class NList, class FFTWrapper>
+template<class NList, class DFTClass>
 class GFFTcheck;
 
-template<class H, class T, class FFTWrapper>
-class GFFTcheck<Loki::Typelist<H,T>, FFTWrapper> {
+template<class H, class T, class DFTClass>
+class GFFTcheck<Loki::Typelist<H,T>, DFTClass> {
   typedef typename H::ValueType::ValueType T1;
-  typedef typename FFTWrapper::value_type T2;
-  GFFTcheck<T,FFTWrapper> next;
+  typedef typename DFTClass::value_type T2;
+  GFFTcheck<T,DFTClass> next;
 
   static const int_t N = H::Len;
   static const int_t N2 = 2*N;
@@ -125,16 +125,16 @@ public:
 
     srand(17);
     
-//     for (i=0; i < N; ++i) {
-// 	data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
-// 	data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
-//     }
     for (i=0; i < N; ++i) {
-       data[2*i] = 2*i;
-       data[2*i+1] = 2*i+1; 
+      data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+      data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
     }
+//     for (i=0; i < N; ++i) {
+//        data[2*i] = 2*i;
+//        data[2*i+1] = 2*i+1; 
+//     }
     
-    FFTWrapper dft(data, N);
+    DFTClass dft(data, N);
 
 // apply FFT in-place
     gfft.fft(data);
@@ -160,8 +160,8 @@ public:
   }
 };
 
-template<class FFTWrapper>
-class GFFTcheck<Loki::NullType, FFTWrapper> {
+template<class DFTClass>
+class GFFTcheck<Loki::NullType, DFTClass> {
 public:
   void apply() { }
 };
@@ -197,11 +197,11 @@ int main(int argc, char *argv[])
   
   cout.precision(16);
 
-//   cout << "Simple DFT vs. FFTW:" << endl;
-//   FFTcompare<DFT_wrapper<qd_real>, FFTW_wrapper<fftw_complex> > comp;
-//   comp.apply(Min,Max);
+  cout << "double-double DFT vs. FFTW:" << endl;
+  FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
+  comp.apply(Min,Max);
   
-  cout << "Simple DFT:" << endl;
+  cout << "double-double DFT vs. GFFT:" << endl;
   GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real> > check_dft;
   check_dft.apply();
   

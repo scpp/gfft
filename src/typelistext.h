@@ -175,8 +175,10 @@ struct EraseAt<NullType,Index>
 };
 
 
+
 template<class TList, unsigned int N>
-struct ShiftLeft : public Next<TList, N> {};
+struct ShiftLeft : public Next<TList,N> {};
+
 
 template<class TList, unsigned int N, class DefaultType, unsigned int I=N>
 struct ShiftRight {
