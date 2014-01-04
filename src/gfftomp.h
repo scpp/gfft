@@ -21,6 +21,7 @@
 
 #include "gfftalg.h"
 #include "gfftalgfreq.h"
+#include "gfftswap.h"
 
 #include <omp.h>
 
@@ -80,17 +81,47 @@ public:
       
       dft_scaled.apply(data);
    }
+};
 
-   void apply(const T* src, T* dst, T* buf) 
+template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InTimeOMP<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+: public InTime<N,Loki::Typelist<Head,Tail>,T,S,W1,LastK> { };
+
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
+class InTimeOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTime<N,NFact,T,S,W1,LastK> { };
+
+///////////////////////
+
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
+bool C = ((N>NThreads) && (N>=SwitchToOMP))>
+class InTimeOOP_OMP;
+
+template<short_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InTimeOOP_OMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+{
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   static const int_t K = Head::first::value;
+   static const int_t M = N/K;
+   static const int_t M2 = M*2;
+   static const int_t N2 = N*2;
+   static const int_t LastK2 = LastK*2;
+   static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
+   
+   typedef typename IPowBig<W1,K>::Result WK;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   InTimeOOP_OMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
+   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+public:
+
+   void apply(const T* src, T* dst) 
    {
-      #pragma omp parallel shared(src,dst,buf) 
+      #pragma omp parallel shared(src,dst) 
       {
-	int_t lk = 0;
-	#pragma omp for schedule(static) private(lk)
-	for (int_t m = 0; m < N2; m+=M2) {
-	  dft_str.apply(src + lk, dst + m, buf);
-//        iter.apply(step, src, dst);
-	  lk+=LastK2;
+	int_t m, lk;
+	#pragma omp for schedule(static) private(m,lk)
+	for (m = lk = 0; m < N2; m+=M2) {
+	  dft_str.apply(src + lk, dst + m);
+	  lk += LastK2;
 	}
       }
       
@@ -98,11 +129,12 @@ public:
    }
 };
 
-template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
-class InTimeOMP<1,N,NFact,T,S,W1,LastK,true> : public InTime<N,NFact,T,S,W1,LastK> { };
+template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InTimeOOP_OMP<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+: public InTimeOOP<N,Loki::Typelist<Head,Tail>,T,S,W1,LastK> { };
 
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
-class InTimeOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTime<N,NFact,T,S,W1,LastK> { };
+class InTimeOOP_OMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTimeOOP<N,NFact,T,S,W1,LastK> { };
 
 
 /** \class {GFFT::InFreqOMP}
@@ -121,7 +153,7 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK, 
+template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
 bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
 
@@ -155,24 +187,25 @@ public:
       }
    }
 
-   void apply(const T* src, T* dst, T* buf) 
-   { 
-      dft_scaled.apply(src, buf);
-
-      #pragma omp parallel shared(src,dst,buf) 
-      {
-	int_t lk = 0;
-	#pragma omp for schedule(static) private(lk)
-	for (int_t m = 0; m < N2; m+=M2) {
-	  dft_str.apply(buf + m, dst + lk, buf + m);
-	  lk+=LastK2;
-	}
-      }
-   }
+//    void apply(const T* src, T* dst, T* buf) 
+//    { 
+//       dft_scaled.apply(src, buf);
+// 
+//       #pragma omp parallel shared(src,dst,buf) 
+//       {
+// 	int_t lk = 0;
+// 	#pragma omp for schedule(static) private(lk)
+// 	for (int_t m = 0; m < N2; m+=M2) {
+// 	  dft_str.apply(buf + m, dst + lk, buf + m);
+// 	  lk+=LastK2;
+// 	}
+//       }
+//    }
 };
 
-template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
-class InFreqOMP<1,N,NFact,T,S,W1,LastK,true> : public InFreq<N,NFact,T,S,W1,LastK> { };
+template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InFreqOMP<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+: public InFreq<N,Loki::Typelist<Head,Tail>,T,S,W1,LastK> { };
 
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
 class InFreqOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InFreq<N,NFact,T,S,W1,LastK> { };

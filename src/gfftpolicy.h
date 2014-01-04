@@ -116,11 +116,10 @@ struct INTIME {
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
    class List {
-      typedef InTime<N,NFact,T,Direction::Sign,W1> InT;
-//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
+//      typedef InTime<N,NFact,T,Direction::Sign,W1> InT;
+      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
    public:
-       typedef TYPELIST_3(Swap,InT,Direction) Result;
-//      typedef TYPELIST_2(InT,Direction) Result;
+      typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
 };
 
@@ -129,11 +128,10 @@ struct INTIME_OOP {
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
    class List {
-      typedef InTimeOOP<N,NFact,T,Direction::Sign,W1> InT;
-//      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
+//      typedef InTimeOOP<N,NFact,T,Direction::Sign,W1> InT;
+      typedef InTimeOOP_OMP<NT,N,NFact,T,Direction::Sign,W1> InT;
    public:
        typedef TYPELIST_3(Swap,InT,Direction) Result;
-//      typedef TYPELIST_2(InT,Direction) Result;
    };
 };
 
@@ -145,8 +143,8 @@ struct INFREQ {
    template<int_t N, typename NFact, typename T,
             class Swap, class Direction, short_t NT, class W1>
    class List {
-      typedef InFreq<N,NFact,T,Direction::Sign,W1> InF;
-//      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
+//      typedef InFreq<N,NFact,T,Direction::Sign,W1> InF;
+      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
    public:
       typedef TYPELIST_3(InF,Swap,Direction) Result;
    };
@@ -307,7 +305,8 @@ struct OpenMP {
 
    template<uint_t M, uint_t P, class T>
    struct Swap {
-      typedef GFFTswap2OMP<NT,M,P,T> Result;
+      typedef GFFTswap2<M,P,T> Result;
+//       typedef GFFTswap2OMP<NT,M,P,T> Result;
    };
 
    template<typename T>
