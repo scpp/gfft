@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009-2013 by Volodymyr Myrnyy                           *
+ *   Copyright (C) 2009-2014 by Vladimir Mirnyy                            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -186,21 +186,6 @@ public:
 	  dft_str.apply(data + m);
       }
    }
-
-//    void apply(const T* src, T* dst, T* buf) 
-//    { 
-//       dft_scaled.apply(src, buf);
-// 
-//       #pragma omp parallel shared(src,dst,buf) 
-//       {
-// 	int_t lk = 0;
-// 	#pragma omp for schedule(static) private(lk)
-// 	for (int_t m = 0; m < N2; m+=M2) {
-// 	  dft_str.apply(buf + m, dst + lk, buf + m);
-// 	  lk+=LastK2;
-// 	}
-//       }
-//    }
 };
 
 template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
@@ -211,33 +196,6 @@ template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1,
 class InFreqOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InFreq<N,NFact,T,S,W1,LastK> { };
 
 
-
-
-// doesn't work
-template<short_t NThreads, int_t N, typename T>
-class GFFTswapOMP {
-public:
-   void apply(T* data) {
-     unsigned long i,m,j=0;
-     unsigned long n = N;
-     #pragma omp parallel firstprivate(data) private(i,j,m)
-     {
-       #pragma omp for ordered
-         for (i=0; i<2*n-1; i+=2) {
-           if (j>i) {
-             std::swap(data[j], data[i]);
-             std::swap(data[j+1], data[i+1]);
-           }
-           m = n;
-           while (m>=2 && j>=m) {
-             j -= m;
-             m >>= 1;
-           }
-           j += m;
-         }
-     }
-   }
-};
 
 /** \class {GFFT::GFFTswap2OMP}
 \brief Binary reordering parallelized by %OpenMP

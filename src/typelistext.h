@@ -1,13 +1,17 @@
 /***************************************************************************
-                          typelist.h  -  description
-                             -------------------
-    copyright            : (C) 2004 by Volodymyr Myrnyy (Vladimir Mirnyi)
- ***************************************************************************
- Permission to use, copy, modify, distribute and sell this software for any
- purpose is hereby granted without fee, provided that the above copyright
- notice appear in all copies and that both that copyright notice and this
- permission notice appear in supporting documentation.
+ *   Copyright (C) 2004-2014 by Vladimir Mirnyy                            *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  ***************************************************************************/
+
 /*! \file
     \brief Some extentions to the template metaalgorithms on typelists from
            Typelist.h of the Loki library by Andrei Alexandrescu (see his book
