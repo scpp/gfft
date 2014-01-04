@@ -532,38 +532,6 @@ inline void _spec2(const T* src, T* dst)
 }
 
 
-template<typename T>
-inline void _spec4_fwd(const T* src, T* dst) 
-{
-  const double  *a, *a2, *a3, *a4, *a5, *a6, *a7;
-    double t, t2, t3, t4, t5, t6, t7, t8;
-    a = (src + 4);
-    t = (*(src) + *(a));
-    a2 = (src + 1);
-    a3 = (src + 5);
-    t2 = (*(a2) + *(a3));
-    t3 = (*(src) - *(a));
-    t4 = (*(a2) - *(a3));
-    a4 = (src + 2);
-    a5 = (src + 6);
-    t5 = (*(a4) + *(a5));
-    a6 = (src + 3);
-    a7 = (src + 7);
-    t6 = (*(a6) + *(a7));
-    t7 = (*(a4) - *(a5));
-    t8 = (*(a6) - *(a7));
-    *(dst) = (t + t5);
-    *((dst + 1)) = (t2 + t6);
-    *((dst + 4)) = (t - t5);
-    *((dst + 5)) = (t2 - t6);
-    *((dst + 2)) = (t3 + t8);
-    *((dst + 3)) = (t4 - t7);
-    *((dst + 6)) = (t3 - t8);
-    *((dst + 7)) = (t4 + t7);
-}
-
-
-
 }  //namespace DFT
 
 #endif /*__gfftspec_h*/
