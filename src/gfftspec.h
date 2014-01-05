@@ -16,7 +16,7 @@
 #define __gfftspec_h
 
 /** \file
-    \brief Recursive algorithms and short-radix FFT specifications
+    \brief Short-radix FFT specifications
 */
 
 #include "metafunc.h"
@@ -25,6 +25,16 @@ namespace GFFT {
 
 using namespace MF;
 
+/// Twiddle factors computation
+/*!
+\tparam T value type
+\tparam N length of the data
+\tparam S sign of the transform (-1 for inverse)
+
+Computes twiddle factors, 
+e.g. cos(2*pi/N),...,cos(2*K*pi/N) and sin(2*pi/N),...,sin(2*K*pi/N).
+It is used for prime factors greater than 3.
+*/
 template<typename T, int_t N, int S, int_t K>
 struct ComputeTwiddles
 {
@@ -48,12 +58,20 @@ struct ComputeTwiddles<T,N,S,1>
   }
 };
 
-//////////////////////////////////////////////////
+/// In-place DFT
+/*!
+\tparam N length of the data
+\tparam M step in the data
+\tparam T value type
+\tparam S sign of the transform (-1 for inverse)
 
+Non-recursive in-place DFT for a general (odd) length with 
+short-radix specializations for N=2,3
+*/
 template<int_t N, int_t M, typename T, int S>
 class DFTk_inp
 {
-  //GFFT_STATIC_ASSERT((N%2 == 1))   // N is assumed odd, otherwise compiler would not come here
+  // N is assumed odd, otherwise compiler would not come here
   
   typedef typename TempTypeTrait<T>::Result LocalVType;
   static const int_t K = (N-1)/2; 
@@ -241,6 +259,7 @@ public:
 };
 */
 
+// Specialization for N=3
 template<int_t M, typename T, int S>
 class DFTk_inp<3,M,T,S> 
 {
@@ -312,6 +331,7 @@ public:
   }
 };
 
+// Specialization for N=2
 template<int_t M, typename T, int S>
 class DFTk_inp<2,M,T,S> 
 {
@@ -356,8 +376,18 @@ public:
   }  
 };
 
-////////////////////////////////////////////////////////
 
+/// Out-of-place DFT
+/*!
+\tparam N length of the data
+\tparam SI step in the source data
+\tparam DI step in the result data
+\tparam T value type
+\tparam S sign of the transform (-1 for inverse)
+
+Non-recursive out-of-place DFT for a general (odd) length with 
+short-radix specializations for N=2,3
+*/
 template<int_t N, int_t SI, int_t DI, typename T, int S>
 class DFTk
 {
@@ -414,12 +444,6 @@ public:
       dst[1] += si[i];
     }
   }
-/*
-  template<class LT>
-  void apply(const LT* wr, const LT* wi, const T* src, T* dst) 
-  { 
-  }
-  */
 };
 
 template<int_t SI, int_t DI, typename T, int S>
@@ -501,7 +525,7 @@ public:
   */
 };
 
-/// Specialization for complex-valued radix 2 FFT in-place
+/// In-place specialization for complex-valued radix 2 FFT 
 /// \tparam T is value type
 /// \param data is the array of length 4, containing two complex numbers (real,imag,real,imag).
 template<typename T>
@@ -515,20 +539,17 @@ inline void _spec2(T* data)
       data[1] += ti;
 }
 
+/// Out-of-place specialization for complex-valued radix 2 FFT 
+/// \tparam T is value type
+/// \param data is the array of length 4, containing two complex numbers (real,imag,real,imag).
 template<typename T>
 inline void _spec2(const T* src, T* dst) 
 { 
-    const T *a(src + 2), *a2(src + 1), *a3(src + 3);
-    *(dst) = (*(src) + *(a));
-    *((dst + 1)) = (*(a2) + *(a3));
-    *((dst + 2)) = (*(src) - *(a));
-    *((dst + 3)) = (*(a2) - *(a3));
-// test against above version (from spiral)
-//     const T v1(src[1]), v2(src[2]), v3(src[3]);
-//     dst[0] = (*src + v2);
-//     dst[1] = (v1 + v3);
-//     dst[2] = (*src - v2);
-//     dst[3] = (v1 - v3);
+    const T v1(src[1]), v2(src[2]), v3(src[3]);
+    dst[0] = (*src + v2);
+    dst[1] = (v1 + v3);
+    dst[2] = (*src - v2);
+    dst[3] = (v1 - v3);
 }
 
 

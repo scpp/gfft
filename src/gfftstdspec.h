@@ -16,7 +16,7 @@
 #define __gfftstdspec_h
 
 /** \file
-    \brief Recursive algorithms and short-radix FFT specifications
+    \brief Short-radix FFT specifications for "complex" types like std::complex
 */
 
 #include "metafunc.h"
@@ -26,6 +26,16 @@ namespace GFFT {
 using namespace MF;
 
 
+/// In-place DFT for "complex" types like std::complex
+/*!
+\tparam N length of the data
+\tparam M step in the data
+\tparam T value type
+\tparam S sign of the transform (-1 for inverse)
+
+Non-recursive in-place DFT for a general (odd) length with 
+short-radix specializations for N=2,3
+*/
 template<int_t N, int_t M, typename T, int S,
 template<typename> class Complex>
 class DFTk_inp<N,M,Complex<T>,S>
@@ -105,40 +115,6 @@ public:
     for (int_t i=0; i<K; ++i) 
       data[0] += s[i];
   }
-/*  
-  template<class LT>
-  void apply(const Complex<LT>* w, Complex<T>* data) 
-  { 
-    Complex<T> s[K], d[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
-      s[i] = data[k] + data[NM-k];
-      d[i] = data[k] - data[NM-k];
-    }
-    
-    for (int_t i=1; i<K+1; ++i) {
-      Complex<T> t1(0,0), t2(0,0);
-      for (int_t j=0; j<K; ++j) {
-	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
-	const T s1 = m_s[k]*d[j].imag();
-	const T s2 = m_s[k]*d[j].real();
-	t1 += m_c[k]*s[j];
-	t2.real() += sign_change ? -s1 : s1;
-	t2.imag() -= sign_change ? -s2 : s2;
-      }
-      const int_t k = i*M;
-      Complex<T> tt1(data[0] + t1 + t2);
-      Complex<T> tt2(data[0] + t1 - t2);
-      data[k] = tt1*w[i-1];
-      data[NM-k] = tt2*w[K-i+1];
-    }
-    
-    for (int_t i=0; i<K; ++i) 
-      data[0] += s[i];
-  }
-  */
 };
 
 template<int_t M, typename T, int S,
@@ -174,19 +150,6 @@ public:
       data[I10] = Complex<T>(t.real() + dif.imag(), t.imag() - dif.real());
       data[I20] = Complex<T>(t.real() - dif.imag(), t.imag() + dif.real());
   }
-  /*
-  void apply(const Complex<T>* w, Complex<T>* data) 
-  { 
-      Complex<T> sum(data[I10] + data[I20]);
-      Complex<T> dif(m_coef * (data[I10] - data[I20]));
-      Complex<T> t(data[0] - 0.5*sum);
-      Complex<T> t1(t.real() + dif.imag(), t.imag() - dif.real());
-      Complex<T> t2(t.real() - dif.imag(), t.imag() + dif.real());
-      data[0] += sum;
-      data[I10] = t1*w[0];
-      data[I20] = t2*w[1];
-  }
-  */
 };
 
 template<int_t M, typename T, int S,
@@ -216,8 +179,17 @@ public:
 //   }  
 };
 
-////////////////////////////////////////////////////////
+/// Out-of-place DFT for "complex" types like std::complex
+/*!
+\tparam N length of the data
+\tparam SI step in the source data
+\tparam DI step in the result data
+\tparam T value type
+\tparam S sign of the transform (-1 for inverse)
 
+Non-recursive out-of-place DFT for a general (odd) length with 
+short-radix specializations for N=2,3
+*/
 template<int_t N, int_t SI, int_t DI, typename T, int S,
 template<typename> class Complex>
 class DFTk<N,SI,DI,Complex<T>,S>

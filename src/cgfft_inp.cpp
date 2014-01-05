@@ -30,6 +30,7 @@ using namespace GFFT;
 
 typedef COMPLEX_DOUBLE ValueType;
 typedef IN_PLACE Place;
+// >>>>>>>>> Transforms in-place accept powers of a single prime only!
 
 static const int_t N = 25;
 //typedef typename GenNumList<2, 3>::Result NList;
