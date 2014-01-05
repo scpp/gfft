@@ -51,8 +51,8 @@ template<class W1, class W, int_t I, int Accuracy>
 struct GetNextRoot<I,2,W1,W,Accuracy> {
   typedef typename CosPiFrac<I,2,Accuracy>::Result Re;
   typedef typename SinPiFrac<I,2,Accuracy>::Result Im;
-  typedef typename FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef typename RationalToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename RationalToDecimal<Im,Accuracy>::Result ImDec;
   typedef MComplex<ReDec,ImDec> Result;
 };
 
@@ -60,15 +60,15 @@ template<class W1, class W, int_t I, int Accuracy>
 struct GetNextRoot<I,1,W1,W,Accuracy> {
   typedef typename CosPiFrac<I,1,Accuracy>::Result Re;
   typedef typename SinPiFrac<I,1,Accuracy>::Result Im;
-  typedef typename FractionToDecimal<Re,Accuracy>::Result ReDec;
-  typedef typename FractionToDecimal<Im,Accuracy>::Result ImDec;
+  typedef typename RationalToDecimal<Re,Accuracy>::Result ReDec;
+  typedef typename RationalToDecimal<Im,Accuracy>::Result ImDec;
   typedef MComplex<ReDec,ImDec> Result;
 };
 */
 
 template<class W1, int_t N, int Accuracy, class W, int_t Count, int_t I = 2>
 struct __RootListLoop {
-  typedef typename Simplify<SFraction<SInt<2*I>,SInt<N> > >::Result SF;
+  typedef typename Simplify<SRational<SInt<2*I>,SInt<N> > >::Result SF;
 //typedef typename NL::Print<SF>::Result TTT;
   typedef typename GetNextRoot<SF::Numer::value,SF::Denom::value,W1,W,Accuracy>::Result WW;
   typedef Compute<typename WW::Re,Accuracy> CRe;
@@ -106,12 +106,12 @@ class GetFirstRoot {
   
   typedef typename Loki::Select<(S<0),Sin2,
           typename Negate<Sin2>::Result>::Result WI;
-  //typedef typename FractionToDecimal<WI,Accuracy>::Result WIDec;
+  //typedef typename RationalToDecimal<WI,Accuracy>::Result WIDec;
   
 //   typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
 //           typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
   typedef typename CosPiDecimal<2,N,Accuracy>::Result WR;
-  //typedef typename FractionToDecimal<WR,Accuracy>::Result WRDec;
+  //typedef typename RationalToDecimal<WR,Accuracy>::Result WRDec;
   
 public:
   typedef MComplex<WR,WI> Result;

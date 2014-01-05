@@ -12,18 +12,18 @@
  *   GNU General Public License for more details.                          *
  ***************************************************************************/
 
-#ifndef __sfraction_h
-#define __sfraction_h
+#ifndef __srational_h
+#define __srational_h
 
 #include "sbigint.h"
 
 template<class Num, class Den>
-struct SFraction {
+struct SRational {
    typedef Num Numer;
    typedef Den Denom;
 };
 
-typedef SFraction<SInt<1>,SInt<1> > UnitFraction;
+typedef SRational<SInt<1>,SInt<1> > UnitRational;
 
 
 ///Greatest common divisor of A and B
@@ -131,18 +131,18 @@ public:
 
 
 template<class N, class D>
-class Simplify<SFraction<N,D> > {
+class Simplify<SRational<N,D> > {
    typedef typename Abs<N>::Result AN;
    typedef typename GCD<AN,D>::Result T;
    typedef typename Div<N,T>::DivResult Num;
    typedef typename Div<D,T>::DivResult Den;
 public:
-   typedef SFraction<Num,Den> Result;
+   typedef SRational<Num,Den> Result;
 };
 
-/// Multiplication of two compile-time Fractions
+/// Multiplication of two compile-time Rationals
 template<class N1, class D1, class N2, class D2>
-class Mult<SFraction<N1,D1>, SFraction<N2,D2> > {
+class Mult<SRational<N1,D1>, SRational<N2,D2> > {
    typedef typename GCD<N1,D2>::Result G1;
    typedef typename GCD<N2,D1>::Result G2;
    typedef typename Div<N1,G1>::DivResult NN1;
@@ -152,77 +152,77 @@ class Mult<SFraction<N1,D1>, SFraction<N2,D2> > {
    typedef typename Mult<NN1,NN2>::Result Num;
    typedef typename Mult<DD1,DD2>::Result Den;
 public:
-   typedef SFraction<Num,Den> Result;
+   typedef SRational<Num,Den> Result;
 };
 
 template<class N, class D>
-class Mult<SFraction<N,D>, SFraction<N,D> > {
+class Mult<SRational<N,D>, SRational<N,D> > {
    typedef typename Mult<N,N>::Result Num;
    typedef typename Mult<D,D>::Result Den;
 public:
-   typedef SFraction<Num,Den> Result;
+   typedef SRational<Num,Den> Result;
 };
 
 template<int_t N1, int_t D1, int_t N2, int_t D2>
-class Mult<SFraction<SInt<N1>,SInt<D1> >, SFraction<SInt<N2>,SInt<D2> > > {
+class Mult<SRational<SInt<N1>,SInt<D1> >, SRational<SInt<N2>,SInt<D2> > > {
    static const int_t Num = N1*N2;
    static const int_t Den = D1*D2;
    typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
    typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
    typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
 public:
-   typedef SFraction<NumT,DenT> Result;
+   typedef SRational<NumT,DenT> Result;
 };
 
 template<int_t N, int_t D>
-class Mult<SFraction<SInt<N>,SInt<D> >, SFraction<SInt<N>,SInt<D> > > {
+class Mult<SRational<SInt<N>,SInt<D> >, SRational<SInt<N>,SInt<D> > > {
    static const int_t Num = N*N;
    static const int_t Den = D*D;
    typedef typename __SwitchToBigInt<Num>::Result NumT;
    typedef typename __SwitchToBigInt<Den>::Result DenT;
 public:
-   typedef SFraction<NumT,DenT> Result;
+   typedef SRational<NumT,DenT> Result;
 };
 
 template<class N, class D, int_t Num>
-class Mult<SFraction<N,D>,SInt<Num> > {
+class Mult<SRational<N,D>,SInt<Num> > {
    typedef typename GCD<SInt<Num>,D>::Result G;
    typedef typename Div<SInt<Num>,G>::DivResult Num1;
    typedef typename Div<D,G>::DivResult D1;
    typedef typename Mult<N,Num1>::Result Numer;
 public:
-   typedef SFraction<Numer,D1> Result;
+   typedef SRational<Numer,D1> Result;
 };
 
 template<class N, class D, int_t Num>
-class Mult<SInt<Num>, SFraction<N,D> > : public Mult<SFraction<N,D>,SInt<Num> > {};
+class Mult<SInt<Num>, SRational<N,D> > : public Mult<SRational<N,D>,SInt<Num> > {};
 
 template<class N, class D, bool S, class NList, unsigned int Base>
-class Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {
+class Mult<SRational<N,D>,SBigInt<S,NList,Base> > {
    typedef SBigInt<S,NList,Base> Num;
    typedef typename GCD<Num,D>::Result G;
    typedef typename Div<Num,G>::DivResult Num1;
    typedef typename Div<D,G>::DivResult D1;
    typedef typename Mult<N,Num1>::Result Numer;
 public:
-   typedef SFraction<Numer,D1> Result;
+   typedef SRational<Numer,D1> Result;
 };
 
 template<class N, class D, bool S, class NList, unsigned int Base>
-class Mult<SBigInt<S,NList,Base>,SFraction<N,D> > : public Mult<SFraction<N,D>,SBigInt<S,NList,Base> > {};
+class Mult<SBigInt<S,NList,Base>,SRational<N,D> > : public Mult<SRational<N,D>,SBigInt<S,NList,Base> > {};
 
 /////////////////////////////////////////////////////////////
 
 template<class Numer, class Denom>
-struct Negate<SFraction<Numer,Denom> > {
+struct Negate<SRational<Numer,Denom> > {
    typedef typename Negate<Numer>::Result NewNumer;
-   typedef SFraction<NewNumer,Denom> Result;
+   typedef SRational<NewNumer,Denom> Result;
 };
 
 /////////////////////////////////////////////////////////////
 
 template<class N1, class D1, class N2, class D2>
-class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
+class Add<SRational<N1,D1>, SRational<N2,D2> > {
    typedef typename GCD<D1,D2>::Result G;
    typedef typename Div<D1,G>::DivResult DD1;
    typedef typename Div<D2,G>::DivResult DD2;
@@ -231,54 +231,54 @@ class Add<SFraction<N1,D1>, SFraction<N2,D2> > {
    typedef typename Add<T1,T2>::Result Num;
    typedef typename Mult<DD1,D2>::Result Den;
 public:
-   typedef SFraction<Num,Den> Result;
+   typedef SRational<Num,Den> Result;
 };
 
 template<class N, class D, int_t Num>
-class Add<SFraction<N,D>,SInt<Num> > {
+class Add<SRational<N,D>,SInt<Num> > {
    typedef SInt<Num> T;
    typedef typename Add<
            typename Mult<D,T>::Result,N>::Result Numer;
 public:
-   typedef SFraction<Numer,D> Result;
+   typedef SRational<Numer,D> Result;
 };
 
 template<class N, class D, int_t Num>
-class Add<SInt<Num>, SFraction<N,D> > : public Add<SFraction<N,D>,SInt<Num> > {};
+class Add<SInt<Num>, SRational<N,D> > : public Add<SRational<N,D>,SInt<Num> > {};
 
 
 template<class N, class D, bool S, class NList, base_t Base>
-class Add<SFraction<N,D>,SBigInt<S,NList,Base> > {
+class Add<SRational<N,D>,SBigInt<S,NList,Base> > {
    typedef SBigInt<S,NList,Base> T;
    typedef typename Add<
            typename Mult<D,T>::Result,N>::Result Numer;
 public:
-   typedef SFraction<Numer,D> Result;
+   typedef SRational<Numer,D> Result;
 };
 
 template<class N, class D, bool S, class NList, base_t Base>
-class Add<SBigInt<S,NList,Base>,SFraction<N,D> > : public Add<SFraction<N,D>,SBigInt<S,NList,Base> > {};
+class Add<SBigInt<S,NList,Base>,SRational<N,D> > : public Add<SRational<N,D>,SBigInt<S,NList,Base> > {};
 
 ///////////////////////////////////////////////
 
 template<class N1, class D1, class N2, class D2>
-class Sub<SFraction<N1,D1>, SFraction<N2,D2> > 
-: public Add<SFraction<N1,D1>, typename Negate<SFraction<N2,D2> >::Result> { };
+class Sub<SRational<N1,D1>, SRational<N2,D2> > 
+: public Add<SRational<N1,D1>, typename Negate<SRational<N2,D2> >::Result> { };
 
 template<class N, class D, int_t Num>
-class Sub<SFraction<N,D>,SInt<Num> > : public Add<SFraction<N,D>,SInt<-Num> > { };
+class Sub<SRational<N,D>,SInt<Num> > : public Add<SRational<N,D>,SInt<-Num> > { };
 
 template<class N, class D, int_t Num>
-class Sub<SInt<Num>, SFraction<N,D> > : public Add<SInt<Num>, typename Negate<SFraction<N,D> >::Result> { };
+class Sub<SInt<Num>, SRational<N,D> > : public Add<SInt<Num>, typename Negate<SRational<N,D> >::Result> { };
 
 ///////////////////////////////////////////////
 
 template<class N, class D>
-struct Check<SFraction<N,D> >
+struct Check<SRational<N,D> >
 {
   typedef typename Check<N>::Result CheckN;
   typedef typename Check<D>::Result CheckD;
-  typedef SFraction<CheckN,CheckD> Result;
+  typedef SRational<CheckN,CheckD> Result;
 };
 
 #endif

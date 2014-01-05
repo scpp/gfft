@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "sfraction.h"
+#include "srational.h"
 
 
 

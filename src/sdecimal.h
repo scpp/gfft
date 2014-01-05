@@ -19,7 +19,7 @@
 
 
 template<class BigInt, int_t NDecPlaces, base_t DecBase>
-struct SDecimalFraction {
+struct SDecimal {
    typedef BigInt Num;
    static const int_t NDec = NDecPlaces;
    static const base_t Base = DecBase;
@@ -79,81 +79,81 @@ struct ShiftLeftRound<SBigInt<S,Loki::NullType,Base>,N,0>
 
 
 template<class BI, int_t ND, int Accuracy, base_t Base>
-struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
+struct Reduce<SDecimal<BI,ND,Base>,Accuracy,Base> {
 //   typedef typename BI::Num NList;
 //   typedef typename Loki::Select<(ND>Accuracy),
 //           typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
-//   typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
+//   typedef SDecimal<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
 
   typedef typename Loki::Select<(ND>Accuracy),
           typename ShiftLeftRound<BI,ND-Accuracy>::Result,BI>::Result NewBI;
-  typedef SDecimalFraction<NewBI,Accuracy,Base> Result;
+  typedef SDecimal<NewBI,Accuracy,Base> Result;
 };
 
 template<int_t N, int_t ND, int Accuracy, base_t Base>
-struct Reduce<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,Base> {
-  typedef SDecimalFraction<SInt<N>,Accuracy,Base> Result;
+struct Reduce<SDecimal<SInt<N>,ND,Base>,Accuracy,Base> {
+  typedef SDecimal<SInt<N>,Accuracy,Base> Result;
 };
 
 template<class BI1, int_t ND1, class BI2, int_t ND2, base_t DecBase>
-class Mult<SDecimalFraction<BI1,ND1,DecBase>,SDecimalFraction<BI2,ND2,DecBase> > {
+class Mult<SDecimal<BI1,ND1,DecBase>,SDecimal<BI2,ND2,DecBase> > {
   static const int_t MaxND = (ND1 > ND2) ? ND1 : ND2;
   typedef typename Mult<BI1,BI2>::Result Prod;
-  typedef SDecimalFraction<Prod,ND1+ND2,DecBase> NewDec;
+  typedef SDecimal<Prod,ND1+ND2,DecBase> NewDec;
 public:
   typedef typename Reduce<NewDec,MaxND,DecBase>::Result Result;
 };
 
 template<int_t N, class BI, int_t ND, base_t DecBase>
-class Mult<SInt<N>,SDecimalFraction<BI,ND,DecBase> > {
+class Mult<SInt<N>,SDecimal<BI,ND,DecBase> > {
   typedef typename Mult<SInt<N>,BI>::Result Prod;
 public:
-  typedef SDecimalFraction<Prod,ND,DecBase> Result;
+  typedef SDecimal<Prod,ND,DecBase> Result;
 };
 
 template<int_t N, class BI, int_t ND, base_t DecBase>
-class Mult<SDecimalFraction<BI,ND,DecBase>,SInt<N> > 
-: public Mult<SInt<N>,SDecimalFraction<BI,ND,DecBase> > {};
+class Mult<SDecimal<BI,ND,DecBase>,SInt<N> > 
+: public Mult<SInt<N>,SDecimal<BI,ND,DecBase> > {};
 
 /////////////////////////////////////////////////////////////
 
 template<class BI1, class BI2, int_t ND, base_t DecBase>
-class Add<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
+class Add<SDecimal<BI1,ND,DecBase>,SDecimal<BI2,ND,DecBase> > {
   typedef typename Add<BI1,BI2>::Result Sum;
 public:
-  typedef SDecimalFraction<Sum,ND,DecBase> Result;
+  typedef SDecimal<Sum,ND,DecBase> Result;
 };
 
 template<class BI, int_t ND, base_t DecBase, int_t N>
-class Add<SDecimalFraction<BI,ND,DecBase>,SInt<N> > {
+class Add<SDecimal<BI,ND,DecBase>,SInt<N> > {
   typedef typename CreateBigInt<SInt<N>,DecBase>::Result BI1;
   typedef typename Loki::TL::ShiftRight<typename BI1::Num,ND,SInt<0> >::Result NList;
   typedef SBigInt<BI1::isPositive,NList,DecBase> NewBI;
   typedef typename Add<BI,NewBI>::Result Sum;
 public:
-  typedef SDecimalFraction<Sum,ND,DecBase> Result;
+  typedef SDecimal<Sum,ND,DecBase> Result;
 };
 
 ///////////////////////////////////////////////
 
 template<class BI1, class BI2, int_t ND, base_t DecBase>
-class Sub<SDecimalFraction<BI1,ND,DecBase>,SDecimalFraction<BI2,ND,DecBase> > {
+class Sub<SDecimal<BI1,ND,DecBase>,SDecimal<BI2,ND,DecBase> > {
   typedef typename Sub<BI1,BI2>::Result Dif;
 public:
-  typedef SDecimalFraction<Dif,ND,DecBase> Result;
+  typedef SDecimal<Dif,ND,DecBase> Result;
 };
 
 ///////////////////////////////////////////////
 
 template<class BI, int_t ND, base_t DecBase>
-struct Negate<SDecimalFraction<BI,ND,DecBase> > {
+struct Negate<SDecimal<BI,ND,DecBase> > {
   typedef typename Negate<BI>::Result NewBI;
-  typedef SDecimalFraction<NewBI,ND,DecBase> Result;
+  typedef SDecimal<NewBI,ND,DecBase> Result;
 };
 
 ///////////////////////////////////////////////
 
 template<class BI, int_t ND, base_t DecBase>
-struct Check<SDecimalFraction<BI,ND,DecBase> > : public Check<BI> {};
+struct Check<SDecimal<BI,ND,DecBase> > : public Check<BI> {};
 
 #endif

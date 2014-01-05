@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "sfraction.h"
+#include "srational.h"
 #include "sdecimal.h"
 
 #include "pseudometafunc.h"
@@ -60,62 +60,62 @@ struct TempTypeTrait<Complex<T,A> > {
 //// To save compile time
 // typedef TYPELIST_1(SInt<314159265>) NL1;
 // typedef TYPELIST_1(SInt<100000000>) DL1;
-// typedef SFraction<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPi1;
+// typedef SRational<SBigInt<true,NL1,DefaultBase>,SBigInt<true,DL1,DefaultBase> > TPi1;
 // 
 // typedef TYPELIST_2(SInt<358979324>,SInt<314159265>) NL2;
 // typedef TYPELIST_2(SInt<0>,SInt<100000000>) DL2;
-// typedef SFraction<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPi2;
+// typedef SRational<SBigInt<true,NL2,DefaultBase>,SBigInt<true,DL2,DefaultBase> > TPi2;
 
 typedef TYPELIST_2(SInt<141592653>,SInt<3>) NL11;
-typedef SDecimalFraction<SBigInt<true,NL11,DefaultDecimalBase>,1,DefaultDecimalBase> TPi1Dec;
+typedef SDecimal<SBigInt<true,NL11,DefaultDecimalBase>,1,DefaultDecimalBase> TPi1Dec;
 
 typedef TYPELIST_3(SInt<589793238>,SInt<141592653>,SInt<3>) NL21;
-typedef SDecimalFraction<SBigInt<true,NL21,DefaultDecimalBase>,2,DefaultDecimalBase> TPi2Dec;
+typedef SDecimal<SBigInt<true,NL21,DefaultDecimalBase>,2,DefaultDecimalBase> TPi2Dec;
 
 typedef TYPELIST_4(SInt<462643383>,SInt<589793238>,SInt<141592653>,SInt<3>) NL31;
-typedef SDecimalFraction<SBigInt<true,NL31,DefaultDecimalBase>,3,DefaultDecimalBase> TPi3Dec;
+typedef SDecimal<SBigInt<true,NL31,DefaultDecimalBase>,3,DefaultDecimalBase> TPi3Dec;
 
 
-// Works with SFraction of decimal bases (10^n) only
+// Works with SRational of decimal bases (10^n) only
 // TODO: change that
-template<class Fraction, int_t NDigits, base_t DecBase=DefaultDecimalBase>
-struct FractionToDecimal;
+template<class Rational, int_t NDigits, base_t DecBase=DefaultDecimalBase>
+struct RationalToDecimal;
 
 template<class Numer, class Denom, int_t NDigits, base_t DecBase>
-struct FractionToDecimal<SFraction<Numer,Denom>,NDigits,DecBase> {
+struct RationalToDecimal<SRational<Numer,Denom>,NDigits,DecBase> {
   typedef typename MF::IPowBig<SInt<DecBase>,NDigits>::Result D;
   typedef typename Mult<Numer,D>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
-  typedef SDecimalFraction<AllDecimals,NDigits,DecBase> Result;
+  typedef SDecimal<AllDecimals,NDigits,DecBase> Result;
 };
 
 template<bool S1, class N1, class Denom, int_t NDigits, base_t Base>
-struct FractionToDecimal<SFraction<SBigInt<S1,N1,Base>,Denom>,NDigits,Base> {
+struct RationalToDecimal<SRational<SBigInt<S1,N1,Base>,Denom>,NDigits,Base> {
   typedef typename Loki::TL::ShiftRight<N1,NDigits,SInt<0> >::Result NList;
   typedef SBigInt<S1,NList,Base> NewNumer;
 //typedef typename NL::Print<NewNumer>::Result TT2;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
-  typedef SDecimalFraction<AllDecimals,NDigits,Base> Result;
+  typedef SDecimal<AllDecimals,NDigits,Base> Result;
 };
 
 template<int_t N, int_t NDigits, base_t DecBase>
-struct FractionToDecimal<SInt<N>,NDigits,DecBase> {
-  typedef SDecimalFraction<SInt<N>,0,DecBase> Result;
+struct RationalToDecimal<SInt<N>,NDigits,DecBase> {
+  typedef SDecimal<SInt<N>,0,DecBase> Result;
 };
 
 template<class BI, int_t ND, base_t Base, int_t NDigits, base_t DecBase>
-struct FractionToDecimal<SDecimalFraction<BI,ND,Base>,NDigits,DecBase> {
+struct RationalToDecimal<SDecimal<BI,ND,Base>,NDigits,DecBase> {
   typedef BI AllDecimals;
-  typedef SDecimalFraction<BI,ND,Base> Result;
+  typedef SDecimal<BI,ND,Base> Result;
 };
 
 /////////////////////////////////////////////////////
 
 template<class N, class D, int Accuracy, base_t Base>
-struct Reduce<SFraction<N,D>,Accuracy,Base> {
+struct Reduce<SRational<N,D>,Accuracy,Base> {
   typedef typename MF::IPowBig<SInt<Base>,Accuracy>::Result Denom;
-  typedef typename FractionToDecimal<SFraction<N,D>,Accuracy,Base>::AllDecimals Decimals;
-  typedef typename Simplify<SFraction<Decimals,Denom> >::Result Result;
+  typedef typename RationalToDecimal<SRational<N,D>,Accuracy,Base>::AllDecimals Decimals;
+  typedef typename Simplify<SRational<Decimals,Denom> >::Result Result;
 };
 
 
@@ -185,7 +185,7 @@ struct FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I,Value,Dec1,Dec2,Aux,false>
   typedef typename FStep::ResultAux NextAux;
   typedef typename Accum<Value,NextStep>::Result NextValue;
   
-  typedef typename FractionToDecimal<NextValue,Accuracy,DefaultDecimalBase>::AllDecimals NextDecimal;
+  typedef typename RationalToDecimal<NextValue,Accuracy,DefaultDecimalBase>::AllDecimals NextDecimal;
   typedef typename FuncAccuracyLoop<X,FuncStep,Accum,Accuracy,I+1,NextValue,Dec2,NextDecimal,NextAux>::Result Result;
 };
 
@@ -223,15 +223,15 @@ template<class Value, int Accuracy, base_t Base>
 struct GenericAccuracyBasedFuncAdapter;
 
 template<class N, class D, int Accuracy, base_t Base>
-struct GenericAccuracyBasedFuncAdapter<SFraction<N,D>,Accuracy,Base>
+struct GenericAccuracyBasedFuncAdapter<SRational<N,D>,Accuracy,Base>
 {
-  typedef typename FractionToDecimal<SFraction<N,D>,Accuracy,DefaultBase>::AllDecimals Result;
+  typedef typename RationalToDecimal<SRational<N,D>,Accuracy,DefaultBase>::AllDecimals Result;
 };
 
 template<class BI, int_t ND, int Accuracy, base_t Base>
-struct GenericAccuracyBasedFuncAdapter<SDecimalFraction<BI,ND,Base>,Accuracy,Base>
+struct GenericAccuracyBasedFuncAdapter<SDecimal<BI,ND,Base>,Accuracy,Base>
 {
-  typedef typename SDecimalFraction<BI,ND,Base>::Num Result;
+  typedef typename SDecimal<BI,ND,Base>::Num Result;
 };
 
 
@@ -254,7 +254,7 @@ struct GenericAccuracyBasedFunc
   
   typedef FuncAccuracyLoop<X,FuncStep,Accumulator,Accuracy,NStartingSteps+1,
                            NextValue,StartDecimal,NextDecimal,NextAux> Loop;
-  //typedef SDecimalFraction<typename Loop::NextDecimal,Accuracy,DefaultDecimalBase> ResultDecimal;
+  //typedef SDecimal<typename Loop::NextDecimal,Accuracy,DefaultDecimalBase> ResultDecimal;
   typedef typename Loop::Result Result;
 };
 
@@ -285,9 +285,9 @@ template<class SFrac, int Accuracy, class RetType = long double>
 struct Compute;
 
 template<class Numer, class Denom, int Accuracy, class RetType>
-struct Compute<SFraction<Numer,Denom>,Accuracy,RetType> {
-  typedef SFraction<Numer,Denom> Value;
-  typedef typename FractionToDecimal<Value,Accuracy,DefaultDecimalBase>::Result TDec;
+struct Compute<SRational<Numer,Denom>,Accuracy,RetType> {
+  typedef SRational<Numer,Denom> Value;
+  typedef typename RationalToDecimal<Value,Accuracy,DefaultDecimalBase>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
   static RetType value() {
@@ -303,8 +303,8 @@ struct Compute<SInt<N>,Accuracy,RetType> {
 };
 
 template<class BI, int_t ND, base_t Base, int Accuracy, class RetType>
-struct Compute<SDecimalFraction<BI,ND,Base>,Accuracy,RetType> {
-  typedef SDecimalFraction<BI,ND,Base> Value;
+struct Compute<SDecimal<BI,ND,Base>,Accuracy,RetType> {
+  typedef SDecimal<BI,ND,Base> Value;
   typedef typename Reduce<Value,Accuracy,Base>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
@@ -315,8 +315,8 @@ struct Compute<SDecimalFraction<BI,ND,Base>,Accuracy,RetType> {
 };
 
 template<int_t N, int_t ND, base_t Base, int Accuracy, class RetType>
-struct Compute<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,RetType> {
-  typedef SDecimalFraction<SInt<N>,ND,Base> Value;
+struct Compute<SDecimal<SInt<N>,ND,Base>,Accuracy,RetType> {
+  typedef SDecimal<SInt<N>,ND,Base> Value;
   
   static RetType value() {
     return static_cast<RetType>(N) 
@@ -327,7 +327,7 @@ struct Compute<SDecimalFraction<SInt<N>,ND,Base>,Accuracy,RetType> {
 ////////////////////////////////////////////////////////
 
 template<int K,class C,class Aux>
-struct PiFraction
+struct PiRational
 {
   typedef typename IPowBig<SInt<16>,K>::Result PBig;
   typedef SInt<8*K+1> TK1;
@@ -338,22 +338,22 @@ struct PiFraction
                         typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
-  typedef typename Simplify<SFraction<Numer,Denom> >::Result Result;
-//  typedef SFraction<Numer,Denom> Result;
+  typedef typename Simplify<SRational<Numer,Denom> >::Result Result;
+//  typedef SRational<Numer,Denom> Result;
   typedef Loki::NullType ResultAux;
 };
 
 template<class C,class Aux>
-struct PiFraction<0,C,Aux>
+struct PiRational<0,C,Aux>
 {
-  typedef SFraction<SInt<47>, SInt<15> > Result;
+  typedef SRational<SInt<47>, SInt<15> > Result;
   typedef Loki::NullType ResultAux;
 };
 
-struct PiFractionFunc 
+struct PiRationalFunc 
 {
   template<int K,class C,class Aux,int Accuracy>
-  struct Value : public PiFraction<K,C,Aux> {};
+  struct Value : public PiRational<K,C,Aux> {};
 };
 
 
@@ -369,16 +369,16 @@ struct PiDecimal
                         typename Mult<TK3,TK4>::Result>::Result,PBig>::Result Denom;
   typedef typename Add<SInt<188>, typename Mult<SInt<4*K>,SInt<120*K+151> >::Result>::Result Numer;
   
-  typedef SFraction<Numer,Denom> F;
-  typedef typename FractionToDecimal<F,Accuracy,DefaultDecimalBase>::Result Result;
+  typedef SRational<Numer,Denom> F;
+  typedef typename RationalToDecimal<F,Accuracy,DefaultDecimalBase>::Result Result;
   typedef Loki::NullType ResultAux;
 };
 
 template<class C,class Aux,int Accuracy>
 struct PiDecimal<0,C,Aux,Accuracy>
 {
-  typedef SFraction<SInt<47>, SInt<15> > F;
-  typedef typename FractionToDecimal<F,Accuracy,DefaultDecimalBase>::Result Result;
+  typedef SRational<SInt<47>, SInt<15> > F;
+  typedef typename RationalToDecimal<F,Accuracy,DefaultDecimalBase>::Result Result;
   typedef Loki::NullType ResultAux;
 };
 
@@ -391,7 +391,7 @@ struct PiDecimalFunc
 
 template<int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
-struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiFractionFunc,Add,Accuracy,NStartingSteps> 
+struct PiAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiRationalFunc,Add,Accuracy,NStartingSteps> 
 {};
 
 template<int NStartingSteps>  
@@ -399,7 +399,7 @@ struct PiAcc<1,NStartingSteps> {
   static const base_t Base = DefaultDecimalBase;
   typedef TYPELIST_1(SInt<314159265>) NL1;
   typedef TYPELIST_1(SInt<Base/10>) DL1;
-  typedef SFraction<SBigInt<true,NL1,Base>,SBigInt<true,DL1,Base> > Result;
+  typedef SRational<SBigInt<true,NL1,Base>,SBigInt<true,DL1,Base> > Result;
 };
 
 template<int NStartingSteps>  
@@ -407,7 +407,7 @@ struct PiAcc<2,NStartingSteps> {
   static const base_t Base = DefaultDecimalBase;
   typedef TYPELIST_2(SInt<358979323>,SInt<314159265>) NL2;
   typedef TYPELIST_2(SInt<0>,SInt<Base/10>) DL2;
-  typedef SFraction<SBigInt<true,NL2,Base>,SBigInt<true,DL2,Base> > Result;
+  typedef SRational<SBigInt<true,NL2,Base>,SBigInt<true,DL2,Base> > Result;
 };
 
 
@@ -418,7 +418,7 @@ struct PiDecAcc : public GenericAccuracyBasedFunc<Loki::NullType,PiDecimalFunc,A
 
 template<int Len = 2,    // in powers of DefaultBase
 int NStartingSteps = 3>  
-struct PiLen : public GenericLengthBasedFunc<Loki::NullType,PiFractionFunc,Add,Len,NStartingSteps> 
+struct PiLen : public GenericLengthBasedFunc<Loki::NullType,PiRationalFunc,Add,Len,NStartingSteps> 
 {};
 
 ////////////////////////////////////////////////////////
@@ -438,10 +438,10 @@ struct SinCosAux<X,Step,Loki::NullType>
 
 // Aux is Pair, where the first type is X^2 and the second is the previous series member
 template<int K, class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
-struct SinCosFraction 
+struct SinCosRational 
 {
   static const int_t M = 2*(K-1)+D;
-  typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
+  typedef SRational<SInt<1>,SInt<M*(M+1)> > Divider;
   typedef typename Mult<typename Aux::first,Divider>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
   typedef typename Negate<XP>::Result Result;
@@ -450,7 +450,7 @@ struct SinCosFraction
 };
 
 template<class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
-struct SinCosFraction<0,X,Aux,D>
+struct SinCosRational<0,X,Aux,D>
 {
   typedef typename Aux::second Result;
   typedef typename SinCosAux<X,Result,Aux>::Result ResultAux;
@@ -462,8 +462,8 @@ int Accuracy>
 struct SinCosDecimal 
 {
   static const int_t M = 2*(K-1)+D;
-  typedef SFraction<SInt<1>,SInt<M*(M+1)> > Divider;
-  typedef typename FractionToDecimal<Divider,Accuracy>::Result DividerDec;
+  typedef SRational<SInt<1>,SInt<M*(M+1)> > Divider;
+  typedef typename RationalToDecimal<Divider,Accuracy>::Result DividerDec;
   typedef typename Mult<typename Aux::first,DividerDec>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
   typedef typename Reduce<XP,Accuracy>::Result XPR;
@@ -481,15 +481,15 @@ struct SinCosDecimal<0,X,Aux,D,Accuracy>
 
 
 template<int K, class X, class Aux>
-struct CosFraction : public SinCosFraction<K,X,Aux,1> {};
+struct CosRational : public SinCosRational<K,X,Aux,1> {};
 
 template<int K, class X>
-struct CosFraction<K,X,Loki::NullType>
-: public SinCosFraction<K,X,typename SinCosAux<X,SInt<1> >::Result,1> {};
+struct CosRational<K,X,Loki::NullType>
+: public SinCosRational<K,X,typename SinCosAux<X,SInt<1> >::Result,1> {};
 
-struct CosFractionFunc {
+struct CosRationalFunc {
   template<int K, class X, class Aux, int Accuracy>
-  struct Value : public CosFraction<K,X,Aux> {};
+  struct Value : public CosRational<K,X,Aux> {};
 };
 
 
@@ -507,15 +507,15 @@ struct CosDecimalFunc {
 
 
 template<int K, class X, class Aux>
-struct SinFraction : public SinCosFraction<K,X,Aux,2> {};
+struct SinRational : public SinCosRational<K,X,Aux,2> {};
 
 template<int K, class X>
-struct SinFraction<K,X,Loki::NullType> 
-: public SinCosFraction<K,X,typename SinCosAux<X,X>::Result,2> {};
+struct SinRational<K,X,Loki::NullType> 
+: public SinCosRational<K,X,typename SinCosAux<X,X>::Result,2> {};
 
-struct SinFractionFunc {
+struct SinRationalFunc {
   template<int K, class X, class Aux, int Accuracy>
-  struct Value : public SinFraction<K,X,Aux> {};
+  struct Value : public SinRational<K,X,Aux> {};
 };
 
 
@@ -536,7 +536,7 @@ struct SinDecimalFunc {
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
-struct CosAcc : public GenericAccuracyBasedFunc<X,CosFractionFunc,Add,Accuracy,NStartingSteps> {};
+struct CosAcc : public GenericAccuracyBasedFunc<X,CosRationalFunc,Add,Accuracy,NStartingSteps> {};
 
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
@@ -546,13 +546,13 @@ struct CosDecAcc : public GenericAccuracyBasedFunc<X,CosDecimalFunc,Add,Accuracy
 template<class X, 
 int Len = 2,    // in powers of DefaultBase
 int NStartingSteps = 3>  
-struct CosLen : public GenericLengthBasedFunc<X,CosFractionFunc,Add,Len,NStartingSteps> {};
+struct CosLen : public GenericLengthBasedFunc<X,CosRationalFunc,Add,Len,NStartingSteps> {};
 
 
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
-struct SinAcc : public GenericAccuracyBasedFunc<X,SinFractionFunc,Add,Accuracy,NStartingSteps> {};
+struct SinAcc : public GenericAccuracyBasedFunc<X,SinRationalFunc,Add,Accuracy,NStartingSteps> {};
 
 template<class X, 
 int Accuracy = 2,    // in powers of DefaultBase
@@ -562,14 +562,14 @@ struct SinDecAcc : public GenericAccuracyBasedFunc<X,SinDecimalFunc,Add,Accuracy
 template<class X, 
 int Len = 2,    // in powers of DefaultBase
 int NStartingSteps = 3>  
-struct SinLen : public GenericLengthBasedFunc<X,SinFractionFunc,Add,Len,NStartingSteps> {};
+struct SinLen : public GenericLengthBasedFunc<X,SinRationalFunc,Add,Len,NStartingSteps> {};
 
 
 template<int_t A, int_t B, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __SinPiFrac {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,F>::Result X;
    typedef typename SinAcc<X,Accuracy>::Result Result;
@@ -594,7 +594,7 @@ struct __SinPiFrac<A,3,2,NStartingSteps> {
   typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
   typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
   typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
-  typedef SFraction<Numer,Denom> Result;
+  typedef SRational<Numer,Denom> Result;
 };
 
 template<int_t A, int NStartingSteps>  
@@ -604,15 +604,15 @@ struct __SinPiFrac<A,4,2,NStartingSteps> {
   typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
   typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
   typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
-  typedef SFraction<Numer,Denom> Result;
+  typedef SRational<Numer,Denom> Result;
 };
 
 template<int_t A, 
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,6,Accuracy,NStartingSteps> {
   static const int_t R = A%12;
-  typedef SFraction<SInt<1>,SInt<2> >  V1;
-  typedef SFraction<SInt<-1>,SInt<2> > V2;
+  typedef SRational<SInt<1>,SInt<2> >  V1;
+  typedef SRational<SInt<-1>,SInt<2> > V2;
   typedef typename Loki::Select<(R==1 || R==5),V1,V2>::Result Result;
 };
 
@@ -620,7 +620,7 @@ template<int_t A, int_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct SinPiFrac {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __SinPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
@@ -630,8 +630,8 @@ template<int_t A, int_t B,
 int Accuracy,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __SinPiDecimal {
-   typedef SFraction<SInt<A>,SInt<B> > F;
-   typedef typename FractionToDecimal<F,Accuracy>::Result FDec;
+   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef typename RationalToDecimal<F,Accuracy>::Result FDec;
    typedef typename PiDecAcc<Accuracy,NStartingSteps>::Result TPi;
    //typedef TPi2Dec TPi;   // <<< TODO: make general accuracy
    //typedef TPi3Dec TPi;   // <<< TODO: make general accuracy
@@ -658,7 +658,7 @@ struct __SinPiDecimal<A,3,2,NStartingSteps> {
   static const int_t R = A%6;
   typedef TYPELIST_2(SInt<784438645>,SInt<866025403>) NList;
   typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
-  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
+  typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
 template<int_t A, int NStartingSteps>  
@@ -666,7 +666,7 @@ struct __SinPiDecimal<A,4,2,NStartingSteps> {
   static const int_t R = A%8;
   typedef TYPELIST_2(SInt<186547523>,SInt<707106781>) NList;
   typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
-  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
+  typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
 template<int_t A, 
@@ -676,14 +676,14 @@ struct __SinPiDecimal<A,6,Accuracy,NStartingSteps> {
   typedef Loki::Typelist<SInt<500000000>,Loki::NullType> NList1;
   typedef typename Loki::TL::ShiftRight<NList1,Accuracy-1,SInt<0> >::Result NList;
   typedef SBigInt<(R==1 || R==5),NList,DefaultDecimalBase> Numer;
-  typedef SDecimalFraction<Numer,2,DefaultDecimalBase> Result;
+  typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
 template<int_t A, int_t B, 
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct SinPiDecimal {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __SinPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
@@ -694,7 +694,7 @@ template<int_t A, int_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __CosPiFrac {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,F>::Result X;
    typedef typename CosAcc<X,Accuracy>::Result Result;
@@ -716,7 +716,7 @@ template<int_t A, int_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct CosPiFrac {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __CosPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
@@ -727,8 +727,8 @@ template<int_t A, int_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __CosPiDecimal {
-   typedef SFraction<SInt<A>,SInt<B> > F;
-   typedef typename FractionToDecimal<F,Accuracy>::Result FDec;
+   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef typename RationalToDecimal<F,Accuracy>::Result FDec;
    typedef typename PiDecAcc<Accuracy,NStartingSteps>::Result TPi;
    //typedef TPi2Dec TPi;   // <<< TODO: make general accuracy
    //typedef TPi3Dec TPi;   // <<< TODO: make general accuracy
@@ -753,7 +753,7 @@ template<int_t A, int_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct CosPiDecimal {
-   typedef SFraction<SInt<A>,SInt<B> > F;
+   typedef SRational<SInt<A>,SInt<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __CosPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
@@ -797,7 +797,7 @@ struct Cout<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base> > {
 };
 
 template<class N, class D>
-struct Cout<SFraction<N,D> > 
+struct Cout<SRational<N,D> > 
 {
   typedef Cout<N> CN;
   typedef Cout<D> CD;
@@ -812,13 +812,13 @@ struct Cout<SFraction<N,D> >
 //////////////////////////////////////////
 
 template<bool S, class H, class T, base_t Base, int_t NDecPlaces, base_t DecBase>
-struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecBase> >
+struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecBase> >
 {
   static const int_t W = NDigits<Base-1,10>::value;
   static const int_t DW = NDigits<DecBase-1,10>::value;
   static const int_t Len = NL::Length<SBigInt<S,Loki::Typelist<H,T>,Base> >::value;
   static const int_t DP = DW * NDecPlaces;
-  typedef Cout<SDecimalFraction<SBigInt<S,T,Base>,NDecPlaces,DecBase> > Next;
+  typedef Cout<SDecimal<SBigInt<S,T,Base>,NDecPlaces,DecBase> > Next;
   
   static void apply(std::ostream& os, const int_t len = 0) { 
     Next::apply(os,len+W);
@@ -839,7 +839,7 @@ struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecB
 };
 
 template<bool S, class H, base_t Base, int_t NDecPlaces, base_t DecBase>
-struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces,DecBase> > 
+struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces,DecBase> > 
 {
   static const int_t HW = NDigits<H::value,10>::value;
   static const int_t DP = NDigits<DecBase-1,10>::value * NDecPlaces;
@@ -867,7 +867,7 @@ struct Cout<SDecimalFraction<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,ND
 };
 
 template<int_t N, int_t NDecPlaces, base_t DecBase>
-struct Cout<SDecimalFraction<SInt<N>,NDecPlaces,DecBase> > 
+struct Cout<SDecimal<SInt<N>,NDecPlaces,DecBase> > 
 {
   static const bool S = (N>=0);
   static const int_t AN = S ? N : -N;

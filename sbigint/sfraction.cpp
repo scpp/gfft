@@ -24,7 +24,7 @@ static const int BN = 20;
 // typedef Add<A,B>::Result AddAB;
 // typedef Mult<A,B>::Result MultAB;
 //
-// typedef SFraction<A,B> SF;
+// typedef SRational<A,B> SF;
 // typedef Simplify<SF>::Result Simp;
 static const unsigned A = 65000;
 static const unsigned B = 6500;
