@@ -44,7 +44,7 @@ class GFFTbench<Loki::Typelist<H,T> > {
   H gfft;
 public:
   void cputime(const int hardware_id, const int system_id,
-             const int compiler_id, const int software_id)
+               const int compiler_id, const int software_id)
   {
      next.cputime(hardware_id,system_id,compiler_id,software_id);
 
@@ -175,10 +175,11 @@ int main(int argc, char *argv[])
     }
 
 //     typedef GenNumList<MinP, MaxP, Power2holder>::Result NList;
-    typedef GenNumList<2, 10, SIntID>::Result NList;
-//    typedef GenPowerList<2, 29, 2>::Result NList;
+    typedef GenNumList<20000, 20010, SIntID>::Result NList;
+    //typedef GenPowerList<20, 26, 2>::Result NList;
     typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
-       ParallelizationGroup::Default, OUT_OF_PLACE> List_ds;
+       OpenMP<1>, OUT_OF_PLACE> List_ds;
+//        ParallelizationGroup::Default, OUT_OF_PLACE> List_ds;
 //    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;

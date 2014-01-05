@@ -7,7 +7,7 @@ include_directories(../src)
 
 #add definitions, compiler switches, etc.
 #add_definitions(-time -Wall -O0 -g3 -fopenmp -DFFTW)
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
+add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW)
 #add_definitions(-O3 -openmp -DGFFTDOC)
 #add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
@@ -20,5 +20,6 @@ add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW)
 #target_link_libraries(bench gomp)
 #target_link_libraries(gfft_bench gomp)
 #target_link_libraries(check gomp fftw3 fftw3l arprec qd)
+
 #target_link_libraries(bench iomp5 pthread)
 

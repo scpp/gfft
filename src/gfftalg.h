@@ -31,15 +31,6 @@ namespace GFFT {
 using namespace MF;
 
 
-template<bool C>
-struct StaticAssert;
-
-template<>
-struct StaticAssert<true> { };
-
-#define GFFT_STATIC_ASSERT(c) StaticAssert<c> static__assert; 
-
-
 static const int_t StaticLoopLimit = 8;
 
 
@@ -104,22 +95,28 @@ public:
 };
 
 
-/////////////////////////////////////////////////////////
+/// In-place scaled FFT algorithm
+/**
+\tparam K first factor
+\tparam M second factor (N=K*M) 
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam W compile-time root of unity
+\tparam doStaticLoop rely on template instantiation loop IterateInTime (only for short loops)
 
+The notation for this template class follows SPIRAL. 
+The class performs DFT(k) with the Kronecker product by the mxm identity matrix Im
+and twiddle factors (T).
+\sa InTime, IterateInTime
+*/
 template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
 class DFTk_x_Im_T;
 
+// Rely on the static template loop
 template<int_t K, int_t M, typename T, int S, class W>
-class DFTk_x_Im_T<K,M,T,S,W,true>
-{
-   IterateInTime<K,M,T,S,W> iterate;
-public:
-   void apply(T* data) 
-   {
-      iterate.apply(data);
-   }
-};
+class DFTk_x_Im_T<K,M,T,S,W,true> : public IterateInTime<K,M,T,S,W> {};
 
+// General implementation
 template<int_t K, int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<K,M,T,S,W,false>
 {
@@ -135,15 +132,15 @@ public:
       spec_inp.apply(data);
 
       LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
-      t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr[0], wpi[0])
       wpr[0] = WR::value();
       wpi[0] = WI::value();
+      //t = Sin<N,1,LocalVType>::value();
 //       wpr[0] = 1 - 2.0*t*t;
 //       wpi[0] = -S*Sin<N,2,LocalVType>::value();
       
-      // W^i = (wpr2, wpi2)
+      // W^i = (wpr[i], wpi[i])
       for (int_t i=0; i<K-2; ++i) {
 	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
 	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
@@ -167,6 +164,7 @@ public:
   
 };
 
+// Specialization for radix 3
 template<int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<3,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
@@ -181,9 +179,9 @@ public:
       spec_inp.apply(data);
 
       LocalVType wr[2],wi[2],t;
-      t = Sin<N,1,LocalVType>::value();
 
       // W = (wpr1, wpi1)
+//       t = Sin<N,1,LocalVType>::value();
 //       const LocalVType wpr1 = 1 - 2.0*t*t;
 //       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
       const LocalVType wpr1 = WR::value();
@@ -210,6 +208,7 @@ public:
    }
 };
 
+// Specialization for radix 2
 template<int_t M, typename T, int S, class W>
 class DFTk_x_Im_T<2,M,T,S,W,false> {
    typedef typename TempTypeTrait<T>::Result LocalVType;
@@ -223,13 +222,11 @@ public:
       spec_inp.apply(data);
 
       LocalVType wr,wi,t;
-      t = Sin<N,1,LocalVType>::value();
+//       t = Sin<N,1,LocalVType>::value();
 //       const LocalVType wpr = 1-2.0*t*t;
 //       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-// std::cout << wpr << "  " << wpi << std::endl;
       const LocalVType wpr = WR::value();
       const LocalVType wpi = WI::value();
-// std::cout << wpr1 << "  " << wpi1 << std::endl;
       wr = wpr;
       wi = wpi;
       for (int_t i=2; i<N; i+=2) {
@@ -242,18 +239,19 @@ public:
    }
 };
 
-/// Danielson-Lanczos section of the decimation-in-time FFT version
+/// In-place decimation-in-time FFT version
 /**
 \tparam N current transform length
+\tparam NFact factorization list
 \tparam T value type of the data array
 \tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam W1 compile-time root of unity
 
-This template class implements resursive metaprogram, which
-runs funciton apply() twice recursively at the beginning of the function apply()
-with the half of the transform length N
-until the simplest case N=2 has been reached. Then function \a _spec2 is called.
-Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
-\sa InFreq
+This is the core of decimation in-time FFT algorithm:
+Strided DFT runs K times recursively, where the next 
+factor K is taken from the compile-time list.
+The scaled DFT is performed afterwards.
+\sa InFreq, DFTk_x_Im_T
 */
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InTime;
@@ -282,6 +280,7 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
 public:
    void apply(T* data) 
    {
+     // run strided DFT recursively K times
       for (int_t m=0; m < N2; m+=M2) 
 	dft_str.apply(data + m);
 
@@ -295,7 +294,7 @@ class InTime<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK>
 : public InTime<N, Tail, T, S, W1, LastK> {};
 
 
-// Specialization for prime N
+// Specialization for a prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
 class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
   DFTk_inp<N, 2, T, S> spec_inp;
@@ -307,6 +306,20 @@ public:
 };
 
 
+/// Out-of-place decimation-in-time FFT version
+/**
+\tparam N current transform length
+\tparam NFact factorization list
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam W1 compile-time root of unity
+
+This is the core of decimation in-time FFT algorithm:
+Strided DFT runs K times recursively, where the next 
+factor K is taken from the compile-time list.
+The scaled DFT is performed afterwards.
+\sa DFTk_x_Im_T
+*/
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InTimeOOP;
 
@@ -329,6 +342,7 @@ public:
 
    void apply(const T* src, T* dst) 
    {
+     // run strided DFT recursively K times
       int_t lk = 0;
       for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
         dft_str.apply(src + lk, dst + m);
@@ -345,14 +359,8 @@ class InTimeOOP<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK
 
 // Specialization for prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
-class InTimeOOP<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
-  DFTk<N, LastK*2, 2, T, S> spec;
-public:
-  void apply(const T* src, T* dst) 
-  { 
-    spec.apply(src, dst);
-  }
-};
+class InTimeOOP<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> 
+: public DFTk<N, LastK*2, 2, T, S> {};
 
   
 }  //namespace DFT
