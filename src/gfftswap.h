@@ -64,16 +64,12 @@ public:
 \tparam T value type
 
 This is second version of binary reordering.
-It is based on template class recursion
-similar to InTime and InFreq template classes,
+It is based on template class recursion,
 where member function apply() is called twice recursively
-building the parameters n and r, which are at last the
-indexes of exchanged data values.
-
-This version is slightly slower than GFFTswap, but 
-allows parallelization of this algorithm, which is
-implemented in template class GFFTswap2OMP.
-\sa GFFTswap, GFFTswap2OMP
+for the left and the right half-tree
+building the parameters n and r, which are the
+indexes of the exchanged data values.
+\sa SwapNR, GFFTswap2OMP
 */
 template<uint_t M, uint_t P, typename T, uint_t I=0>
 class GFFTswap2 {
@@ -130,7 +126,7 @@ public:
 
 /// Binary reordering of array elements
 /*!
-\tparam N length of the data
+\tparam M^P length of the data
 \tparam T value type
 */
 template<uint M, uint P, typename T,
@@ -284,8 +280,11 @@ public:
       if (N>1) data[N+1] = -data[N+1];
    }
    
-   void apply(const T*, T*) { }
-   void apply(const T*, T*, T*) { }
+   void apply(const T*, T*) 
+   { 
+      std::cout << "Not implemented!" << std::endl;
+      exit(1);
+   }
 };
 
 
@@ -326,6 +325,12 @@ public:
       data[0] = Complex<T>(M*0.5*(wtemp + data[0].imag()), M*0.5*(wtemp - data[0].imag()));
 
       data[N/2] = Complex<T>(data[N/2].real(), -data[N/2].imag());
+   }
+
+   void apply(const Complex<T>*, Complex<T>*) 
+   { 
+      std::cout << "Not implemented!" << std::endl;
+      exit(1);
    }
 };
 

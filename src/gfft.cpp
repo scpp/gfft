@@ -22,40 +22,56 @@
 
 #include "gfft.h"
 
+#include "../test/nrfft.h"
+
+
 using namespace std;
 
 using namespace GFFT;
 
 
-void dft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
+void cdft1(double* output_data, const double* input_data, const unsigned int size, bool inverse)
 {
-  double pi2 = (inverse) ? 2.0 * M_PI : -2.0 * M_PI;
-  double a, ca, sa;
+  double pi = (inverse) ? M_PI : -M_PI;
+  double a, ca;
+  double invs = 1.0 / (size-1);
+  for(unsigned int y = 0; y < size; y++) {
+    output_data[y] = 0;
+    for(unsigned int x = 1; x < size-1; x++) {
+      a = pi * y * x * invs;
+      ca = cos(a);
+      output_data[y] += input_data[x] * ca;
+    }
+    output_data[y] += 0.5 * (input_data[0] + (y%2 > 0 ? -input_data[size-1] : input_data[size-1]));
+    if(inverse) 
+      output_data[y] *= invs;
+  }
+}
+
+void cdft2(double* output_data, const double* input_data, const unsigned int size, bool inverse)
+{
+  double pi = (inverse) ? M_PI : -M_PI;
+  double a, ca;
   double invs = 1.0 / size;
   for(unsigned int y = 0; y < size; y++) {
-    output_data[2*y] = 0;
-    output_data[2*y+1] = 0;
+    output_data[y] = 0;
     for(unsigned int x = 0; x < size; x++) {
-      a = pi2 * y * x * invs;
+      a = pi * y * (x+0.5) * invs;
       ca = cos(a);
-      sa = sin(a);
-      output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
-      output_data[2*y+1] += input_data[2*x] * sa + input_data[2*x+1] * ca;
+      output_data[y] += input_data[x] * ca;
     }
-    if(inverse) {
-      output_data[2*y]   *= invs;
-      output_data[2*y+1] *= invs;
-    }
+    if(inverse) 
+      output_data[y] *= invs;
   }
 }
 
 
 
 typedef DOUBLE ValueType;
-typedef IN_PLACE Place;
-//typedef OUT_OF_PLACE Place;
+//typedef IN_PLACE Place;
+typedef OUT_OF_PLACE Place;
 
-static const int_t N = 20002;
+static const int_t N = 2;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -70,7 +86,7 @@ int main(int argc, char *argv[])
     int_t i, n = N;
     //cin >> n;
    
-    typedef DFT TransformType;
+    typedef RDFT TransformType;
 
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
@@ -81,8 +97,8 @@ int main(int argc, char *argv[])
 // create sample data
     ValueType::ValueType* data = new ValueType::ValueType [2*n];
     ValueType::ValueType* dataout = new ValueType::ValueType [2*n];
-    ValueType::ValueType* data1 = new ValueType::ValueType [2*n];
-    ValueType::ValueType* dataout1 = new ValueType::ValueType [2*n];
+    ValueType::ValueType* data1 = new ValueType::ValueType [4*n];
+    ValueType::ValueType* dataout1 = new ValueType::ValueType [4*n];
     for (i=0; i < n; ++i) {
 //        data[2*i]   = rand()/(double)RAND_MAX - 0.5;   // distribute in [-0.5;0.5] as in FFTW
 //        data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
@@ -108,9 +124,11 @@ int main(int argc, char *argv[])
 
 //       GFFTswap2<5,2,double> swp;
 //       swp.apply(data);
-    fftobj->fft(data);
-//  fftobj->fft(data, dataout);
-    dft1(dataout1, data1, n, false);
+//    fftobj->fft(data);
+  fftobj->fft(data, dataout);
+    cdft1(dataout1, data1, 2*n, false);
+    
+    //realft(data1, n, 1);
 
 // print out transformed data
     cout.precision(3);
@@ -132,9 +150,9 @@ int main(int argc, char *argv[])
     cout<<"Check against DFT:"<<endl;
     double mx1(-1);
     for (i=0; i < n; ++i) {
-      cout<<"("<<fabs(data[2*i]-dataout1[2*i])<<","<<fabs(data[2*i+1]-dataout1[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(data[2*i]-dataout1[2*i]));
-      mx1 = max(mx1, fabs(data[2*i+1]-dataout1[2*i+1]));
+      cout<<"("<<fabs(data[2*i]-data1[2*i])<<","<<fabs(data[2*i+1]-data1[2*i+1])<<")"<<endl;
+      mx1 = max(mx1, fabs(data[2*i]-data1[2*i]));
+      mx1 = max(mx1, fabs(data[2*i+1]-data1[2*i+1]));
 //       cout<<"("<<fabs(dataout[2*i]-dataout1[2*i])<<","<<fabs(dataout[2*i+1]-dataout1[2*i+1])<<")"<<endl;
 //       mx1 = max(mx1, fabs(dataout[2*i]-dataout1[2*i]));
 //       mx1 = max(mx1, fabs(dataout[2*i+1]-dataout1[2*i+1]));
@@ -142,13 +160,7 @@ int main(int argc, char *argv[])
     cout<<"---------------------------------------------"<<endl;
     cout << mx1 << endl;
 
-//    typedef Print<Factorization<PowerHolder<6,5>,SIntID>::Result>::Result TTT;  
-//    typedef Print<Factorization<SIntID<N>, SIntID>::Result>::Result TTT;  
-//    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
-//    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
-//    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
-//    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
 
-//  cout << (1<<1) << endl;
+//  cout << DOUBLE::Accuracy << endl;
 }
 

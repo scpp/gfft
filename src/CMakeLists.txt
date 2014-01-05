@@ -17,7 +17,7 @@ add_definitions(-time -Wall -O0 -g3 -fopenmp -ftemplate-depth=10000 -DGFFTDOC)
 
 #list all source files here
 add_executable(gfft gfft.cpp)
-#add_executable(gfft_inp gfft_inp.cpp)
+add_executable(gfft_inp gfft_inp.cpp)
 #add_executable(gfft_oop gfft_oop.cpp)
 #add_executable(cgfft_inp cgfft_inp.cpp)
 #add_executable(cgfft_oop cgfft_oop.cpp)
@@ -25,7 +25,7 @@ add_executable(gfft gfft.cpp)
 
 ### Use following lines for GCC compiler
 target_link_libraries(gfft gomp qd)
-#target_link_libraries(gfft_inp gomp)
+target_link_libraries(gfft_inp gomp)
 #target_link_libraries(gfft_oop gomp)
 #target_link_libraries(cgfft_inp gomp)
 #target_link_libraries(cgfft_oop gomp)

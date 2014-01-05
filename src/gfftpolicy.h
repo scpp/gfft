@@ -59,8 +59,6 @@ The virtual function call is then avoided.
 class Empty { };
 
 
-
-
 /*!
 \defgroup gr_params GFFT parameters
 \brief Classes substituted as template parameters to define transform 
@@ -72,10 +70,10 @@ class Empty { };
 struct DOUBLE {
    static const id_t ID = 0;
    typedef double ValueType;
-#ifdef _WIN32
-   static const int Accuracy = 4;
-#else  // WIN64 assumed
+#ifdef __x86_64
    static const int Accuracy = 2;
+#else  
+   static const int Accuracy = 4;
 #endif
 };
 
@@ -85,10 +83,10 @@ struct DOUBLE {
 struct FLOAT {
    static const id_t ID = 1;
    typedef float ValueType;
-#ifdef _WIN32
-   static const int Accuracy = 2;
-#else  // WIN64 assumed
+#ifdef __x86_64
    static const int Accuracy = 1;
+#else
+   static const int Accuracy = 2;
 #endif
 };
 
@@ -98,10 +96,10 @@ struct FLOAT {
 struct COMPLEX_DOUBLE {
    static const id_t ID = 2;
    typedef std::complex<double> ValueType;
-#ifdef _WIN32
-   static const int Accuracy = 4;
-#else  // WIN64 assumed
+#ifdef __x86_64
    static const int Accuracy = 2;
+#else  
+   static const int Accuracy = 4;
 #endif
 };
 
@@ -111,10 +109,10 @@ struct COMPLEX_DOUBLE {
 struct COMPLEX_FLOAT {
    static const id_t ID = 3;
    typedef std::complex<float> ValueType;
-#ifdef _WIN32
-   static const int Accuracy = 2;
-#else  // WIN64 assumed
+#ifdef __x86_64
    static const int Accuracy = 1;
+#else
+   static const int Accuracy = 2;
 #endif
 };
 
@@ -202,11 +200,6 @@ struct DFT {
    static const id_t ID = 0;
    typedef IDFT Inverse;
 
-//    template<typename TPower>
-//    struct Length {
-//       static const uint Value = TPower::value;
-//    };
-
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
@@ -222,11 +215,6 @@ struct DFT {
 struct IDFT {
    static const id_t ID = 1;
    typedef DFT Inverse;
-
-//    template<typename TPower>
-//    struct Length {
-//       static const uint Value = TPower::value;
-//    };
 
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
@@ -244,11 +232,6 @@ struct RDFT {
    static const id_t ID = 2;
    typedef IRDFT Inverse;
 
-   template<typename TPower>
-   struct Length {
-      static const uint Value = TPower::value-1;
-   };
-
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
@@ -264,11 +247,6 @@ struct RDFT {
 struct IRDFT {
    static const id_t ID = 3;
    typedef RDFT Inverse;
-
-   template<typename TPower>
-   struct Length {
-      static const uint Value = TPower::value-1;
-   };
 
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};

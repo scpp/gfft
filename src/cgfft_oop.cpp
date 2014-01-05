@@ -28,10 +28,10 @@ using namespace std;
 using namespace GFFT;
 
 
-typedef DOUBLE ValueType;
-typedef IN_PLACE Place;
+typedef COMPLEX_DOUBLE ValueType;
+typedef OUT_OF_PLACE Place;
 
-static const int_t N = 8;
+static const int_t N = 9;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -47,6 +47,7 @@ int main(int argc, char *argv[])
     //cin >> n;
    
     typedef DFT TransformType;
+    typedef ValueType::ValueType CT;
 
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
@@ -55,45 +56,49 @@ int main(int argc, char *argv[])
 // 								   ParallelizationGroup::Default::ID, Place::ID);
     
 // create sample data
-    ValueType::ValueType* data = new ValueType::ValueType [2*n];
+    CT* data = new CT[n];
+    CT* dataout = new CT[n];
     for (i=0; i < n; ++i) {
-//        data[2*i]   = rand()/(double)RAND_MAX - 0.5;   // distribute in [-0.5;0.5] as in FFTW
-//        data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
-       data[2*i] = 2*i;
-       data[2*i+1] = 2*i+1; 
+      // distribute in [-0.5;0.5] as in FFTW
+       //data[i] = std::complex(rand()/(double)RAND_MAX - 0.5, rand()/(double)RAND_MAX - 0.5);
+       data[i] = CT(2*i, 2*i+1); 
+       dataout[i] = CT(0,0);
     }
 
-    DFT_wrapper<ValueType::ValueType> dft(data, n);
+    DFT_wrapper<CT::value_type> dft(data, n);
 
-// print out sample data
+ // print out sample data
     cout<<"Input data:"<<endl;
     for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+      cout<<"("<<data[i].real()<<","<<data[i].imag()<<")"<<endl;
 
-// apply FFT in-place
-    fftobj->fft(data);
+// apply FFT out-of-place
+   fftobj->fft(data, dataout);
 
 // do simple dft
-    dft.apply();
+   dft.apply();
     
-    ValueType::ValueType* dataout1 = dft.getdata();
+   CT::value_type* dataout1 = dft.getdata();
 
 // print out transformed data
-    cout.precision(3);
-    cout<<"Result of transform:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+   cout.precision(3);
+   cout<<"Result of transform:"<<endl;
+   for (i=0; i < n; ++i)
+      cout<<"("<<dataout[i].real()<<","<<dataout[i].imag()<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
 
-    dft.diff(data);
-    
-    cout<<"Check against DFT:"<<endl;
-    double mx1(-1);
-    for (i=0; i < n; ++i) {
-      cout<<"("<<fabs(data[2*i])<<","<<fabs(data[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(data[2*i]));
-      mx1 = max(mx1, fabs(data[2*i+1]));
-    }
-    cout<<"---------------------------------------------"<<endl;
-    cout << mx1 << endl;
+   dft.diff(dataout);
+
+   cout<<"Check against DFT:"<<endl;
+   double mx(-1);
+   for (i=0; i < n; ++i) {
+      cout<<"("<<fabs(dataout[i].real())<<","<<fabs(dataout[i].imag())<<")"<<endl;
+      mx = max(mx, fabs(dataout[i].real()));
+      mx = max(mx, fabs(dataout[i].imag()));
+   }
+   cout<<"---------------------------------------------"<<endl;
+   cout << mx << endl;
+   
+   delete [] data;
+   delete [] dataout;
 }
 
