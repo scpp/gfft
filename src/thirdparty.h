@@ -61,7 +61,7 @@ public:
   
   typedef T value_type;
   
-  DFT_wrapper(const double* data, int_t n) : size(n)
+  DFT_wrapper(const T* data, int_t n) : size(n)
   {
     init(data, n);
   }
@@ -77,7 +77,7 @@ public:
   
   T* getdata() const { return output_data; }
   
-  void init(const double* data, int_t n)
+  void init(const T* data, int_t n)
   {
     input_data = new T [n*2];
     output_data = new T [n*2];

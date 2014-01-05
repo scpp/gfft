@@ -28,11 +28,11 @@ using namespace std;
 using namespace GFFT;
 
 
-typedef DOUBLE ValueType;
+typedef FLOAT ValueType;
 typedef IN_PLACE Place;
 // >>>>>>>>> Transforms in-place accept powers of a single prime only!
 
-static const int_t N = 25;
+static const int_t N = 11;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     //cin >> n;
    
     typedef DFT TransformType;
+    typedef ValueType::ValueType T;
 
     TransformSet gfft;
     TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
@@ -56,7 +57,7 @@ int main(int argc, char *argv[])
 // 								   ParallelizationGroup::Default::ID, Place::ID);
     
 // create sample data
-    ValueType::ValueType* data = new ValueType::ValueType [2*n];
+    T* data = new T [2*n];
     for (i=0; i < n; ++i) {
 //        data[2*i]   = rand()/(double)RAND_MAX - 0.5;   // distribute in [-0.5;0.5] as in FFTW
 //        data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
@@ -64,7 +65,7 @@ int main(int argc, char *argv[])
        data[2*i+1] = 2*i+1; 
     }
 
-    DFT_wrapper<ValueType::ValueType> dft(data, n);
+    DFT_wrapper<T> dft(data, n);
 
 // print out sample data
     cout<<"Input data:"<<endl;
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
 // do simple dft
     dft.apply();
     
-    ValueType::ValueType* dataout1 = dft.getdata();
+    T* dataout1 = dft.getdata();
 
 // print out transformed data
     cout.precision(3);
@@ -88,13 +89,13 @@ int main(int argc, char *argv[])
     dft.diff(data);
     
     cout<<"Check against DFT:"<<endl;
-    double mx1(-1);
+    T mx(-1);
     for (i=0; i < n; ++i) {
       cout<<"("<<fabs(data[2*i])<<","<<fabs(data[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(data[2*i]));
-      mx1 = max(mx1, fabs(data[2*i+1]));
+      mx = std::max(mx, fabs(data[2*i]));
+      mx = std::max(mx, fabs(data[2*i+1]));
     }
     cout<<"---------------------------------------------"<<endl;
-    cout << mx1 << endl;
+    cout << mx << endl;
 }
 

@@ -16,7 +16,7 @@
 #define __gfftalgfreq_h
 
 /** \file
-    \brief Recursive decimation in-frequency FFT algorithms 
+    \brief Recursive decimation in-frequency FFT algorithms (obsolete)
 */
 
 #include "gfftspec.h"
@@ -49,7 +49,6 @@ public:
    {
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
-//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (NIter-1)*2);
 
@@ -76,9 +75,6 @@ public:
 //       const LocalVType wi = -S*Sin<N,2*(M-1),LocalVType>::value();
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
-//       const LocalVType wr = H::first::value();
-//       const LocalVType wi = H::second::value();
-//std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(&wr, &wi, data + (M-1)*2);
    }
@@ -98,74 +94,6 @@ public:
    }
 };
 
-
-/*
-template<int_t K, int_t M, typename T, int S, class W1, int NIter = 1, class W = W1>
-class IterateInFreqOOP
-{
-// template<int_t K, int_t M, typename T, int S, class H, class Tail, int NIter = 1>
-// class IterateInFreq<K,M,T,S,Loki::Typelist<H,Tail>,NIter> {
-   //typedef typename RList::Head H;
-   typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
-   static const int_t M2 = M*2;
-   static const int_t N = K*M;
-
-   typedef typename GetNextRoot<NIter+1,N,W1,W,2>::Result Wnext;
-   IterateInFreqOOP<K,M,T,S,W1,NIter+1,Wnext> next;
-   DFTk<K,M2,M2,T,S> spec;
-   
-public:
-   void apply(const T* src, T* dst) 
-   {
-      const LocalVType wr = WR::value();
-      const LocalVType wi = WI::value();
-//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
-
-      spec.apply(&wr, &wi, src + (NIter-1)*2, dst + (NIter-1)*2);
-
-      next.apply(src,dst);
-   }
-};
-
-// Last step of the loop
-template<int_t K, int_t M, typename T, int S, class W1, class W>
-class IterateInFreqOOP<K,M,T,S,W1,M,W> 
-{
-//    typedef typename RList::Head H;
-   typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
-   static const int_t M2 = M*2;
-   static const int_t N = K*M;
-   DFTk<K,M2,M2,T,S> spec;
-public:
-   void apply(const T* src, T* dst) 
-   {
-      const LocalVType wr = WR::value();
-      const LocalVType wi = WI::value();
-//std::cout << M-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
-
-      spec.apply(&wr, &wi, src + (M-1)*2, dst + (M-1)*2);
-   }
-};
-
-// First step in the loop
-template<int_t K, int_t M, typename T, int S, class W1, class W>
-class IterateInFreqOOP<K,M,T,S,W1,1,W> {
-   static const int_t M2 = M*2;
-   DFTk<K,M2,M2,T,S> spec;
-   IterateInFreqOOP<K,M,T,S,W1,2,W> next;
-public:
-   void apply(const T* src, T* dst) 
-   {
-      spec.apply(src,dst);
-      next.apply(src,dst);
-   }
-};
-*/
-/////////////////////////////////////////////////////////
 
 template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
 class T_DFTk_x_Im;

@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "gfft.h"
+#include "gfftfactor.h"
 
 using namespace std;
 
@@ -64,8 +65,8 @@ int main(int argc, char *argv[])
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
 //    int_t i, n = 8;
 //    cin >> n;
-   
-//    typedef Print<Factorization<SInt<2>, SIntID>::Result>::Result TTT;  // 2*3*18539
+   typedef Factorization<SIntID<11> > F;
+   typedef Print<F::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
 //    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
 //    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
@@ -210,13 +211,13 @@ typedef long double RetType;
 // typedef GenerateRootList<N,1,2>::Result List;
 // PrintRootList<List,N>::apply();
 
-typedef SinPiDecimal<1,4,2>::Result SinPiDec;
+//typedef SinPiDecimal<1,4,2>::Result SinPiDec;
 
-cout << sin(M_PI/4.) << endl;
+//cout << sin(M_PI/4.) << endl;
 // Cout<SinPi4Dec>::apply(cout);
 // cout << endl;
-Cout<SinPiDec>::apply(cout);
-cout << endl;
+//Cout<SinPiDec>::apply(cout);
+//cout << endl;
 // Cout<SinPi4s>::apply(cout);
 // cout << endl;
 // Cout<SinPi4sDec>::apply(cout);

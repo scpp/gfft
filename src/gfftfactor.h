@@ -95,6 +95,13 @@ struct FactorizationLoop<N, K, IntHolder, AddPower, false, C>
   typedef Loki::Typelist<T, Loki::NullType> Result;
 };
 
+template<int_t K, 
+template<int_t> class IntHolder, int_t AddPower, bool C>
+struct FactorizationLoop<1, K, IntHolder, AddPower, false, C>
+{
+  typedef Loki::NullType Result;
+};
+
 
 typedef TYPELIST_5(SInt<2>, SInt<3>, SInt<5>, SInt<7>, SInt<11>) InitialPrimesList;
 
