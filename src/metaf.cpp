@@ -60,17 +60,13 @@ typedef DOUBLE ValueType;
 
 int main(int argc, char *argv[])
 {
-    cout.precision(18);
+    cout.precision(16);
 //     unsigned int p = 2;
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
 //    int_t i, n = 8;
 //    cin >> n;
-   typedef Factorization<SIntID<11> > F;
-   typedef Print<F::Result>::Result TTT;  // 2*3*18539
-//    typedef Print<Factorization<SInt<111234> >::Result>::Result TTT;  // 2*3*18539
-//    typedef Print<Factorization<SInt<1024*169*1999> >::Result>::Result TTT;
-//    typedef Print<Factorization<SInt<1024> >::Result>::Result TTT;
-//    typedef Print<FactorizationLoop<13,2>::Result>::Result TTT;
+//    typedef Factorization<SIntID<11> > F;
+//    typedef Print<F::Result>::Result TTT;  // 2*3*18539
 
 // typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;
 // typedef TYPELIST_2(SInt<999999999>,SInt<999999999>) LL2;
@@ -90,43 +86,14 @@ int main(int argc, char *argv[])
 //typedef Simplify<Div<M,BI2>::ModResult>::Result D;
 //typedef Print<DM>::Result TTT;
 
-//typedef unsigned long int RetType;
-typedef long double RetType;
-//typedef Simplify<SF>::Result SI;
-//typedef Print<G1>::Result TTT;
-//cout<< Evaluate2Int<G1,int_t>::Value << endl; 
-// cout<< Evaluate2Int<D,int_t>::value << endl; 
-// cout<< Evaluate2Float<M,double>::value() << endl; 
-// cout<< Evaluate2Float<D,double>::value() << endl; 
-// cout << (int)NL::Compare<BI1, BI2>::value << endl;
-// cout << (int)NL::Compare<BI2, S>::value << endl;
-// cout << (int)NL::Compare<BI2, SS>::value << endl;
-//cout << (int)GCD<BI2, BI2>::Result::value << endl;
-//typedef Pi<13>::Result TPi;
-// typedef GCD<TPi::Numer, TPi::Denom>::Result G1;
-// cout << ">>>>>>> " << Evaluate2Int<G1,RetType>::Value << endl;
-// typedef Div<TPi::Numer, TPi::Denom>::ModResult M1;
-// cout << "1) mod("<< Evaluate2Int<TPi::Numer,RetType>::Value << "," << Evaluate2Int<TPi::Denom,RetType>::Value << ") = " << Evaluate2Int<M1,RetType>::Value << endl;
-// typedef Div<TPi::Denom, M1>::ModResult M2;
-// cout << "2) mod("<< Evaluate2Int<TPi::Denom,RetType>::Value << "," << Evaluate2Int<M1,RetType>::Value << ") = " << Evaluate2Int<M2,RetType>::Value << endl;
-//typedef Print<TPi::Numer>::Result TT2;
-// //typedef Print<M2>::Result TT1;
-// typedef Div<M1, M2>::ModResult M3;
-// cout << "3) mod("<< Evaluate2Int<M1,RetType>::Value << "," << Evaluate2Int<M2,RetType>::Value << ") = " << Evaluate2Int<M3,RetType>::Value << endl;
-// typedef Div<M2, M3>::ModResult M4;
-// cout << "4) mod("<< Evaluate2Int<M2,RetType>::Value << "," << Evaluate2Int<M3,RetType>::Value << ") = " << Evaluate2Int<M4,RetType>::Value << endl;
-// 
-//const RetType numer = Evaluate2Float<TPi::Numer,RetType>::value();
-//const RetType denom = Evaluate2Float<TPi::Denom,RetType>::value();
-//cout<< numer << "/" << denom << " = " << (double)numer/denom << endl;
-
 // //typedef MetaPi::Result TPi;
 // typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 //typedef Print<TPi::Num>::Result TT2;
-//cout << " ";
-// Cout<Translate<TPiDec::Num,DefaultDecimalBase>::Result>::apply(cout);
-//Cout<TPiDec::Num>::apply(cout);
-//cout << endl << M_PI << endl;
+typedef PiDecAcc<3>::Result TPiDec;
+cout << "Compile-time PI: ";
+Cout<TPiDec>::apply(cout);
+cout << endl;
+cout << "           M_PI: " << M_PI << endl;
 //cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
 // Cout<TPi1::Numer>::apply(cout);
 // cout << " / " << endl;
@@ -135,7 +102,6 @@ typedef long double RetType;
 // Cout<TPi::Numer>::apply(cout);
 // cout << " / " << endl;
 // Cout<TPi::Denom>::apply(cout);
-// cout << endl;
 // cout << Loki::TL::Length<TPi::Numer::Num>::value << " " << Loki::TL::Length<TPi::Denom::Num>::value << endl;
 
 

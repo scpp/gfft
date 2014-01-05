@@ -28,7 +28,7 @@ using namespace std;
 using namespace GFFT;
 
 
-typedef FLOAT ValueType;
+typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 // >>>>>>>>> Transforms in-place accept powers of a single prime only!
 

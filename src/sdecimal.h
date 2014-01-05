@@ -85,7 +85,6 @@ struct Reduce<SDecimalFraction<BI,ND,Base>,Accuracy,Base> {
 //           typename Loki::TL::ShiftLeft<NList,ND-Accuracy>::Result,NList>::Result NewList;
 //   typedef SDecimalFraction<SBigInt<BI::isPositive,NewList,BI::Base>,Accuracy,Base> Result;
 
-  // without rounding seems to be better
   typedef typename Loki::Select<(ND>Accuracy),
           typename ShiftLeftRound<BI,ND-Accuracy>::Result,BI>::Result NewBI;
   typedef SDecimalFraction<NewBI,Accuracy,Base> Result;

@@ -35,15 +35,17 @@ typedef int_t base_t;
 
 //static const base_t DefaultBase = (1<<(sizeof(int_t)*4));
 
-// for 32bit
-//static const base_t DefaultBase        = 65536;
-//static const base_t DefaultDecimalBase = 10000;
-
+#ifdef __x86_64
 // for 64bit
 //static const base_t DefaultBase        = 2147483648;
 static const base_t DefaultBase        = 1000000000;
 static const base_t DefaultDecimalBase = 1000000000;
-
+#else
+// for 32bit
+//static const base_t DefaultBase        = 65536;
+static const base_t DefaultBase        = 10000;
+static const base_t DefaultDecimalBase = 10000;
+#endif
 
 /// \brief Big integer number metacontainer.
 /// \param S sign of the big integer
