@@ -31,7 +31,7 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = 16;
+static const int_t N = 20;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -90,13 +90,16 @@ int main(int argc, char *argv[])
    dft.diff(dataout);
 
    cout<<"Check against DFT:"<<endl;
-   double mx1(-1);
+   double mx(-1);
    for (i=0; i < n; ++i) {
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
-      mx1 = max(mx1, fabs(dataout[2*i]));
-      mx1 = max(mx1, fabs(dataout[2*i+1]));
+      mx = max(mx, fabs(dataout[2*i]));
+      mx = max(mx, fabs(dataout[2*i+1]));
    }
    cout<<"---------------------------------------------"<<endl;
-   cout << mx1 << endl;
+   cout << mx << endl;
+
+   delete [] data;
+   delete [] dataout;
 }
 

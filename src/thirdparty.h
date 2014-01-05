@@ -65,6 +65,10 @@ public:
   {
     init(data, n);
   }
+  DFT_wrapper(const std::complex<double>* data, int_t n) : size(n)
+  {
+    init(data, n);
+  }
   ~DFT_wrapper() 
   {
     delete [] input_data;
@@ -82,6 +86,16 @@ public:
        input_data[i] = data[i];
     }
   }
+  void init(const std::complex<double>* data, int_t n)
+  {
+    input_data = new T [n*2];
+    output_data = new T [n*2];
+   
+    for (int_t i=0; i < n; ++i) {
+       input_data[2*i] = data[i].real();
+       input_data[2*i+1] = data[i].imag();
+    }
+  }
   
   void apply()
   {
@@ -93,6 +107,14 @@ public:
   {
     for (int_t i=0; i<size*2; ++i) 
       data[i] -= output_data[i];
+  }
+  template<class Tp>
+  void diff(std::complex<Tp>* data)
+  {
+    for (int_t i=0; i<size; ++i) {
+      data[i].real() -= output_data[2*i];
+      data[i].imag() -= output_data[2*i+1];
+    }
   }
 };
 

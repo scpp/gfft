@@ -28,7 +28,7 @@ using namespace MF;
 
 /// Binary reordering of array elements
 /*!
-\tparam N length of the data
+\tparam M^P length of the data
 \tparam T value type
 
 This is C-like implementation. It has been written very 
@@ -36,9 +36,9 @@ similar to the one presented in the book
 "Numerical recipes in C++".
 \sa GFFTswap2
 */
-template<uint M, uint P, typename T>
+template<uint_t M, uint_t P, typename T>
 class SwapNR {
-  static const uint N = IPow<M,P>::value;
+  static const uint_t N = IPow<M,P>::value;
 public:
    void apply(T* data) {
      int_t m, j = 0;
@@ -128,6 +128,86 @@ public:
    }
 };
 
+/// Binary reordering of array elements
+/*!
+\tparam N length of the data
+\tparam T value type
+*/
+template<uint M, uint P, typename T,
+template<typename> class Complex>
+class SwapNR<M,P,Complex<T> > 
+{
+  static const uint N = IPow<M,P>::value;
+public:
+   void apply(Complex<T>* data) {
+     int_t m,j=0;
+     for (int_t i=0; i<N; ++i) {
+        if (j>i) {
+            std::swap(data[j], data[i]);
+        }
+        m = N/2;
+        while (m>=1 && j>=m) {
+            j -= m;
+            m >>= 1;
+        }
+        j += m;
+     }
+   }
+};
+
+template<uint_t M, uint_t P, typename T, uint_t I,
+template<typename> class Complex>
+class GFFTswap2<M,P,Complex<T>,I> {
+   static const int_t BN = IPow<M,I>::value;
+   static const int_t BR = IPow<M,P-I-1>::value;
+   GFFTswap2<M,P,Complex<T>,I+1> next;
+public:
+   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+     const int_t qn = n/BN;
+     const int_t rn = n%BN;
+     const int_t qr = r/BR;
+     const int_t rr = r%BR;
+     for (uint_t i = 0; i < M; ++i) { 
+       next.apply(data,(qn+i)*BN+rn,(qr+i)*BR+rr);
+     }
+   }
+};
+
+template<uint_t M, uint_t P, typename T,
+template<typename> class Complex>
+class GFFTswap2<M,P,Complex<T>,P> { 
+public:
+   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+      if (n>r) 
+        std::swap(data[n],data[r]);
+   }
+};
+
+template<uint_t P, typename T, uint_t I,
+template<typename> class Complex>
+class GFFTswap2<2,P,Complex<T>,I> {
+   static const int_t BN = 1<<I;
+   static const int_t BR = 1<<(P-I-1);
+   GFFTswap2<2,P,Complex<T>,I+1> next;
+public:
+   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+      next.apply(data,n,r);
+      next.apply(data,n|BN,r|BR);
+   }
+};
+
+template<uint_t P, typename T,
+template<typename> class Complex>
+class GFFTswap2<2,P,Complex<T>,P> {
+public:
+   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+      if (n>r)
+        swap(data[n],data[r]);
+   }
+};
+
+
+
 template<uint_t M, uint_t P, typename T, uint_t I=0, uint_t L=0, uint_t R=0>
 class StaticSwap;
 
@@ -206,6 +286,47 @@ public:
    
    void apply(const T*, T*) { }
    void apply(const T*, T*, T*) { }
+};
+
+
+/// Reordering of data for real-valued transforms
+/*!
+\tparam N length of the data
+\tparam T value type
+\tparam S sign of the transform: 1 - forward, -1 - backward
+*/
+template<int_t N, typename T, int S,
+template<typename> class Complex>
+class Separate<N,Complex<T>,S> {
+   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef Complex<LocalVType> LocalComplex;
+   static const int M = (S==1) ? 2 : 1;
+public:
+   void apply(Complex<T>* data) {
+      int_t i,i1;
+      LocalComplex h1,h2,h3;
+      LocalVType wtemp = Sin<2*N,1,LocalVType>::value();
+      LocalComplex wp(-2.*wtemp*wtemp,-S*Sin<N,1,LocalVType>::value());
+      LocalComplex w(1.+wp.real(),wp.imag());
+
+      for (i=1; i<N/2; ++i) {
+        i1 = N-i;
+        h1 = Complex<LocalVType>(static_cast<LocalVType>(0.5*(data[i].real()+data[i1].real())),
+                                 static_cast<LocalVType>(0.5*(data[i].imag()-data[i1].imag())));
+        h2 = Complex<LocalVType>(static_cast<LocalVType>( S*0.5*(data[i].imag()+data[i1].imag())),
+                                 static_cast<LocalVType>(-S*0.5*(data[i].real()-data[i1].real())));
+        h3 = w*h2;
+        data[i] = h1 + h3;
+        data[i1]= h1 - h3;
+        data[i1] = Complex<T>(data[i1].real(), -data[i1].imag());
+
+        w += w*wp;
+      }
+      wtemp = data[0].real();
+      data[0] = Complex<T>(M*0.5*(wtemp + data[0].imag()), M*0.5*(wtemp - data[0].imag()));
+
+      data[N/2] = Complex<T>(data[N/2].real(), -data[N/2].imag());
+   }
 };
 
 // Policy for a definition of forward FFT

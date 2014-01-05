@@ -16,7 +16,7 @@
 #define __gfftalg_h
 
 /** \file
-    \brief Recursive algorithms and short-radix FFT specifications
+    \brief Recursive FFT algorithms 
 */
 
 #include "gfftspec.h"
@@ -61,7 +61,6 @@ public:
    {
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
-//std::cout << NIter-1 << "/" << N << ": (" << wr << ", " << wi << ")" << std::endl;
 
       spec_inp.apply(data + (NIter-1)*2, &wr, &wi);
 
@@ -274,7 +273,6 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    static const int_t M = N/K;
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;

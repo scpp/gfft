@@ -98,6 +98,11 @@ struct FLOAT {
 struct COMPLEX_DOUBLE {
    static const id_t ID = 2;
    typedef std::complex<double> ValueType;
+#ifdef _WIN32
+   static const int Accuracy = 4;
+#else  // WIN64 assumed
+   static const int Accuracy = 2;
+#endif
 };
 
 /*! \brief Complex number of single precision type representation
@@ -106,6 +111,11 @@ struct COMPLEX_DOUBLE {
 struct COMPLEX_FLOAT {
    static const id_t ID = 3;
    typedef std::complex<float> ValueType;
+#ifdef _WIN32
+   static const int Accuracy = 2;
+#else  // WIN64 assumed
+   static const int Accuracy = 1;
+#endif
 };
 
 /*! \brief Decimation in-time
@@ -288,9 +298,6 @@ struct Serial {
 
    template<typename T>
    void apply(const T*, T*) { }
-
-   template<typename T>
-   void apply(const T*, T*, T*) { }
 };
 
 /*! \brief %Transform is parallelized using %OpenMP standard
@@ -317,9 +324,6 @@ struct OpenMP {
 
    template<typename T>
    void apply(const T*, T* d) { apply(d); }
-
-   template<typename T>
-   void apply(const T*, T* d, T*) { apply(d); }
 };
 
 template<>

@@ -20,6 +20,7 @@
 */
 
 #include "gfftalg.h"
+#include "gfftstdalg.h"
 #include "gfftalgfreq.h"
 #include "gfftswap.h"
 
@@ -207,6 +208,7 @@ class InFreqOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InFreq<N,NFact,T,S
         parallelization is meaningless and the sequential implementation GFFTswap2
         is inherited.
 */
+/*
 template<short_t NThreads, uint_t M, uint_t P, typename T,
 unsigned int I=0, bool C=(((1<<P)>NThreads) && ((1<<P)>=SwitchToOMP))>
 class GFFTswap2OMP;
@@ -253,6 +255,50 @@ template<short_t NThreads, int_t P, typename T, int_t I>
 class GFFTswap2OMP<NThreads,2,P,T,I,false> : public GFFTswap2<2,P,T,I> { };
 
 
+template<unsigned int NThreads, uint_t M, uint_t P, typename T,
+template<typename> class Complex, unsigned int I>
+class GFFTswap2OMP<NThreads,M,P,Complex<T>,I,true> {
+   static const int_t BN = 1<<I;
+   static const int_t BR = 1<<(P-I-1);
+   GFFTswap2OMP<NThreads/2,M,P,Complex<T>,I+1> next;
+public:
+   void apply(Complex<T>* data, const int_t n=0, const int_t r=0) {
+     #pragma omp parallel shared(data)
+     {
+       #pragma omp sections
+       {
+         #pragma omp section
+         next.apply(data,n,r);
+
+         #pragma omp section
+         next.apply(data,n|BN,r|BR);
+       }
+     }
+   }
+};
+
+template<unsigned int NThreads, uint_t M, uint_t P, typename T,
+template<typename> class Complex>
+class GFFTswap2OMP<NThreads,M,P,Complex<T>,true> {
+public:
+   void apply(Complex<T>* data, const int_t n, const int_t r) {
+      if (n>r)
+        swap(data[n],data[r]);
+   }
+};
+
+template<uint_t M, uint_t P, typename T, unsigned int I,
+template<typename> class Complex>
+class GFFTswap2OMP<1,M,P,Complex<T>,I,true> : public GFFTswap2<M,P,Complex<T>,I> { };
+
+template<uint_t M, uint_t P, typename T,
+template<typename> class Complex>
+class GFFTswap2OMP<1,M,P,Complex<T>,P,true> : public GFFTswap2<M,P,Complex<T>,P> { };
+
+template<unsigned int NThreads, uint_t M, uint_t P, typename T, unsigned int I,
+template<typename> class Complex>
+class GFFTswap2OMP<NThreads,M,P,Complex<T>,I,false> : public GFFTswap2<M,P,Complex<T>,I> { };
+*/
 
 } //namespace
 
