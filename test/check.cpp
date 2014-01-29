@@ -100,14 +100,15 @@ public:
 
 //============================================================
 
-template<class NList, class DFTClass>
+template<class NList, class DFTClass, class Place>
 class GFFTcheck;
 
 template<class H, class T, class DFTClass>
-class GFFTcheck<Loki::Typelist<H,T>, DFTClass> {
+class GFFTcheck<Loki::Typelist<H,T>, DFTClass, IN_PLACE> 
+{
   typedef typename H::ValueType::ValueType T1;
   typedef typename DFTClass::value_type T2;
-  GFFTcheck<T,DFTClass> next;
+  GFFTcheck<T,DFTClass,IN_PLACE> next;
 
   static const int_t N = H::Len;
   static const int_t N2 = 2*N;
@@ -160,22 +161,91 @@ public:
   }
 };
 
+template<class H, class T, class DFTClass>
+class GFFTcheck<Loki::Typelist<H,T>, DFTClass, OUT_OF_PLACE> {
+  typedef typename H::ValueType::ValueType T1;
+  typedef typename DFTClass::value_type T2;
+  GFFTcheck<T,DFTClass,OUT_OF_PLACE> next;
+
+  static const int_t N = H::Len;
+  static const int_t N2 = 2*N;
+  
+  H gfft;
+  
+public:
+  void apply() 
+  {
+    next.apply();
+    
+    int_t i;
+
+    T1 *data = new T1 [N2];
+    T1 *dataout = new T1 [N2];
+
+    srand(17);
+    
+    for (i=0; i < 2*N; ++i) 
+      dataout[i] = 0.;
+    
+    for (i=0; i < N; ++i) {
+      data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
+      data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
+    }
+//     for (i=0; i < N; ++i) {
+//        data[2*i] = 2*i;
+//        data[2*i+1] = 2*i+1; 
+//     }
+    
+    DFTClass dft(data, N);
+
+// apply FFT out-of-place
+    gfft.fft(data, dataout);
+    
+    dft.apply();
+
+    T2* out = dft.getdata();
+    
+    T1 d = norm_inf(dataout, N2);
+
+    for (i=0; i < N; ++i) {
+       out[2*i] -= dataout[2*i];
+       out[2*i+1] -= dataout[2*i+1]; 
+    }
+    
+    //dft.diff(data);
+    
+    T2 nr2 = norm2(out, N2);
+    T2 nrinf = norm_inf(out, N2);
+    cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
+
+    delete [] dataout;
+    delete [] data;
+  }
+};
+
 template<class DFTClass>
-class GFFTcheck<Loki::NullType, DFTClass> {
+class GFFTcheck<Loki::NullType, DFTClass, IN_PLACE> {
 public:
   void apply() { }
 };
 
+template<class DFTClass>
+class GFFTcheck<Loki::NullType, DFTClass, OUT_OF_PLACE> {
+public:
+  void apply() { }
+};
+
+
 typedef DOUBLE VType;
-typedef IN_PLACE Place;
-//typedef OUT_OF_PLACE Place;
+//typedef IN_PLACE Place;
+typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 2;
 const unsigned Max = 10;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
-//typedef GenNumList<2, 10, SIntID>::Result NList;
-typedef GenPowerList<Min, Max, 2>::Result NList;
+typedef GenNumList<2, 200, SIntID>::Result NList;
+//typedef GenPowerList<Min, Max, 2>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)
@@ -197,12 +267,12 @@ int main(int argc, char *argv[])
   
   cout.precision(16);
 
-  cout << "double-double DFT vs. FFTW:" << endl;
-  FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
-  comp.apply(Min,Max);
+//   cout << "double-double DFT vs. FFTW:" << endl;
+//   FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
+//   comp.apply(Min,Max);
   
   cout << "double-double DFT vs. GFFT:" << endl;
-  GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real> > check_dft;
+  GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
   check_dft.apply();
   
 //   cout << "FFTW:" << endl;

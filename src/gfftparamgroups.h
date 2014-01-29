@@ -37,7 +37,6 @@ struct ValueTypeGroup
   typedef TYPELIST_4(DOUBLE,FLOAT,COMPLEX_DOUBLE,COMPLEX_FLOAT) FullList;
   static const uint Length = 4;
   typedef DOUBLE Default;
-  static const uint default_id = DOUBLE::ID;
 };
 
 /// \brief Lists all acceptable types of Fast Fourier transform
@@ -48,17 +47,15 @@ struct TransformTypeGroup
   static const uint Length = 4;
 //  typedef TYPELIST_2(DFT,IDFT) Default;
   typedef DFT Default;
-  static const uint default_id = DFT::ID;
 };
 
 /// \brief Lists all acceptable parallelization methods
 /// \ingroup gr_groups
 struct ParallelizationGroup
 {
-  typedef TYPELIST_2(Serial,OpenMP<2>) FullList;
-  static const uint Length = 2;
+  typedef TYPELIST_3(Serial,OpenMP<2>,OpenMP<4>) FullList;
+  static const uint Length = 3;
   typedef Serial Default;
-  static const uint default_id = Serial::ID;
 };
 
 /// \brief Lists all acceptable decimation versions
@@ -68,7 +65,6 @@ struct DecimationGroup
   typedef TYPELIST_2(INTIME,INFREQ) FullList;
   static const uint Length = 2;
   typedef INFREQ Default;
-  static const uint default_id = INFREQ::ID;
 };
 
 /// \brief Lists in-place and out-of-place FFT algorithms
@@ -78,7 +74,6 @@ struct PlaceGroup
   typedef TYPELIST_2(IN_PLACE,OUT_OF_PLACE) FullList;
   static const uint Length = 2;
   typedef OUT_OF_PLACE Default;
-  static const uint default_id = OUT_OF_PLACE::ID;
 };
   
 }  //namespace

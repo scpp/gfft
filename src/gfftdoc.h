@@ -21,7 +21,7 @@
 
 The main feature of GFFT library is that the length of transform 
 is defined as a compile-time constant. You may compile FFT of only single length
-or easily define and compile a set of transforms, e.g. the powers of 2 from 1 to 30
+or easily define and compile a set of transforms, e.g. the powers of 2 from 1 to 25
 or a range 10,...,20, etc.
 
 The major advantage is that the first and expensive planning step usually performed 

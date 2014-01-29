@@ -279,10 +279,10 @@ public:
    }
 
    ObjectType* CreateTransformObject(int_t n, int_t vtype_id, 
-                                   int_t trans_id = TransformTypeGroup::default_id, 
+                                   int_t trans_id = TransformTypeGroup::Default::ID, 
                                    int_t dim = 1, 
-                                   int_t parall_id = ParallelizationGroup::default_id, 
-                                   int_t decim_id = DecimationGroup::default_id) 
+                                   int_t parall_id = ParallelizationGroup::Default::ID, 
+                                   int_t decim_id = DecimationGroup::Default::ID) 
    {
       int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
       int_t obj_id = Translate::apply(narr);

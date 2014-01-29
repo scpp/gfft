@@ -34,13 +34,13 @@ using namespace boost::gregorian;
 const char space = '\t';
 
 
-template<class NList>
+template<class NList, int Counter = Loki::TL::Length<NList>::value>
 class GFFTbench;
 
-template<class H, class T>
-class GFFTbench<Loki::Typelist<H,T> > {
+template<class H, class T, int Counter>
+class GFFTbench<Loki::Typelist<H,T>,Counter> {
   typedef typename H::ValueType::ValueType Tp;
-  GFFTbench<T> next;
+  GFFTbench<T,Counter-1> next;
   H gfft;
 public:
   void cputime(const int hardware_id, const int system_id,
@@ -48,7 +48,7 @@ public:
   {
      next.cputime(hardware_id,system_id,compiler_id,software_id);
 
-     size_t i,it;
+     unsigned long i,it;
      double t,mt;
      progClock* cl=new progClock();
 
@@ -92,7 +92,7 @@ public:
           <<0<<space    // array type
           <<1<<space    // dim
           <<3<<space    // CPU-time
-          <<H::Len<<space
+          <<Counter<<space
           <<mt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
@@ -105,7 +105,7 @@ public:
   {
      next.realtime(hardware_id,system_id,compiler_id,software_id);
 
-     size_t i,it;
+     unsigned long i,it;
 
      it = size_t(2000000./(double)H::Len)+1;
 
@@ -140,12 +140,13 @@ public:
           <<software_id<<space
           <<H::TransformType::ID<<space
           <<H::ValueType::ID<<space
+          <<0<<space    // decimation in-time
           <<H::PlaceType::ID<<space
           <<H::ParallType::ID+1<<space
           <<0<<space    // array type
           <<1<<space    // dim
           <<2<<space    // real time
-          <<H::Len<<space
+          <<Counter /*H::Len*/<<space
           <<rt<<endl;
       //cout<<k<<"  "<<mt<<"  "<<norm2(d-2*n,2*n)<<"  "<<norminf(d-2*n,2*n)<<endl;
 
@@ -175,11 +176,11 @@ int main(int argc, char *argv[])
     }
 
 //     typedef GenNumList<MinP, MaxP, Power2holder>::Result NList;
-    typedef GenNumList<20000, 20010, SIntID>::Result NList;
-    //typedef GenPowerList<20, 26, 2>::Result NList;
+    //typedef GenNumList<20000, 20010, SIntID>::Result NList;
+    typedef GenPowerList<1, 29, 2>::Result NList;
     typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, 
-       OpenMP<1>, OUT_OF_PLACE> List_ds;
-//        ParallelizationGroup::Default, OUT_OF_PLACE> List_ds;
+       OpenMP<2>, OUT_OF_PLACE> List_ds;
+//        ParallelizationGroup::FullList, OUT_OF_PLACE> List_ds;
 //    typedef GeneratePower2Transform<MinP, MaxP, GFFT::FLOAT,  TransformTypeGroup::Default> List_fs;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default> List_cds;
 //     typedef GeneratePower2Transform<MinP, MaxP, GFFT::COMPLEX_FLOAT,  TransformTypeGroup::Default> List_cfs;
@@ -209,11 +210,12 @@ int main(int argc, char *argv[])
           <<"soft"<<space
           <<"fwd/bkw"<<space
           <<"dbl/fl"<<space
-          <<"inT/inF"<<space
+          <<"inT"<<space
+          <<"Place"<<space
           <<"parall"<<space
-          <<0<<space    // array type
-          <<1<<space    // dim
-          <<2<<space    // real time
+          <<"a.type"<<space    // array type
+          <<"dim"<<space    // dim
+          <<"r.time"<<space    // real time
           <<"len"<<space
           <<"time"<<endl;
    cout.precision(4);

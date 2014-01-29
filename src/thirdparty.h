@@ -61,7 +61,7 @@ public:
   
   typedef T value_type;
   
-  DFT_wrapper(const T* data, int_t n) : size(n)
+  DFT_wrapper(const double* data, int_t n) : size(n)
   {
     init(data, n);
   }
@@ -77,7 +77,8 @@ public:
   
   T* getdata() const { return output_data; }
   
-  void init(const T* data, int_t n)
+  template<typename Tp>
+  void init(const Tp* data, int_t n)
   {
     input_data = new T [n*2];
     output_data = new T [n*2];
@@ -86,7 +87,8 @@ public:
        input_data[i] = data[i];
     }
   }
-  void init(const std::complex<double>* data, int_t n)
+  template<typename Tp>
+  void init(const std::complex<Tp>* data, int_t n)
   {
     input_data = new T [n*2];
     output_data = new T [n*2];
