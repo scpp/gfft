@@ -67,9 +67,7 @@ class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public Fac
    typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
    typedef Separate<N::value,T,Dir::Sign> Sep;
-   //typedef Caller<Loki::NullType> EmptySwap;
 
-   //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
    typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
    typedef typename IN_PLACE::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
@@ -108,7 +106,6 @@ uint IDN>
 class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
    typedef typename VType::ValueType T;
-   //typedef typename Parall::template Swap<N::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
    typedef Separate<N::value,T,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
@@ -286,7 +283,6 @@ public:
    {
       int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
       int_t obj_id = Translate::apply(narr);
-//std::cout<<obj_id<<std::endl;
       return factory.CreateObject(obj_id);
    }
 

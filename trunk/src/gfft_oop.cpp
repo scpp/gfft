@@ -18,8 +18,6 @@
 
 #include <iostream>
 
-#include "loki/static_check.h"
-
 #include "gfft.h"
 #include "thirdparty.h"
 
@@ -41,8 +39,6 @@ typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID
 int main(int argc, char *argv[])
 {
     cout.precision(16);
-//     unsigned int p = 2;
-//     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
     int_t i, n = N;
     //cin >> n;
    

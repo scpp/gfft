@@ -143,9 +143,6 @@ template<int_t M, int_t P,
 template<int_t> class IntHolder, typename StartList, int_t AddPower>
 struct Factorization<PowerHolder<M,P>, IntHolder, StartList, AddPower> 
 : public Factorization<SIntID<M>, IntHolder, StartList, P-1> { };
-//{
-//  typedef Loki::Typelist<Pair<IntHolder<M>, IntHolder<P> >,Loki::NullType> Result;
-//};
 
   
 }  //namespace DFT

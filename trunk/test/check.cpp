@@ -244,7 +244,7 @@ const unsigned Min = 2;
 const unsigned Max = 10;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
-typedef GenNumList<2, 200, SIntID>::Result NList;
+typedef GenNumList<2, 100, SIntID>::Result NList;
 //typedef GenPowerList<Min, Max, 2>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
