@@ -1,5 +1,5 @@
-Generative Fast Fourier Transforms (GFFT), Version 0.2
-(C) Vladimir Myrnyy, 2005-2009
+Generative Fast Fourier Transforms (GFFT), Version 0.3
+(C) Vladimir Mirnyy, 2005-2014
 
     Generic simple and efficient Fast Fourier Transforms (FFT) implementation
     using policy-based design and template metaprogramming.

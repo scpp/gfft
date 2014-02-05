@@ -20,7 +20,10 @@
 */
 
 #include "loki/Typelist.h"
+
 #include <complex>
+
+#include <omp.h>
 
 #include "sint.h"
 
@@ -296,7 +299,8 @@ struct OpenMP {
 
    template<typename T>
    void apply(T*) {
-      omp_set_num_threads(NT);
+      //omp_set_dynamic(0);
+      //omp_set_num_threads(NT);
       omp_set_nested(true);
    }
 

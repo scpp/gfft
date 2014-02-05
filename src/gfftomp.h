@@ -33,7 +33,8 @@ This static constant defines FFT length for that
 OpenMP parallelization is switched on. The overhead is
 too large for transforms with smaller sizes.
 */
-static const unsigned int SwitchToOMP = (1<<12);
+static const unsigned int SwitchToOMP = (1<<6);
+
 
 /** \class {GFFT::InTimeOMP}
 \brief %OpenMP parallelized Danielson-Lanczos section of the decimation-in-time FFT version.
@@ -52,7 +53,7 @@ in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
-bool C = ((N>NThreads) && (N>=SwitchToOMP))>
+bool C = ((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InTimeOMP;
 
 template<short_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
@@ -64,7 +65,8 @@ class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
    static const int_t LastK2 = LastK*2;
-   static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
+   static const short_t NThreadsCreate = (NThreads > K) ? K : NThreads;
+   static const short_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
@@ -73,12 +75,9 @@ class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
 public:
    void apply(T* data) 
    {
-      #pragma omp parallel shared(data) 
-      {
-	#pragma omp for schedule(static)
-	for (int_t m = 0; m < N2; m+=M2)
-	  dft_str.apply(data + m);
-      }
+      #pragma omp parallel for shared(data) schedule(static) num_threads(NThreadsCreate)
+      for (int_t m = 0; m < N2; m+=M2)
+	dft_str.apply(data + m);
       
       dft_scaled.apply(data);
    }
@@ -94,7 +93,7 @@ class InTimeOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTime<N,NFact,T,S
 ///////////////////////
 
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
-bool C = ((N>NThreads) && (N>=SwitchToOMP))>
+bool C = ((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InTimeOOP_OMP;
 
 template<short_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
@@ -106,7 +105,8 @@ class InTimeOOP_OMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
    static const int_t LastK2 = LastK*2;
-   static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
+   static const short_t NThreadsCreate = (NThreads > K) ? K : NThreads;
+   static const short_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
@@ -116,14 +116,11 @@ public:
 
    void apply(const T* src, T* dst) 
    {
-      #pragma omp parallel shared(src,dst) 
-      {
-	int_t m, lk;
-	#pragma omp for schedule(static) private(m,lk)
-	for (m = lk = 0; m < N2; m+=M2) {
-	  dft_str.apply(src + lk, dst + m);
-	  lk += LastK2;
-	}
+      int_t m, lk;
+      #pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
+      for (m = lk = 0; m < N2; m+=M2) {
+	dft_str.apply(src + lk, dst + m);
+	lk += LastK2;
       }
       
       dft_scaled.apply(dst);
@@ -155,7 +152,7 @@ in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
-bool C=((N>NThreads) && (N>=SwitchToOMP))>
+bool C=((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InFreqOMP;
 
 template<unsigned int NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
@@ -167,7 +164,8 @@ class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
    static const int_t M2 = M*2;
    static const int_t N2 = N*2;
    static const int_t LastK2 = LastK*2;
-   static const short_t NThreadsNext = (NThreads > K) ? NThreads/K : 1;
+   static const short_t NThreadsCreate = (NThreads > K) ? K : NThreads;
+   static const short_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
@@ -179,13 +177,10 @@ public:
    {
       dft_scaled.apply(data);
 
-      #pragma omp parallel shared(data) 
-      {
       // K times call to dft_str.apply()
-	#pragma omp for schedule(static)
-	for (int_t m = 0; m < N2; m+=M2)
-	  dft_str.apply(data + m);
-      }
+      #pragma omp parallel for shared(data) schedule(static) num_threads(NThreadsCreate)
+      for (int_t m = 0; m < N2; m+=M2)
+	dft_str.apply(data + m);
    }
 };
 
