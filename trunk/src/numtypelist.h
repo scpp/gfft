@@ -15,7 +15,7 @@
 #ifndef __numtypelist_h
 #define __numtypelist_h
 
-#include "loki/Typelist.h"
+#include "Typelist.h"
 
 #include "sint.h"
 

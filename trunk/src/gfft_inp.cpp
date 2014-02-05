@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "loki/static_check.h"
+#include "static_check.h"
 
 #include "gfft.h"
 #include "thirdparty.h"

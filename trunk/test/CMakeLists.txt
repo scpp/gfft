@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.6)
 project(gfft)
 
 
+include_directories(../loki)
 include_directories(../src)
 
 #add definitions, compiler switches, etc.

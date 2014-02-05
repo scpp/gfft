@@ -24,9 +24,9 @@
 #include "numtypelist.h"
 #include "typelistext.h"
 
-#include "loki/Typelist.h"
-#include "loki/TypeManip.h"
-#include "loki/TypeTraits.h"
+#include "Typelist.h"
+#include "TypeManip.h"
+#include "TypeTraits.h"
 
 #include <iostream>
 

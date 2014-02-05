@@ -15,7 +15,7 @@
 #ifndef __caller_h
 #define __caller_h
 
-#include "loki/Typelist.h"
+#include "Typelist.h"
 
 /** \file
     \brief Caller classes

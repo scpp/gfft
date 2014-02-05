@@ -19,7 +19,7 @@
     \brief Initialization of object factory
 */
 
-#include "loki/Typelist.h"
+#include "Typelist.h"
 
 template<class TList>
 struct FactoryInit;

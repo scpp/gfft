@@ -19,7 +19,7 @@
     \brief Policy classes
 */
 
-#include "loki/Typelist.h"
+#include "Typelist.h"
 
 #include <complex>
 

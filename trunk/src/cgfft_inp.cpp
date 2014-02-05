@@ -42,8 +42,6 @@ typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID
 int main(int argc, char *argv[])
 {
     cout.precision(16);
-//     unsigned int p = 2;
-//     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
     int_t i, n = N;
     //cin >> n;
    
@@ -59,7 +57,7 @@ int main(int argc, char *argv[])
 // create sample data
     CT* data = new CT[n];
     for (i=0; i < n; ++i) {
-      // distribute in [-0.5;0.5] as in FFTW
+      // distribute in [-0.5;0.5] as in FFTW's benchmarks
        //data[i] = std::complex(rand()/(double)RAND_MAX - 0.5, rand()/(double)RAND_MAX - 0.5);
        data[i] = CT(2*i, 2*i+1); 
     }
