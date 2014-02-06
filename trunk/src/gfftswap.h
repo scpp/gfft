@@ -203,36 +203,6 @@ public:
 };
 
 
-
-template<uint_t M, uint_t P, typename T, uint_t I=0, uint_t L=0, uint_t R=0>
-class StaticSwap;
-
-template<uint_t P, typename T, uint_t I, uint_t L, uint_t R>
-class StaticSwap<2,P,T,I,L,R> {
-   static const uint_t BN = 1<<(I+1);
-   static const uint_t BR = 1<<(P-I);
-   static const uint_t NL = L|BN;
-   static const uint_t NR = R|BN;
-   StaticSwap<2,P,T,I+1,0,0> NextL;
-   StaticSwap<2,P,T,I+1,NL,NR> NextR;
-public:
-   void apply(T* data, int_t n=0, int_t r=0) {
-//       next.apply(data,n,r);
-//       next.apply(data,n|BN,r|BR);
-   }
-};
-
-template<uint_t P, typename T, uint_t L, uint_t R>
-class StaticSwap<2,P,T,P,L,R> {
-public:
-   void apply(T* data, int_t n=0, int_t r=0) {
-      if (n>r) {
-//         swap(data[n],data[r]);
-//         swap(data[n+1],data[r+1]);
-      }
-   }
-};
-
 /// Reordering of data for real-valued transforms
 /*!
 \tparam N length of the data

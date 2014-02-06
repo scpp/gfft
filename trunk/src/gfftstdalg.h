@@ -57,7 +57,6 @@ class DFTk_x_Im_T<K,M,Complex<T>,S,W,false>
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
    static const int_t N = K*M;
-   //static const int_t M2 = M*2;
    DFTk_inp<K,M,Complex<T>,S> spec_inp;
 public:
    void apply(Complex<T>* data) 
@@ -204,9 +203,6 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, Complex<T>, S, W1, LastK>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-//    static const int_t M2 = M*2;
-//    static const int_t N2 = N*2;
-//    static const int_t LastK2 = LastK*2;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
