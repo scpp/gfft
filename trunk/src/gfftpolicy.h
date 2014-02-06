@@ -267,9 +267,9 @@ struct IRDFT {
 */
 struct Serial {
    static const id_t ID = 0;
-   static const uint NParProc = 1;
+   static const uint_t NParProc = 1;
 
-   template<uint M, uint P, class T>
+   template<uint_t M, uint_t P, class T>
    struct Swap {
       typedef GFFTswap2<M,P,T> Result;
    };
@@ -289,7 +289,7 @@ struct Serial {
 template<unsigned int NT>
 struct OpenMP {
    static const id_t ID = NT-1;
-   static const uint NParProc = NT;
+   static const uint_t NParProc = NT;
 
    template<uint_t M, uint_t P, class T>
    struct Swap {

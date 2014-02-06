@@ -45,21 +45,21 @@ and generates Typelist of unique sets of parameters to define Transform.
 The entry may be either a type or a Typelist.
 */
 template<class TList, class TLenList, 
-         template<class,uint> class DefTrans,
-         class WorkingList=Loki::NullType, uint ID=0>
+         template<class,uint_t> class DefTrans,
+         class WorkingList=Loki::NullType, uint_t ID=0>
 struct ListGenerator;
 
 // H is a simple type
-template<class H, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
+template<class H, class Tail, uint_t N, class NTail, 
+         template<class,uint_t> class DefTrans, class WorkingList, uint_t ID>
 struct ListGenerator<Loki::Typelist<H,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
    typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
 };
 
 // Typelist is in the head
-template<class H, class T, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
+template<class H, class T, class Tail, uint_t N, class NTail, 
+         template<class,uint_t> class DefTrans, class WorkingList, uint_t ID>
 struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
    typedef typename ListGenerator<Loki::Typelist<T,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID>::Result L1;
@@ -67,15 +67,15 @@ struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,Loki::Typelist<s_u
    typedef typename Loki::TL::Append<L1,L2>::Result Result;
 };
 
-template<class H, class Tail, uint N, class NTail, 
-         template<class,uint> class DefTrans, class WorkingList, uint ID>
+template<class H, class Tail, uint_t N, class NTail, 
+         template<class,uint_t> class DefTrans, class WorkingList, uint_t ID>
 struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,
                      Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<H,WorkingList> WList;
    typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
 };
 
-template<template<class,uint> class DefTrans, class WorkingList, uint ID>
+template<template<class,uint_t> class DefTrans, class WorkingList, uint_t ID>
 struct ListGenerator<Loki::NullType,Loki::NullType,DefTrans,WorkingList,ID> {
    typedef Loki::Typelist<typename DefTrans<WorkingList,ID>::Result,Loki::NullType> Result;
 };

@@ -35,7 +35,7 @@ namespace GFFT {
 struct ValueTypeGroup
 {
   typedef TYPELIST_4(DOUBLE,FLOAT,COMPLEX_DOUBLE,COMPLEX_FLOAT) FullList;
-  static const uint Length = 4;
+  static const uint_t Length = 4;
   typedef DOUBLE Default;
 };
 
@@ -44,7 +44,7 @@ struct ValueTypeGroup
 struct TransformTypeGroup
 {
   typedef TYPELIST_4(DFT,IDFT,RDFT,IRDFT) FullList;
-  static const uint Length = 4;
+  static const uint_t Length = 4;
 //  typedef TYPELIST_2(DFT,IDFT) Default;
   typedef DFT Default;
 };
@@ -54,7 +54,7 @@ struct TransformTypeGroup
 struct ParallelizationGroup
 {
   typedef TYPELIST_3(Serial,OpenMP<2>,OpenMP<4>) FullList;
-  static const uint Length = 3;
+  static const uint_t Length = 3;
   typedef Serial Default;
 };
 
@@ -63,7 +63,7 @@ struct ParallelizationGroup
 struct DecimationGroup
 {
   typedef TYPELIST_2(INTIME,INFREQ) FullList;
-  static const uint Length = 2;
+  static const uint_t Length = 2;
   typedef INFREQ Default;
 };
 
@@ -72,7 +72,7 @@ struct DecimationGroup
 struct PlaceGroup
 {
   typedef TYPELIST_2(IN_PLACE,OUT_OF_PLACE) FullList;
-  static const uint Length = 2;
+  static const uint_t Length = 2;
   typedef OUT_OF_PLACE Default;
 };
   

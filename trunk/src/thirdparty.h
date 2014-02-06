@@ -24,8 +24,9 @@
 #endif
 
 //#include "nrfft.h"
-
+#ifdef ARPREC
 #include <arprec/mp_real.h>
+#endif
 
 
 template<class T>
@@ -36,10 +37,10 @@ class DFT_wrapper
     T pi2 = (inverse) ? 2.0 * M_PI : -2.0 * M_PI;
     T a, ca, sa;
     T invs = 1.0 / size;
-    for(unsigned int y = 0; y < size; y++) {
+    for(int_t y = 0; y < size; y++) {
       output_data[2*y] = 0.;
       output_data[2*y+1] = 0.;
-      for(unsigned int x = 0; x < size; x++) {
+      for(int_t x = 0; x < size; x++) {
 	a = pi2 * y * x * invs;
 	ca = cos(a);
 	sa = sin(a);
@@ -114,8 +115,9 @@ public:
   void diff(std::complex<Tp>* data)
   {
     for (int_t i=0; i<size; ++i) {
-      data[i].real() -= output_data[2*i];
-      data[i].imag() -= output_data[2*i+1];
+      //data[i].real() -= output_data[2*i];
+      //data[i].imag() -= output_data[2*i+1];
+	  data[i] -= std::complex<Tp>(output_data[2*i], output_data[2*i+1]);
     }
   }
 };

@@ -49,7 +49,7 @@ class Dim,
 class Parall,
 class Place,              // IN_PLACE, OUT_OF_PLACE
 class FactoryPolicy = Empty,
-uint IDN = N::ID>
+uint_t IDN = N::ID>
 class Transform;
 
 
@@ -59,7 +59,7 @@ class Type,                    // DFT, IDFT, RDFT, IRDFT
 class Dim,
 class Parall,
 class FactoryPolicy,
-uint IDN>
+uint_t IDN>
 class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
    typedef typename VType::ValueType T;
@@ -102,7 +102,7 @@ class Type,                    // DFT, IDFT, RDFT, IRDFT
 class Dim,
 class Parall,
 class FactoryPolicy,
-uint IDN>
+uint_t IDN>
 class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
 {
    typedef typename VType::ValueType T;
@@ -153,7 +153,7 @@ This template class extracts all the parameters from TList directly without
 iterations and substitutes them into Transform class. Obviously,
 all the types of substituted template parameters must be correct.
 */
-template<class TList, uint ID>
+template<class TList, uint_t ID>
 struct DefineTransform {
    typedef typename TList::Tail::Head VType;
    typedef typename TList::Tail::Tail::Head TransformType;
@@ -171,14 +171,14 @@ struct DefineTransform {
 template<class NList>
 struct TranslateID;
 
-template<uint N, class T>
+template<uint_t N, class T>
 struct TranslateID<Loki::Typelist<s_uint<N>,T> > {
    static unsigned int apply(const int_t* n) {
       return TranslateID<T>::apply(n+1)*N + *n;
    }
 };
 
-template<uint N>
+template<uint_t N>
 struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
    static unsigned int apply(const int_t* n) {
       return *n;

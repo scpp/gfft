@@ -72,8 +72,8 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	t2.real() += sign_change ? -s1 : s1;
-	t2.imag() -= sign_change ? -s2 : s2;
+	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	t2 += tt;
       }
       const int_t k = i*M;
       data[k] = data[0] + t1 + t2;
@@ -104,8 +104,8 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	t2.real() += sign_change ? -s1 : s1;
-	t2.imag() -= sign_change ? -s2 : s2;
+	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	t2 += tt;
       }
       const int_t k = i*M;
       data[k] = data[0] + t1 + t2;
@@ -227,8 +227,8 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	t2.real() += sign_change ? -s1 : s1;
-	t2.imag() -= sign_change ? -s2 : s2;
+	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	t2 += tt;
       }
       const int_t k = i*DI;
       dst[k] = src[0] + t1 + t2;

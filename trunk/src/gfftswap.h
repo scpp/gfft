@@ -129,11 +129,11 @@ public:
 \tparam M^P length of the data
 \tparam T value type
 */
-template<uint M, uint P, typename T,
+template<uint_t M, uint_t P, typename T,
 template<typename> class Complex>
 class SwapNR<M,P,Complex<T> > 
 {
-  static const uint N = IPow<M,P>::value;
+  static const uint_t N = IPow<M,P>::value;
 public:
    void apply(Complex<T>* data) {
      int_t m,j=0;
