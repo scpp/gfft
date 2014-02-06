@@ -6,7 +6,7 @@ project(gfft)
 include_directories(../loki)
 
 ### GCC compiler
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DGFFTDOC)
+add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DGFFTDOC -DARPREC)
 #add_definitions(-time -Wall -O0 -g3 -fopenmp -ftemplate-depth=10000 -DGFFTDOC)
 
 ### Intel compiler
