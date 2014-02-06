@@ -24,9 +24,9 @@
 #endif
 
 //#include "nrfft.h"
-#ifdef ARPREC
+//#ifdef ARPREC
 #include <arprec/mp_real.h>
-#endif
+//#endif
 
 
 template<class T>
