@@ -66,6 +66,7 @@ For instance, it is known that gcc 3.x hangs up, when trying to compile %GFFT in
 Newer compilers can handle template classes much better and faster.
 GFFT 0.3 is succesfully tested with
 - GNU gcc 4.7.x, 4.8.x
+- MS Visual Studio 2012
 
 Other compilers will be tested soon.
 
