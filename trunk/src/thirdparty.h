@@ -27,6 +27,9 @@
 #include "qd/qd_real.h"
 #endif
 
+double to_double(const double d) { return d; }
+
+
 template<class T>
 class DFT_wrapper 
 {
