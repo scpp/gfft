@@ -1,0 +1,5 @@
+Source files in this folder require external libraries:
+- FFTW 
+- QD (quad-double) 
+Those two are open-source libraries and provided within many Linux distributions
+
