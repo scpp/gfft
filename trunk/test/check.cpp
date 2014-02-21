@@ -13,14 +13,13 @@
  ***************************************************************************/
 
 /** \file
-    \brief Check GFFT results comparing to FFTW and NR
+    \brief Check accuracy of GFFT results comparing to FFTW and DFT of double-double precision
 */
 
 #include <iostream>
 
 #include "gfft.h"
 #include "thirdparty.h"
-
 
 using namespace std;
 
@@ -130,6 +129,7 @@ public:
       data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
       data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
     }
+    // Another input dataset
 //     for (i=0; i < N; ++i) {
 //        data[2*i] = 2*i;
 //        data[2*i+1] = 2*i+1; 
@@ -137,24 +137,19 @@ public:
     
     DFTClass dft(data, N);
 
-// apply FFT in-place
+    // apply FFT in-place
     gfft.fft(data);
     
+    // External DFT
     dft.apply();
 
-    T2* out = dft.getdata();
-    
     T1 d = norm_inf(data, N2);
 
-    for (i=0; i < N; ++i) {
-       out[2*i] -= data[2*i];
-       out[2*i+1] -= data[2*i+1]; 
-    }
+    // Subtract result of dft from data
+    dft.diff(data);
     
-    //dft.diff(data);
-    
-    T2 nr2 = norm2(out, N2);
-    T2 nrinf = norm_inf(out, N2);
+    T1 nr2 = norm2(data, N2);
+    T1 nrinf = norm_inf(data, N2);
     cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
 
     delete [] data;
@@ -191,6 +186,7 @@ public:
       data[2*i] = rand()/(T1)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
       data[2*i+1] = rand()/(T1)RAND_MAX - 0.5;
     }
+    // Another input dataset
 //     for (i=0; i < N; ++i) {
 //        data[2*i] = 2*i;
 //        data[2*i+1] = 2*i+1; 
@@ -198,24 +194,19 @@ public:
     
     DFTClass dft(data, N);
 
-// apply FFT out-of-place
+    // apply FFT out-of-place
     gfft.fft(data, dataout);
     
+    // External DFT
     dft.apply();
 
-    T2* out = dft.getdata();
-    
     T1 d = norm_inf(dataout, N2);
 
-    for (i=0; i < N; ++i) {
-       out[2*i] -= dataout[2*i];
-       out[2*i+1] -= dataout[2*i+1]; 
-    }
+    // Subtract result of dft from dataout
+    dft.diff(dataout);
     
-    //dft.diff(data);
-    
-    T2 nr2 = norm2(out, N2);
-    T2 nrinf = norm_inf(out, N2);
+    T1 nr2 = norm2(dataout, N2);
+    T1 nrinf = norm_inf(dataout, N2);
     cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << endl;
 
     delete [] dataout;
@@ -244,8 +235,8 @@ const unsigned Min = 2;
 const unsigned Max = 10;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
-typedef GenNumList<2, 100, SIntID>::Result NList;
-//typedef GenPowerList<Min, Max, 2>::Result NList;
+//typedef GenNumList<2, 100, SIntID>::Result NList;
+typedef GenPowerList<Min, Max, 2>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)
@@ -260,6 +251,14 @@ ostream& operator<<(ostream& os, const qd_real& v)
   return os;
 }
 
+void print_header() 
+{
+  cout<<"------------------------------------------------------------------------------"<<endl;
+  cout<<" N              Norm2                   NormInf           Relative NormInf    "<<endl;
+  cout<<"------------------------------------------------------------------------------"<<endl;
+}
+
+
 int main(int argc, char *argv[])
 {
   unsigned int oldcw;
@@ -267,22 +266,24 @@ int main(int argc, char *argv[])
   
   cout.precision(16);
 
-//   cout << "double-double DFT vs. FFTW:" << endl;
-//   FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
-//   comp.apply(Min,Max);
+  cout << "double-double DFT vs. FFTW:" << endl;
+  FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
+  print_header();
+  comp.apply(Min,Max);
+  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
   cout << "double-double DFT vs. GFFT:" << endl;
   GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
+  print_header();
   check_dft.apply();
+  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
-//   cout << "FFTW:" << endl;
-//   GFFTcheck<typename Trans::Result, FFTW_wrapper> check_fftw;
-//   check_fftw.apply();
+  cout << "GFFT vs. FFTW:" << endl;
+  GFFTcheck<typename Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
+  print_header();
+  check_fftw.apply();
+  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
 
-//   cout << "ARPREC:" << endl;
-//   GFFTcheck<typename Trans::Result, Arprec_wrapper> check_arprec;
-//   check_arprec.apply();
-  
   fpu_fix_end(&oldcw);
   return 0;
 }

@@ -20,14 +20,12 @@
 
 #ifdef FFTW
 #include <fftw3.h>
-//#include <boost/iterator/iterator_concepts.hpp>
 #endif
 
-//#include "nrfft.h"
-#ifdef ARPREC
-#include <arprec/mp_real.h>
+#ifdef QD
+#include "qd/dd_real.h"
+#include "qd/qd_real.h"
 #endif
-
 
 template<class T>
 class DFT_wrapper 
@@ -109,16 +107,33 @@ public:
   void diff(Tp* data)
   {
     for (int_t i=0; i<size*2; ++i) 
-      data[i] -= output_data[i];
+      data[i] -= to_double(output_data[i]);
   }
   template<class Tp>
   void diff(std::complex<Tp>* data)
   {
     for (int_t i=0; i<size; ++i) {
-      //data[i].real() -= output_data[2*i];
-      //data[i].imag() -= output_data[2*i+1];
-	  data[i] -= std::complex<Tp>(output_data[2*i], output_data[2*i+1]);
+      data[i] -= std::complex<Tp>(output_data[2*i], output_data[2*i+1]);
     }
+  }
+  
+  T norm2() 
+  { 
+    T s = 0.;
+    for (int_t i=0; i<size*2; ++i) {
+      s += output_data[i]*output_data[i];
+    }
+    return sqrt(s);
+  }
+  
+  T norm_inf() 
+  {
+    if (size<1) return 0.;
+    T d=fabs(output_data[0]);
+    for (int_t i=1; i<size*2; ++i) {
+      if (fabs(output_data[i])>d) d=fabs(output_data[i]);
+    }
+    return d;
   }
 };
 
@@ -145,6 +160,8 @@ public:
     fftw_free(out);
   }
   
+  T* getdata() const { return out; }
+
   void init(const double* data, int_t n)
   {
     in = (T*)fftw_malloc(sizeof(T)*n);
@@ -162,74 +179,36 @@ public:
     fftw_execute(plan);
   }
   
-  template<typename OtherType>
-  void diff(OtherType* data)
+  template<typename AnotherType>
+  void diff(AnotherType* data)
   {
     for (int_t i=0; i<size; ++i) {
       data[2*i]   -= out[i][0];
       data[2*i+1] -= out[i][1];
     }
   }
+  
+  double norm2() 
+  {
+    double s = 0.;
+    for (int_t i=0; i<size; ++i) {
+      s += out[i][0]*out[i][0];
+      s += out[i][1]*out[i][1];
+    }
+    return sqrt(s);
+  }
+
+  double norm_inf() 
+  {
+    if (size<1) return 0.;
+    double d=fabs(out[0][0]);
+    if (fabs(out[0][1])>d) d=fabs(out[0][1]);
+    for (int_t i=1; i<size; ++i) {
+      if (fabs(out[i][0])>d) d=fabs(out[i][0]);
+      if (fabs(out[i][1])>d) d=fabs(out[i][1]);
+    }
+    return d;
+  }
 };
 #endif
-
-template<class T>
-class Arprec_wrapper 
-{
-    T* y;
-    T* in;
-    int_t size;
-    int m, m1, m2;
-public:
-  Arprec_wrapper(const T* data, int_t n) : size(n)
-  {
-    init(data, n);
-  }
-  ~Arprec_wrapper() 
-  {
-    delete [] in;
-    delete [] y;
-  }
-  
-  T* getdata() const { return in; }
-  
-  void init(const T* data, int_t n)
-  {
-     in = new T [n * 2];
-
-     m = log(n)/log(2);
-     m1 = ((m + 1) / 2);
-     m2 = (m - (m + 1) / 2);
-     int n1 = 1 << m1;
-     y = new T [(n + n1 * mp::mpnsp1) * 2];
-//     y = new T [n * 4];
-     mp_real::mpinix(n);
-   
-// print out sample data
-//     cout<<"Input data:"<<endl;
-//     for (int i=0; i < n; ++i)
-//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
-
-     for (int_t i=0; i < 2*n; ++i) {
-       in[i] = data[i];
-     }
-  }
-  
-  void apply()
-  {
-    mp_real::mpfft1(-1, m, m1, m2, in, y);
-
-    // print out sample data
-//     cout<<"Output data:"<<endl;
-//     for (int i=0; i < size; ++i)
-//       cout<<"("<<in[2*i]<<","<<in[2*i+1]<<")"<<endl;
-  }
-  
-  void diff(T* data)
-  {
-    for (int_t i=0; i<2*size; ++i) {
-      data[i]   -= in[i];
-    }
-  }
-};
 

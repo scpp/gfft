@@ -268,6 +268,7 @@ class GenerateTransform {
 public:
    typedef typename ListGenerator<RevList,RevLenList,DefineTransform>::Result Result;
    typedef typename Place::template Interface<typename T::ValueType>::Result ObjectType;
+   typedef Place PlaceType;
 
    Loki::Factory<ObjectType,int_t,ObjectType*(*)(),TransformFactoryError> factory;
 
