@@ -40,7 +40,9 @@ class IterateInTime
    typedef typename TempTypeTrait<T>::Result LocalVType;
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
-   static const int_t M2 = M*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
    static const int_t N = K*M;
 
    typedef typename GetNextRoot<NIter+1,N,W1,W,2>::Result Wnext;
@@ -53,7 +55,7 @@ public:
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
 
-      spec_inp.apply(data + (NIter-1)*2, &wr, &wi);
+      spec_inp.apply(data + (NIter-1)*C, &wr, &wi);
 
       next.apply(data);
    }
@@ -67,7 +69,9 @@ class IterateInTime<K,M,T,S,W1,M,W>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    typedef Compute<typename W::Re,2> WR;
    typedef Compute<typename W::Im,2> WI;
-   static const int_t M2 = M*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
    static const int_t N = K*M;
    DFTk_inp<K,M2,T,S> spec_inp;
 public:
@@ -76,14 +80,16 @@ public:
       const LocalVType wr = WR::value();
       const LocalVType wi = WI::value();
 
-      spec_inp.apply(data + (M-1)*2, &wr, &wi);
+      spec_inp.apply(data + (M-1)*C, &wr, &wi);
    }
 };
 
 // First step in the loop
 template<int_t K, int_t M, typename T, int S, class W1, class W>
-class IterateInTime<K,M,T,S,W1,1,W> {
-   static const int_t M2 = M*2;
+class IterateInTime<K,M,T,S,W1,1,W> 
+{
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
    DFTk_inp<K,M2,T,S> spec_inp;
    IterateInTime<K,M,T,S,W1,2,W> next;
 public:
@@ -262,7 +268,7 @@ class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
 //   // Not implemented, because not allowed
    void apply(T* data) 
    {
-#error Transforms in-place are allowed for powers of primes only!!!
+//#error Transforms in-place are allowed for powers of primes only!!!
    }
 };
 
@@ -280,8 +286,8 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-//   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -345,8 +351,8 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InTimeOOP<M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-//   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
+//   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,M,T,S,W1,false> dft_scaled;
 public:
 
    void apply(const T* src, T* dst) 
