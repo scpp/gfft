@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(gfft)
-
-#if you don't want the full compiler output, remove the following line
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 ### If you turn on one of the following compiler definitions
@@ -12,8 +9,13 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 #set(CMAKE_CC_COMPILER gcc)
 
 ### Intel compiler
-#set(CMAKE_CXX_COMPILER icpc)
+set(CMAKE_CXX_COMPILER icpc)
 #set(CMAKE_CC_COMPILER icc)
 
+project(gfft)
+
+#if you don't want the full compiler output, remove the following line
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 add_subdirectory(src)
-add_subdirectory(test)
+#add_subdirectory(test)

@@ -256,12 +256,15 @@ The scaled DFT is performed afterwards.
 template<int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1>
 class InTime;
 
-// template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-// class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
-// {
+template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
+class InTime<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
+{
 //   // Not implemented, because not allowed
-//   // Transforms in-place are allowed for powers of primes only!!!
-// };
+   void apply(T* data) 
+   {
+#error Transforms in-place are allowed for powers of primes only!!!
+   }
+};
 
 template<int_t N, typename Head, typename T, int S, class W1, int_t LastK>
 class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
@@ -269,8 +272,10 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
+   
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
@@ -296,8 +301,10 @@ class InTime<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK>
 
 // Specialization for a prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
-class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
-  DFTk_inp<N, 2, T, S> spec_inp;
+class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> 
+{
+  static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+  DFTk_inp<N, C, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
@@ -329,9 +336,11 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, T, S, W1, LastK>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
+   
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+   static const int_t LastK2 = LastK*C;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
@@ -360,7 +369,12 @@ class InTimeOOP<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK
 // Specialization for prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
 class InTimeOOP<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> 
-: public DFTk<N, LastK*2, 2, T, S> {};
+{
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   DFTk<N, LastK*C, C, T, S> spec;
+public:
+   void apply(const T* src, T* dst) { spec.apply(src, dst); }
+};
 
   
 }  //namespace DFT

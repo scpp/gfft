@@ -375,9 +375,11 @@ class InFreq<N, Loki::Typelist<Head,Loki::NullType>, T, S, W1, LastK>
    typedef typename TempTypeTrait<T>::Result LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+   static const int_t LastK2 = LastK*C;
    
 //    typedef typename Loki::TL::Next<RList,K-1>::Result RListK;
    typedef typename IPowBig<W1,K>::Result WK;
@@ -406,7 +408,8 @@ class InFreq<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, T, S, W1, LastK>
 // Specialization for prime N
 template<int_t N, typename T, int S, class W1, int_t LastK>
 class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,T,S,W1,LastK> {
-  DFTk_inp<N, 2, T, S> spec_inp;
+  static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+  DFTk_inp<N, C, T, S> spec_inp;
 public:
   void apply(T* data) 
   { 
