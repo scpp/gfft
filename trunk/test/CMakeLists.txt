@@ -9,7 +9,7 @@ add_executable(gfft_accuracy gfft_accuracy.cpp)
 
 #need to link to some other libraries ? just add them here
 
-if(CMAKE_CXX_COMPILER MATCHES "[*icpc]")
+if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### Intel compiler
 add_definitions(-openmp -O3 -DFFTW -DQD)
@@ -17,12 +17,12 @@ add_definitions(-openmp -O3 -DFFTW -DQD)
 target_link_libraries(gfft_performance iomp5)
 target_link_libraries(gfft_accuracy iomp5 fftw3 fftw3l qd)
 
-elseif(CMAKE_CXX_COMPILER MATCHES "[*cl.exe]")
+elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 
 ### MSVC compiler
 add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
-else(CMAKE_CXX_COMPILER MATCHES "[*icpc]")
+else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler 
 add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
@@ -30,4 +30,4 @@ add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
 target_link_libraries(gfft_performance gomp)
 target_link_libraries(gfft_accuracy gomp fftw3 fftw3l qd)
 
-endif(CMAKE_CXX_COMPILER MATCHES "[*icpc]")
+endif(CMAKE_CXX_COMPILER MATCHES "icpc")
