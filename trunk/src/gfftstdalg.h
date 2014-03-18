@@ -46,27 +46,28 @@ The class performs DFT(k) with the Kronecker product by the mxm identity matrix 
 and twiddle factors (T).
 \sa InTime
 */
-template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop>
-class DFTk_x_Im_T;
+// template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop,
+// bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+// class DFTk_x_Im_T;
 
-template<int_t K, int_t M, typename T, int S, class W,
-template<typename> class Complex>
-class DFTk_x_Im_T<K,M,Complex<T>,S,W,false>
+template<int_t K, int_t M, typename VType, int S, class W>
+class DFTk_x_Im_T<K,M,VType,S,W,false,false>
 {
-   //typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
+   typedef typename VType::ValueType CT;
+   typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,VType::Accuracy> WR;
+   typedef Compute<typename W::Im,VType::Accuracy> WI;
    static const int_t N = K*M;
-   DFTk_inp<K,M,Complex<T>,S> spec_inp;
+   DFTk_inp<K,M,VType,S> spec_inp;
 public:
-   void apply(Complex<T>* data) 
+   void apply(CT* data) 
    {
       spec_inp.apply(data);
 
-      Complex<T> w[K-1], wp[K-1];
+      CT w[K-1], wp[K-1];
 
       // W = (wpr[0], wpi[0])
-      wp[0] = Complex<T>(WR::value(), WI::value());
+      wp[0] = LocalVType(WR::value(), WI::value());
       //LocalVType t = Sin<N,1,LocalVType>::value();
 //       wp[0] = Complex<LocalVType>(1 - 2.0*t*t, -S*Sin<N,2,LocalVType>::value());
       
@@ -87,30 +88,30 @@ public:
   
 };
 
-template<int_t M, typename T, int S, class W,
-template<typename> class Complex>
-class DFTk_x_Im_T<3,M,Complex<T>,S,W,false> {
-   //typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
+template<int_t M, typename VType, int S, class W>
+class DFTk_x_Im_T<3,M,VType,S,W,false,false> 
+{
+   typedef typename VType::ValueType CT;
+   //typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,VType::Accuracy> WR;
+   typedef Compute<typename W::Im,VType::Accuracy> WI;
    static const int_t N = 3*M;
-   //static const int_t M2 = M*2;
-   DFTk_inp<3,M,Complex<T>,S> spec_inp;
+   DFTk_inp<3,M,VType,S> spec_inp;
 public:
-   void apply(Complex<T>* data) 
+   void apply(CT* data) 
    {
       spec_inp.apply(data);
 
-      Complex<T> w[2];
+      CT w[2];
 
       // W = (wpr1, wpi1)
 //       LocalVType t = Sin<N,1,LocalVType>::value();
 //       const LocalVType wpr1 = 1 - 2.0*t*t;
 //       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
-      Complex<T> wp1(WR::value(), WI::value());
+      CT wp1(WR::value(), WI::value());
       
       // W^2 = (wpr2, wpi2)
-      Complex<T> wp2(wp1*wp1);
+      CT wp2(wp1*wp1);
       
       w[0] = wp1;
       w[1] = wp2;
@@ -123,24 +124,25 @@ public:
    }
 };
 
-template<int_t M, typename T, int S, class W,
-template<typename> class Complex>
-class DFTk_x_Im_T<2,M,Complex<T>,S,W,false> {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
-   DFTk_inp<2,M,Complex<T>,S> spec_inp;
+template<int_t M, typename VType, int S, class W>
+class DFTk_x_Im_T<2,M,VType,S,W,false,false> 
+{
+   typedef typename VType::ValueType CT;
+   typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,VType::Accuracy> WR;
+   typedef Compute<typename W::Im,VType::Accuracy> WI;
+   DFTk_inp<2,M,VType,S> spec_inp;
 public:
-   void apply(Complex<T>* data) 
+   void apply(CT* data) 
    {
       spec_inp.apply(data);
 
 //    LocalVType  t = Sin<N,1,LocalVType>::value();
 //       const LocalVType wpr = 1-2.0*t*t;
 //       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      Complex<T> wp(WR::value(), WI::value());
+      CT wp(WR::value(), WI::value());
 
-      Complex<T> w(wp);
+      CT w(wp);
       for (int_t i=1; i<M; i++) {
 	spec_inp.apply(data+i, &w);
 

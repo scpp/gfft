@@ -30,7 +30,7 @@ add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler 
-add_definitions(-m32 -time -Wall -fopenmp -O3 -DGFFTDOC)
+add_definitions(-time -Wall -fopenmp -O3 -DGFFTDOC)
 
 target_link_libraries(gfft_inp gomp)
 target_link_libraries(gfft_oop gomp)

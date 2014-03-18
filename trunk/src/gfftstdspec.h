@@ -36,13 +36,14 @@ using namespace MF;
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename T, int S,
-template<typename> class Complex>
-class DFTk_inp<N,M,Complex<T>,S>
+template<int_t N, int_t M, typename VType, int S>
+class DFTk_inp<N,M,VType,S,false>
 {
-  //GFFT_STATIC_ASSERT((N%2 == 1))   // N is assumed odd, otherwise compiler would not come here
+  // N is assumed odd, otherwise compiler would not come here
   
-  //typedef typename TempTypeTrait<T>::Result LocalVType;
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
+  typedef typename CT::value_type T;
   static const int_t K = (N-1)/2; 
   static const int_t NM = N*M; 
    
@@ -54,9 +55,9 @@ public:
     ComputeTwiddles<T, N, S, K>::apply(m_c, m_s);
   }
   
-  void apply(Complex<T>* data) 
+  void apply(CT* data) 
   { 
-    Complex<T> s[K], d[K];
+    CT s[K], d[K];
     for (int_t i=0; i<K; ++i) {
       const int_t k = (i+1)*M;
       s[i] = data[k] + data[NM-k];
@@ -64,7 +65,7 @@ public:
     }
     
     for (int_t i=1; i<K+1; ++i) {
-      Complex<T> t1(0,0), t2(0,0);
+      CT t1(0,0), t2(0,0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
 	const int_t kk = (i+j*i)%N;
@@ -72,7 +73,7 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
 	t2 += tt;
       }
       const int_t k = i*M;
@@ -84,19 +85,19 @@ public:
       data[0] += s[i];
   }
 
-  void apply(Complex<T>* data, const Complex<T>* w) 
+  void apply(CT* data, const CT* w) 
   { 
-    Complex<T> s[K], d[K];
+    CT s[K], d[K];
     for (int_t i=0; i<K; ++i) {
       const int_t k = (i+1)*M;
-      Complex<T> t1(data[k]*w[i]);
-      Complex<T> t2(data[NM-k]*w[N-i-2]);
+      CT t1(data[k]*w[i]);
+      CT t2(data[NM-k]*w[N-i-2]);
       s[i] = t1 + t2;
       d[i] = t1 - t2;
     }
     
     for (int_t i=1; i<K+1; ++i) {
-      Complex<T> t1(0,0), t2(0,0);
+      CT t1(0,0), t2(0,0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
 	const int_t kk = (i+j*i)%N;
@@ -104,7 +105,7 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
 	t2 += tt;
       }
       const int_t k = i*M;
@@ -117,10 +118,13 @@ public:
   }
 };
 
-template<int_t M, typename T, int S,
-template<typename> class Complex>
-class DFTk_inp<3,M,Complex<T>,S> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<3,M,VType,S,false> 
 {
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
+  typedef typename CT::value_type T;
+
   static const int_t I10 = M;
   static const int_t I20 = M+M;
   
@@ -129,46 +133,47 @@ class DFTk_inp<3,M,Complex<T>,S>
 public:
   DFTk_inp() : m_coef(S * Sqrt<3, T>::value() * 0.5) { }
   
-  void apply(Complex<T>* data) 
+  void apply(CT* data) 
   { 
-      Complex<T> sum(data[I10] + data[I20]);
-      Complex<T> dif(m_coef * (data[I10] - data[I20]));
-      Complex<T> t(data[0] - 0.5*sum);
+      CT sum(data[I10] + data[I20]);
+      CT dif(m_coef * (data[I10] - data[I20]));
+      CT t(data[0] - 0.5*sum);
       data[0] += sum;
-      data[I10] = Complex<T>(t.real() + dif.imag(), t.imag() - dif.real());
-      data[I20] = Complex<T>(t.real() - dif.imag(), t.imag() + dif.real());
+      data[I10] = CT(t.real() + dif.imag(), t.imag() - dif.real());
+      data[I20] = CT(t.real() - dif.imag(), t.imag() + dif.real());
   }
-  void apply(Complex<T>* data, const Complex<T>* w) 
+  void apply(CT* data, const CT* w) 
   { 
-      Complex<T> t1(data[I10]*w[0]);
-      Complex<T> t2(data[I20]*w[1]);
+      CT t1(data[I10]*w[0]);
+      CT t2(data[I20]*w[1]);
 
-      Complex<T> sum(t1 + t2);
-      Complex<T> dif(m_coef * (t1 - t2));
-      Complex<T> t(data[0] - 0.5*sum);
+      CT sum(t1 + t2);
+      CT dif(m_coef * (t1 - t2));
+      CT t(data[0] - 0.5*sum);
       data[0] += sum;
-      data[I10] = Complex<T>(t.real() + dif.imag(), t.imag() - dif.real());
-      data[I20] = Complex<T>(t.real() - dif.imag(), t.imag() + dif.real());
+      data[I10] = CT(t.real() + dif.imag(), t.imag() - dif.real());
+      data[I20] = CT(t.real() - dif.imag(), t.imag() + dif.real());
   }
 };
 
-template<int_t M, typename T, int S,
-template<typename> class Complex>
-class DFTk_inp<2,M,Complex<T>,S> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<2,M,VType,S,false> 
 {
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
 public:
-  void apply(Complex<T>* data) 
+  void apply(CT* data) 
   { 
-      Complex<T> t(data[M]);
-      data[M] = data[0] - t;
-      data[0] += t;
+     CT t(data[M]);
+     data[M] = data[0] - t;
+     data[0] += t;
   }
   // For decimation-in-time
-  void apply(Complex<T>* data, const Complex<T>* w) 
+  void apply(CT* data, const CT* w) 
   { 
-        Complex<T> t(data[M] * (*w));
-        data[M] = data[0] - t;
-        data[0] += t;
+     CT t(data[M] * (*w));
+     data[M] = data[0] - t;
+     data[0] += t;
   }
   // For decimation-in-frequency
 //   void apply(const Complex<T>* w, Complex<T>* data) 
@@ -190,13 +195,15 @@ public:
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename T, int S,
-template<typename> class Complex>
-class DFTk<N,SI,DI,Complex<T>,S>
+template<int_t N, int_t SI, int_t DI, typename VType, int S>
+class DFTk<N,SI,DI,VType,S,false>
 {
-  //GFFT_STATIC_ASSERT(N%2 == 1)   // N is assumed odd, otherwise compiler would not come here
+  // N is assumed odd, otherwise compiler would not come here
   
-  //typedef typename TempTypeTrait<T>::Result LocalVType;
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
+  typedef typename CT::value_type T;
+
   static const int_t K = (N-1)/2; 
   static const int_t NSI = N*SI; 
   static const int_t NDI = N*DI; 
@@ -209,9 +216,9 @@ public:
     ComputeTwiddles<T, N, S, K>::apply(m_c, m_s);
   }
   
-  void apply(const Complex<T>* src, Complex<T>* dst) 
+  void apply(const CT* src, CT* dst) 
   { 
-    Complex<T> s[K], d[K];
+    CT s[K], d[K];
     for (int_t i=0; i<K; ++i) {
       const int_t k = (i+1)*SI;
       s[i] = src[k]   + src[NSI-k];
@@ -219,7 +226,7 @@ public:
     }
     
     for (int_t i=1; i<K+1; ++i) {
-      Complex<T> t1(0,0), t2(0,0);
+      CT t1(0,0), t2(0,0);
       for (int_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
 	const int_t kk = (i+j*i)%N;
@@ -227,7 +234,7 @@ public:
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
-	Complex<T> tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
 	t2 += tt;
       }
       const int_t k = i*DI;
@@ -241,10 +248,13 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename T, int S,
-template<typename> class Complex>
-class DFTk<3,SI,DI,Complex<T>,S> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<3,SI,DI,VType,S,false> 
 {
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
+  typedef typename CT::value_type T;
+
   static const int_t SI2 = SI+SI;
   static const int_t DI2 = DI+DI;
   T m_coef;
@@ -252,27 +262,28 @@ class DFTk<3,SI,DI,Complex<T>,S>
 public:
   DFTk() : m_coef(S * Sqrt<3, T>::value() * 0.5) { } // sqrt(3)/2 = sin(2pi/3)
   
-  void apply(const Complex<T>* src, Complex<T>* dst) 
+  void apply(const CT* src, CT* dst) 
   { 
-    // 4 mult, 12 add
-      Complex<T> s(src[SI] + src[SI2]);
-      Complex<T> d(m_coef * (src[SI] - src[SI2]));
-      Complex<T> t(src[0] - 0.5*s);
+      CT s(src[SI] + src[SI2]);
+      CT d(m_coef * (src[SI] - src[SI2]));
+      CT t(src[0] - 0.5*s);
       dst[0]   = src[0] + s;
-      dst[DI]  = Complex<T>(t.real() + d.imag(), t.imag() - d.real());
-      dst[DI2] = Complex<T>(t.real() - d.imag(), t.imag() + d.real());     
+      dst[DI]  = CT(t.real() + d.imag(), t.imag() - d.real());
+      dst[DI2] = CT(t.real() - d.imag(), t.imag() + d.real());     
   }
 };
 
-template<int_t SI, int_t DI, typename T, int S,
-template<typename> class Complex>
-class DFTk<2,SI,DI,Complex<T>,S> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<2,SI,DI,VType,S,false> 
 {
+  typedef typename VType::ValueType CT;
+  typedef typename VType::TempType LocalVType;
+
 public:
-  void apply(const Complex<T>* src, Complex<T>* dst) 
+  void apply(const CT* src, CT* dst) 
   { 
-    // the temporaries tr, ti are necessary, because may happen src == dst
-        Complex<T> t(src[0] - src[SI]);
+    // the temporary t is necessary, because may happen src == dst
+        CT t(src[0] - src[SI]);
         dst[0]  = src[0] + src[SI];
         dst[DI] = t;
   }

@@ -68,12 +68,17 @@ struct ComputeTwiddles<T,N,S,1>
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename T, int S>
-class DFTk_inp
+template<int_t N, int_t M, typename VType, int S,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+class DFTk_inp;
+
+template<int_t N, int_t M, typename VType, int S>
+class DFTk_inp<N,M,VType,S,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
-  typedef typename TempTypeTrait<T>::Result LocalVType;
+  typedef typename VType::ValueType T;
+  typedef typename VType::TempType LocalVType;
   static const int_t K = (N-1)/2; 
   static const int_t NM = N*M; 
    
@@ -260,14 +265,15 @@ public:
 */
 
 // Specialization for N=3
-template<int_t M, typename T, int S>
-class DFTk_inp<3,M,T,S> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<3,M,VType,S,true> 
 {
   static const int_t I10 = M;
   static const int_t I11 = M+1;
   static const int_t I20 = M+M;
   static const int_t I21 = I20+1;
   
+  typedef typename VType::ValueType T;
   T m_coef;
   
 public:
@@ -332,9 +338,10 @@ public:
 };
 
 // Specialization for N=2
-template<int_t M, typename T, int S>
-class DFTk_inp<2,M,T,S> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<2,M,VType,S,true> 
 {
+  typedef typename VType::ValueType T;
 public:
   void apply(T* data) 
   { 
@@ -388,12 +395,17 @@ public:
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename T, int S>
-class DFTk
+template<int_t N, int_t SI, int_t DI, typename VType, int S,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+class DFTk;
+
+template<int_t N, int_t SI, int_t DI, typename VType, int S>
+class DFTk<N,SI,DI,VType,S,true>
 {
-  //GFFT_STATIC_ASSERT(N%2 == 1)   // N is assumed odd, otherwise compiler would not come here
+  // N is assumed odd, otherwise compiler would not come here
   
-  typedef typename TempTypeTrait<T>::Result LocalVType;
+  typedef typename VType::ValueType T;
+  typedef typename VType::TempType LocalVType;
   static const int_t K = (N-1)/2; 
   static const int_t NSI = N*SI; 
   static const int_t NDI = N*DI; 
@@ -446,9 +458,10 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename T, int S>
-class DFTk<3,SI,DI,T,S> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<3,SI,DI,VType,S,true> 
 {
+  typedef typename VType::ValueType T;
   static const int_t SI2 = SI+SI;
   static const int_t DI2 = DI+DI;
   T m_coef;
@@ -497,9 +510,10 @@ public:
   */
 };
 
-template<int_t SI, int_t DI, typename T, int S>
-class DFTk<2,SI,DI,T,S> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<2,SI,DI,VType,S,true> 
 {
+  typedef typename VType::ValueType T;
 public:
   void apply(const T* src, T* dst) 
   { 

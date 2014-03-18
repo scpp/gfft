@@ -209,9 +209,15 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<int_t N, typename T, int S>
-class Separate {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
+template<int_t N, typename VType, int S,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+class Separate;
+
+template<int_t N, typename VType, int S>
+class Separate<N,VType,S,true>
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(T* data) {
@@ -264,14 +270,16 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<int_t N, typename T, int S,
-template<typename> class Complex>
-class Separate<N,Complex<T>,S> {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
-   typedef Complex<LocalVType> LocalComplex;
+template<int_t N, typename VType, int S>
+class Separate<N,VType,S,false> 
+{
+   typedef typename VType::ValueType CT;
+   typedef typename VType::TempType LocalComplex;
+   typedef typename CT::value_type T;
+   typedef typename LocalComplex::value_type LocalVType;
    static const int M = (S==1) ? 2 : 1;
 public:
-   void apply(Complex<T>* data) {
+   void apply(CT* data) {
       int_t i,i1;
       LocalComplex h1,h2,h3;
       LocalVType wtemp = Sin<2*N,1,LocalVType>::value();
@@ -280,24 +288,24 @@ public:
 
       for (i=1; i<N/2; ++i) {
         i1 = N-i;
-        h1 = Complex<LocalVType>(static_cast<LocalVType>(0.5*(data[i].real()+data[i1].real())),
-                                 static_cast<LocalVType>(0.5*(data[i].imag()-data[i1].imag())));
-        h2 = Complex<LocalVType>(static_cast<LocalVType>( S*0.5*(data[i].imag()+data[i1].imag())),
-                                 static_cast<LocalVType>(-S*0.5*(data[i].real()-data[i1].real())));
+        h1 = LocalComplex(static_cast<LocalVType>(0.5*(data[i].real()+data[i1].real())),
+                          static_cast<LocalVType>(0.5*(data[i].imag()-data[i1].imag())));
+        h2 = LocalComplex(static_cast<LocalVType>( S*0.5*(data[i].imag()+data[i1].imag())),
+                          static_cast<LocalVType>(-S*0.5*(data[i].real()-data[i1].real())));
         h3 = w*h2;
         data[i] = h1 + h3;
         data[i1]= h1 - h3;
-        data[i1] = Complex<T>(data[i1].real(), -data[i1].imag());
+        data[i1] = CT(data[i1].real(), -data[i1].imag());
 
         w += w*wp;
       }
       wtemp = data[0].real();
-      data[0] = Complex<T>(M*0.5*(wtemp + data[0].imag()), M*0.5*(wtemp - data[0].imag()));
+      data[0] = CT(M*0.5*(wtemp + data[0].imag()), M*0.5*(wtemp - data[0].imag()));
 
-      data[N/2] = Complex<T>(data[N/2].real(), -data[N/2].imag());
+      data[N/2] = CT(data[N/2].real(), -data[N/2].imag());
    }
 
-   void apply(const Complex<T>*, Complex<T>*) 
+   void apply(const CT*, CT*) 
    { 
       std::cout << "Not implemented!" << std::endl;
       exit(1);
@@ -310,7 +318,6 @@ struct Forward {
    enum { Sign = 1 };
    void apply(T*) { }
    void apply(const T*, T*) { }
-   void apply(const T*, T*, T*) { }
 };
 
 template<int_t N, typename T,
@@ -319,7 +326,6 @@ struct Forward<N,Complex<T> > {
    enum { Sign = 1 };
    void apply(Complex<T>*) { }
    void apply(const Complex<T>*, Complex<T>*) { }
-   void apply(const Complex<T>*, Complex<T>*, Complex<T>*) { }
 };
 
 // Policy for a definition of backward FFT
@@ -330,7 +336,6 @@ struct Backward {
       for (T* i=data; i<data+2*N; ++i) *i/=N;
    }
    void apply(const T*, T* dst) { apply(dst); }
-   void apply(const T*, T* dst, T*) { apply(dst); }
 };
 
 template<int_t N, typename T,
@@ -343,7 +348,6 @@ struct Backward<N,Complex<T> > {
       }
    }
    void apply(const Complex<T>*, Complex<T>* dst) { apply(dst); }
-   void apply(const Complex<T>*, Complex<T>* dst, Complex<T>*) { apply(dst); }
 };
 
 

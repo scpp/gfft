@@ -29,7 +29,7 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = 64;
+static const int_t N = 30;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;

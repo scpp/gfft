@@ -66,11 +66,11 @@ class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public Fac
    typedef typename Factorization<N, SInt>::Result NFact;
    typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
    typedef typename Type::template Direction<N::value,T> Dir;
-   typedef Separate<N::value,T,Dir::Sign> Sep;
+   typedef Separate<N::value,VType,Dir::Sign> Sep;
 
    typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
-   typedef typename IN_PLACE::template List<N::value,NFact,T,Swap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename IN_PLACE::template List<N::value,NFact,VType,Swap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
@@ -107,14 +107,14 @@ class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public
 {
    typedef typename VType::ValueType T;
    typedef typename Type::template Direction<N::value,T> Dir;
-   typedef Separate<N::value,T,Dir::Sign> Sep;
+   typedef Separate<N::value,VType,Dir::Sign> Sep;
    typedef Caller<Loki::NullType> EmptySwap;
    typedef typename Factorization<N, SInt>::Result NFact;
 
    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
    typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
-   typedef typename OUT_OF_PLACE::template List<N::value,NFact,T,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
+   typedef typename OUT_OF_PLACE::template List<N::value,NFact,VType,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
