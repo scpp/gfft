@@ -4,8 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 ### you have to run cmake twice to take effect
 
 ### Compiler
-set(CMAKE_CXX_COMPILER g++)
-#set(CMAKE_CC_COMPILER icc)
+set(CMAKE_CXX_COMPILER clang)
 
 project(gfft CXX)
 

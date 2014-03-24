@@ -337,17 +337,20 @@ struct __SwitchToInt<N,0> {
 /// This can be big integer, if N1+N2 exceeds the predefined type int_t
 ////////////////////////////////////////////////////////////
 template<int_t N1, int_t N2>
-struct Add<SInt<N1>, SInt<N2> > {
+class Add<SInt<N1>, SInt<N2> > {
+public:
    typedef typename __SwitchToBigInt<N1+N2>::Result Result;
 };
 
 template<int_t N>
-struct Add<SInt<N>, Loki::NullType> {
+class Add<SInt<N>, Loki::NullType> {
+public:
    typedef SInt<N> Result;
 };
 
 template<int_t N>
-struct Add<Loki::NullType, SInt<N> > {
+class Add<Loki::NullType, SInt<N> > {
+public:
    typedef SInt<N> Result;
 };
 
@@ -357,14 +360,15 @@ struct Add<Loki::NullType, SInt<N> > {
 /// \return container class representing difference of N1 and N2.
 ////////////////////////////////////////////////////////////
 template<int_t N1, int_t N2>
-struct Sub<SInt<N1>, SInt<N2> > : public Add<SInt<N1>, SInt<-N2> > {};
+class Sub<SInt<N1>, SInt<N2> > : public Add<SInt<N1>, SInt<-N2> > {};
 
 /// \brief Compile-time negation of an integer.
 /// \param N an integer
 /// \return container class representing (-N)
 ////////////////////////////////////////////////////////////
 template<int_t N>
-struct Negate<SInt<N> > {
+class Negate<SInt<N> > {
+public:
    typedef SInt<-N> Result;
 };
 
@@ -375,7 +379,8 @@ struct Negate<SInt<N> > {
 /// This can be big integer, if N1*N2 exceeds the predefined type int_t
 ////////////////////////////////////////////////////////////
 template<int_t N1, int_t N2>
-struct Mult<SInt<N1>, SInt<N2> > {
+class Mult<SInt<N1>, SInt<N2> > {
+public:
    typedef typename __SwitchToBigInt<N1*N2>::Result Result;
 };
 
@@ -385,7 +390,8 @@ struct Mult<SInt<N1>, SInt<N2> > {
 /// \return container class representing quotient from division of N1 by N2.
 ////////////////////////////////////////////////////////////
 template<int_t N1, int_t N2>
-struct Div<SInt<N1>, SInt<N2> > {
+class Div<SInt<N1>, SInt<N2> > {
+public:
    typedef SInt<N1/N2> DivResult;
    typedef SInt<N1%N2> ModResult;
 };
@@ -396,7 +402,8 @@ struct Div<SInt<N1>, SInt<N2> > {
 /// \return container class representing reminder from division of N1 by N2.
 ////////////////////////////////////////////////////////////
 template<int_t N1, int_t N2>
-struct Mod<SInt<N1>, SInt<N2> > {
+class Mod<SInt<N1>, SInt<N2> > {
+public:
    typedef SInt<N1%N2> Result;
 };
 
@@ -405,8 +412,9 @@ struct Mod<SInt<N1>, SInt<N2> > {
 /// \return container class representing absolute value of N.
 ////////////////////////////////////////////////////////////
 template<int_t N>
-struct Abs<SInt<N> > {
+class Abs<SInt<N> > {
    static const int_t AN = (N>0) ? N : -N ;
+public:
    typedef SInt<AN> Result;
 };
 
@@ -417,7 +425,8 @@ struct Abs<SInt<N> > {
 /// \return container class representing absolute value of the big integer
 ////////////////////////////////////////////////////////////
 template<bool S, class NList, base_t Base>
-struct Abs<SBigInt<S,NList,Base> > {
+class Abs<SBigInt<S,NList,Base> > {
+public:
    typedef SBigInt<true,NList,Base>  Result;
 };
 
@@ -429,39 +438,44 @@ struct Abs<SBigInt<S,NList,Base> > {
 /// negative big integer SBigInt<-S,NList,Base>
 ////////////////////////////////////////////////////////////
 template<bool S, class NList, base_t Base>
-struct Negate<SBigInt<S,NList,Base> > {
+class Negate<SBigInt<S,NList,Base> > {
+public:
    typedef SBigInt<!S,NList,Base> Result;
 };
 
 //////////////////////////////////////////////////////
 template<int_t N>
-struct Sign<SInt<N> > {
+class Sign<SInt<N> > {
    static const char value = (N>0) ? 1 : ((N<0) ? -1 : 0);
 };
 
 template<bool S, class NList, base_t Base>
-struct Sign<SBigInt<S,NList,Base> > {
+class Sign<SBigInt<S,NList,Base> > {
+public:
    static const char value = S ? 1 : -1;
 };
 
 template<bool S, base_t Base>
-struct Sign<SBigInt<S,Loki::NullType,Base> > {
+class Sign<SBigInt<S,Loki::NullType,Base> > {
+public:
    static const char value = 0;
 };
 
 ///////////////////////////////////////////////////////
 
 template<class C>
-struct Simplify;
+class Simplify;
 
 template<bool S, typename NList, base_t Base>
-struct Simplify<SBigInt<S,NList,Base> > {
+class Simplify<SBigInt<S,NList,Base> > {
   typedef typename NL::CutTrailingZeros<NList>::Result NewList;
+public:
   typedef typename __SwitchToInt<SBigInt<S,NewList,Base> >::Result Result;
 };
 
 template<int_t N>
-struct Simplify<SInt<N> > {
+class Simplify<SInt<N> > {
+public:
   typedef SInt<N> Result;
 };
 

@@ -164,7 +164,7 @@ template<class,class> class Accum,
 int Accuracy, int I, 
 class Value, class Dec1, class Dec2, class Aux,
 bool C = (NL::Compare<Dec1,Dec2>::value == 0)>
-class FuncAccuracyLoop;
+struct FuncAccuracyLoop;
 
 template<class X, class FuncStep,
 template<class,class> class Accum,
@@ -196,7 +196,7 @@ template<class,class> class Accum,
 int Len, int I, class Value1, class Value2, class Aux,
 bool C = (NL::Length<typename Value2::Numer>::value > Len 
        || NL::Length<typename Value2::Denom>::value > Len)>
-class FuncLengthLoop;
+struct FuncLengthLoop;
 
 template<class X, class FuncStep,
 template<class,class> class Accum,

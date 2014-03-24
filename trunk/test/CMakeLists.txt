@@ -24,10 +24,10 @@ add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
-### GCC compiler 
+### GCC and Clang compilers 
 add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
 
-target_link_libraries(gfft_performance gomp)
-target_link_libraries(gfft_accuracy gomp fftw3 fftw3l qd)
+target_link_libraries(gfft_performance c m stdc++ qd gomp)
+target_link_libraries(gfft_accuracy c m stdc++ gomp qd fftw3 fftw3l)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")

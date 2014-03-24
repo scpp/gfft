@@ -146,8 +146,9 @@ public:
 ///////////////////////////////////////////////
 
 template<class BI, int_t ND, base_t DecBase>
-struct Negate<SDecimal<BI,ND,DecBase> > {
+class Negate<SDecimal<BI,ND,DecBase> > {
   typedef typename Negate<BI>::Result NewBI;
+public:
   typedef SDecimal<NewBI,ND,DecBase> Result;
 };
 

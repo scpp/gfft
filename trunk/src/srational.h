@@ -214,8 +214,9 @@ class Mult<SBigInt<S,NList,Base>,SRational<N,D> > : public Mult<SRational<N,D>,S
 /////////////////////////////////////////////////////////////
 
 template<class Numer, class Denom>
-struct Negate<SRational<Numer,Denom> > {
+class Negate<SRational<Numer,Denom> > {
    typedef typename Negate<Numer>::Result NewNumer;
+public:
    typedef SRational<NewNumer,Denom> Result;
 };
 

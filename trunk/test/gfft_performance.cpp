@@ -198,7 +198,7 @@ public:
 
      uint_t i,it;
      
-     it = size_t(2000000./(double)H::Len)+1;
+     it = size_t(10000000./(double)H::Len)+1;
      Tp* data    = new Tp [2*H::Len*it];
      Tp* dataout = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
@@ -271,11 +271,11 @@ int main(int argc, char *argv[])
    GFFTbench<List_cds::Result,List_cds::PlaceType> bench_cds;
    GFFTbench<List_cfs::Result,List_cfs::PlaceType> bench_cfs;
 
-   print_header();
-   bench_ds.cputime();
-   bench_fs.cputime();
-   bench_cds.cputime();
-   bench_cfs.cputime();
+//    print_header();
+//    bench_ds.cputime();
+//    bench_fs.cputime();
+//    bench_cds.cputime();
+//    bench_cfs.cputime();
 
    GFFTbench<List_dp::Result,List_dp::PlaceType> bench_dp;
    GFFTbench<List_fp::Result,List_fp::PlaceType> bench_fp;

@@ -273,13 +273,13 @@ int main(int argc, char *argv[])
   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
   cout << "double-double DFT vs. GFFT:" << endl;
-  GFFTcheck<typename Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
+  GFFTcheck<Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
   print_header();
   check_dft.apply();
   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
   cout << "GFFT vs. FFTW:" << endl;
-  GFFTcheck<typename Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
+  GFFTcheck<Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
   print_header();
   check_fftw.apply();
   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
