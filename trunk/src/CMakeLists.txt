@@ -27,15 +27,26 @@ elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 ### MSVC compiler
 add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
-else(CMAKE_CXX_COMPILER MATCHES "icpc")
+elseif(CMAKE_CXX_COMPILER MATCHES "clang")
 
-### GCC and Clang compilers 
-add_definitions(-time -Wall -fopenmp -O3 -DGFFTDOC)
+### Clang compiler
+add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
 
 target_link_libraries(gfft_inp c m stdc++ gomp)
 target_link_libraries(gfft_oop c m stdc++ gomp)
 target_link_libraries(cgfft_inp c m stdc++ gomp)
 target_link_libraries(cgfft_oop c m stdc++ gomp)
+target_link_libraries(metapi c m stdc++ gomp)
+
+else(CMAKE_CXX_COMPILER MATCHES "icpc")
+
+### GCC compiler
+add_definitions(-time -Wall -fopenmp -O3 -DGFFTDOC)
+
+target_link_libraries(gfft_inp stdc++ gomp)
+target_link_libraries(gfft_oop stdc++ gomp)
+target_link_libraries(cgfft_inp stdc++ gomp)
+target_link_libraries(cgfft_oop stdc++ gomp)
 target_link_libraries(metapi c m stdc++ gomp)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")

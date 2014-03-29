@@ -106,7 +106,7 @@ public:
           d+=2*H::Len;
         }
         time2=clock();
-	t=static_cast<double>(time2-time1)/CLOCKS_PER_SEC;
+	t=static_cast<double>(time2-time1)/static_cast<double>(CLOCKS_PER_SEC);
         if (t<mt) mt=t;
      }
      
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default>  List_cfs;
 
    // Single- and multi-threaded out-of-place transforms
-   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
+   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, OUT_OF_PLACE> List_dp;
    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;
    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_cfp;
@@ -284,9 +284,9 @@ int main(int argc, char *argv[])
 
    print_header();
    bench_dp.realtime();
-   bench_fp.realtime();
-   bench_cdp.realtime();
-   bench_cfp.realtime();
+//    bench_fp.realtime();
+//    bench_cdp.realtime();
+//    bench_cfp.realtime();
 
    return 0;
 }

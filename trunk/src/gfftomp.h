@@ -52,26 +52,29 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<int_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
+template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C = ((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InTimeOMP;
 
-template<int_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+template<int_t NThreads, int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class InTimeOMP<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
 {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+
    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
    static const int_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   InTimeOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   InTimeOMP<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
+   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -83,35 +86,38 @@ public:
    }
 };
 
-template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InTimeOMP<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
-: public InTime<N,Loki::Typelist<Head,Tail>,T,S,W1,LastK> { };
+template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class InTimeOMP<1,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
+: public InTime<N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> { };
 
-template<int_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
-class InTimeOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InTime<N,NFact,T,S,W1,LastK> { };
+template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK>
+class InTimeOMP<NThreads,N,NFact,VType,S,W1,LastK,false> : public InTime<N,NFact,VType,S,W1,LastK> { };
 
 ///////////////////////
 
-template<int_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
+template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C = ((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InTimeOOP_OMP;
 
-template<int_t NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InTimeOOP_OMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+template<int_t NThreads, int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class InTimeOOP_OMP<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
 {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+   static const int_t LastK2 = LastK*C;
    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
    static const int_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   InTimeOOP_OMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
-   DFTk_x_Im_T<K,M,T,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   InTimeOOP_OMP<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
+   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
 public:
 
    void apply(const T* src, T* dst) 
@@ -151,26 +157,29 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK = 1, 
+template<short_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C=((N>NThreads) && (N>(SwitchToOMP<<NThreads)))>
 class InFreqOMP;
 
-template<unsigned int NThreads, int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
+template<unsigned int NThreads, int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class InFreqOMP<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
 {
-   typedef typename TempTypeTrait<T>::Result LocalVType;
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
    static const int_t K = Head::first::value;
    static const int_t M = N/K;
-   static const int_t M2 = M*2;
-   static const int_t N2 = N*2;
-   static const int_t LastK2 = LastK*2;
+
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+
    static const short_t NThreadsCreate = (NThreads > K) ? K : NThreads;
    static const short_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-   InFreqOMP<NThreadsNext,M,NFactNext,T,S,WK,K*LastK> dft_str;
-   T_DFTk_x_Im<K,M,T,S,W1,true> dft_scaled;
+   InFreqOMP<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
+   T_DFTk_x_Im<K,M,VType,S,W1,true> dft_scaled;
 
 public:
    void apply(T* data) 

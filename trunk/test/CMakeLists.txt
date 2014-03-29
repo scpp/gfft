@@ -12,7 +12,7 @@ add_executable(gfft_accuracy gfft_accuracy.cpp)
 if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### Intel compiler
-add_definitions(-openmp -O3 -DFFTW -DQD)
+add_definitions(-O3 -openmp -fno-alias -unroll -DFFTW -DQD)
 
 target_link_libraries(gfft_performance iomp5)
 target_link_libraries(gfft_accuracy iomp5 fftw3 fftw3l qd)
@@ -22,12 +22,20 @@ elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 ### MSVC compiler
 add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 
-else(CMAKE_CXX_COMPILER MATCHES "icpc")
+elseif(CMAKE_CXX_COMPILER MATCHES "clang")
 
-### GCC and Clang compilers 
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
+### Clang compiler
+add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
 
 target_link_libraries(gfft_performance c m stdc++ qd gomp)
 target_link_libraries(gfft_accuracy c m stdc++ gomp qd fftw3 fftw3l)
+
+else(CMAKE_CXX_COMPILER MATCHES "icpc")
+
+### GCC compiler
+add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
+
+target_link_libraries(gfft_performance stdc++ qd gomp)
+target_link_libraries(gfft_accuracy stdc++ gomp qd fftw3 fftw3l)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")

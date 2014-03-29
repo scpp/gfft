@@ -26,30 +26,30 @@
 
 #include "pseudometafunc.h"
 
-template<typename T>
-struct TempTypeTrait;
-
-template<>
-struct TempTypeTrait<float> {
-   typedef double Result;
-};
-
-template<>
-struct TempTypeTrait<double> {
-   typedef long double Result;
-};
-
-template<typename T,
-template<typename> class Complex>
-struct TempTypeTrait<Complex<T> > {
-   typedef typename TempTypeTrait<T>::Result Result;
-};
-
-template<typename T, typename A,
-template<typename,typename> class Complex>
-struct TempTypeTrait<Complex<T,A> > {
-   typedef typename TempTypeTrait<T>::Result Result;
-};
+// template<typename T>
+// struct TempTypeTrait;
+// 
+// template<>
+// struct TempTypeTrait<float> {
+//    typedef double Result;
+// };
+// 
+// template<>
+// struct TempTypeTrait<double> {
+//    typedef long double Result;
+// };
+// 
+// template<typename T,
+// template<typename> class Complex>
+// struct TempTypeTrait<Complex<T> > {
+//    typedef typename TempTypeTrait<T>::Result Result;
+// };
+// 
+// template<typename T, typename A,
+// template<typename,typename> class Complex>
+// struct TempTypeTrait<Complex<T,A> > {
+//    typedef typename TempTypeTrait<T>::Result Result;
+// };
 
 // template<typename T, typename A,
 // template<typename,typename> class Complex>

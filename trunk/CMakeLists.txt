@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 ### you have to run cmake twice to take effect
 
 ### Compiler
-set(CMAKE_CXX_COMPILER clang)
+set(CMAKE_CXX_COMPILER icpc)
 
 project(gfft CXX)
 
@@ -13,3 +13,4 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(db)
