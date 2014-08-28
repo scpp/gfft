@@ -123,62 +123,76 @@ struct COMPLEX_FLOAT {
 #endif
 };
 
-/*! \brief Decimation in-time
-\ingroup gr_params
-*/
-struct INTIME {
-   static const id_t ID = 0;
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   class List {
-//      typedef InTime<N,NFact,T,Direction::Sign,W1> InT;
-      typedef InTimeOMP<NT,N,NFact,T,Direction::Sign,W1> InT;
-   public:
-      typedef TYPELIST_3(Swap,InT,Direction) Result;
-   };
-};
+// /*! \brief Decimation in-time
+// \ingroup gr_params
+// */
+// struct INTIME {
+//    static const id_t ID = 0;
+//    template<int_t N, typename NFact, typename VType,
+//             class Swap, class Direction, short_t NT, class W1>
+//    class List {
+// //      typedef InTime<N,NFact,VType,Direction::Sign,W1> InT;
+//       typedef InTimeOMP<NT,N,NFact,VType,Direction::Sign,W1> InT;
+//    public:
+//       typedef TYPELIST_3(Swap,InT,Direction) Result;
+//    };
+// };
+// 
+// struct INTIME_OOP {
+//    static const id_t ID = 0;
+//    template<int_t N, typename NFact, typename VType,
+//             class Swap, class Direction, short_t NT, class W1>
+//    class List {
+// //      typedef InTimeOOP<N,NFact,VType,Direction::Sign,W1> InT;
+//       typedef InTimeOOP_OMP<NT,N,NFact,VType,Direction::Sign,W1> InT;
+//    public:
+//        typedef TYPELIST_3(Swap,InT,Direction) Result;
+//    };
+// };
 
-struct INTIME_OOP {
-   static const id_t ID = 0;
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   class List {
-//      typedef InTimeOOP<N,NFact,T,Direction::Sign,W1> InT;
-      typedef InTimeOOP_OMP<NT,N,NFact,T,Direction::Sign,W1> InT;
-   public:
-       typedef TYPELIST_3(Swap,InT,Direction) Result;
-   };
-};
-
-/*! \brief Decimation in-frequency
-\ingroup gr_params
-*/
-struct INFREQ {
-   static const id_t ID = 1;
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   class List {
-//      typedef InFreq<N,NFact,T,Direction::Sign,W1> InF;
-      typedef InFreqOMP<NT,N,NFact,T,Direction::Sign,W1> InF;
-   public:
-      typedef TYPELIST_3(InF,Swap,Direction) Result;
-   };
-};
+// /*! \brief Decimation in-frequency
+// \ingroup gr_params
+// */
+// struct INFREQ {
+//    static const id_t ID = 1;
+//    template<int_t N, typename NFact, typename VType,
+//             class Swap, class Direction, short_t NT, class W1>
+//    class List {
+// //      typedef InFreq<N,NFact,VType,Direction::Sign,W1> InF;
+//       typedef InFreqOMP<NT,N,NFact,VType,Direction::Sign,W1> InF;
+//    public:
+//       typedef TYPELIST_3(InF,Swap,Direction) Result;
+//    };
+// };
 
 /*! \brief In-place algorithm 
 \ingroup gr_params
 */
 struct IN_PLACE {
    static const id_t ID = 0;
+
    template<class T>
    struct Interface {
      typedef AbstractFFT_inp<T> Result;  
    };
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   struct List {
-      typedef typename INTIME::template List<N,NFact,T,Swap,Direction,NT,W1>::Result Result;
+
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Direction, class W1>
+   class List {
+      typedef typename VType::ValueType T;
+      typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
+      //typedef typename INTIME::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
+      typedef InTimeOMP<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+   public:
+      typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
+   
+//    template<typename FuncList, typename T>
+//    struct Function {
+//       FuncList run;
+//     //   in-place transform
+//       void fft(T* data) { run.apply(data); }
+//    };
 };
 
 /*! \brief Out-of-place algorithm
@@ -186,19 +200,38 @@ struct IN_PLACE {
 */
 struct OUT_OF_PLACE {
    static const id_t ID = 1;
+
    template<class T>
    struct Interface {
      typedef AbstractFFT_oop<T> Result;  
    };
-   template<int_t N, typename NFact, typename T,
-            class Swap, class Direction, short_t NT, class W1>
-   struct List {
-      typedef typename INTIME_OOP::template List<N,NFact,T,Swap,Direction,NT,W1>::Result Result;
+
+//    template<typename Parall, typename NFact, typename T>
+//    struct Swap {
+//       typedef Caller<Loki::NullType> Result;
+//    };
+
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Direction, class W1>
+   class List {
+      //typedef typename INTIME_OOP::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
+      typedef InTimeOOP_OMP<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+   public:
+       typedef TYPELIST_2(InT,Direction) Result;
    };
+
+//    template<typename FuncList, typename T>
+//    struct Function {
+//       FuncList run;
+//     // out-of-place transform
+//       void fft(const T* src, T* dst) { run.apply(src, dst); }
+//    };
 };
 
 struct IDFT;
 struct IRDFT;
+struct IDCT1;
+struct IDCT2;
 
 /*! \brief Forward compex-valued discrete Fourier transform
 \ingroup gr_params
@@ -207,12 +240,14 @@ struct DFT {
    static const id_t ID = 0;
    typedef IDFT Inverse;
 
-   template<unsigned long N, typename T>
-   struct Direction : public Forward<N,T> {};
-
-   template<class TList, class Separator>
-   struct Algorithm {
-      typedef TList Result;
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
+   class Algorithm {
+      typedef typename VType::ValueType T;
+      typedef Forward<N,T> Direction;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+   public:
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result Result;
    };
 };
 
@@ -223,12 +258,14 @@ struct IDFT {
    static const id_t ID = 1;
    typedef DFT Inverse;
 
-   template<unsigned long N, typename T>
-   struct Direction : public Backward<N,T> {};
-
-   template<class TList, class Separator>
-   struct Algorithm {
-      typedef TList Result;
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
+   class Algorithm {
+      typedef typename VType::ValueType T;
+      typedef Backward<N,T> Direction;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+   public:
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result Result;
    };
 };
 
@@ -239,11 +276,15 @@ struct RDFT {
    static const id_t ID = 2;
    typedef IRDFT Inverse;
 
-   template<unsigned long N, typename T>
-   struct Direction : public Forward<N,T> {};
-
-   template<class TList, class Separator>
-   struct Algorithm {
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
+   class Algorithm {
+      typedef typename VType::ValueType T;
+      typedef Forward<N,T> Direction;
+      typedef Separate<N,VType,Direction::Sign> Separator;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result TList;
+   public:
       typedef typename Loki::TL::Append<TList,Separator>::Result Result;
    };
 };
@@ -255,15 +296,82 @@ struct IRDFT {
    static const id_t ID = 3;
    typedef RDFT Inverse;
 
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
+   class Algorithm {
+      typedef typename VType::ValueType T;
+      typedef Backward<N,T> Direction;
+      typedef Separate<N,VType,Direction::Sign> Separator;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result TList;
+   public:
+      typedef Loki::Typelist<Separator,TList> Result;
+   };
+};
+
+/*! \brief Forward discrete cosine transform, type 1
+\ingroup gr_params
+*/
+struct DCT1 {
+   static const id_t ID = 4;
+   typedef IDCT1 Inverse;
+
+   template<unsigned long N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class TList, class Separator>
+   struct Algorithm {
+      typedef TList Result;
+   };
+};
+
+/*! \brief Inverse discrete cosine transform, type 1
+\ingroup gr_params
+*/
+struct IDCT1 {
+   static const id_t ID = 5;
+   typedef DCT1 Inverse;
+
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
    template<class TList, class Separator>
    struct Algorithm {
-      typedef Loki::Typelist<Separator,TList> Result;
+      typedef TList Result;
    };
 };
 
+/*! \brief Forward discrete cosine transform, type 2
+\ingroup gr_params
+*/
+struct DCT2 {
+   static const id_t ID = 6;
+   typedef IDCT2 Inverse;
+
+   template<unsigned long N, typename T>
+   struct Direction : public Forward<N,T> {};
+
+   template<class TList, class Separator>
+   struct Algorithm {
+      typedef TList Result;
+   };
+};
+
+/*! \brief Inverse discrete cosine transform, type 2
+\ingroup gr_params
+*/
+struct IDCT2 {
+   static const id_t ID = 7;
+   typedef DCT2 Inverse;
+
+   template<unsigned long N, typename T>
+   struct Direction : public Backward<N,T> {};
+
+   template<class TList, class Separator>
+   struct Algorithm {
+      typedef TList Result;
+   };
+};
 
 /*! \brief %Serial (single-core) implementation of transform
 \sa OpenMP

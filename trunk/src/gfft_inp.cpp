@@ -19,7 +19,7 @@
 #include <iostream>
 
 #include "gfft.h"
-#include "thirdparty.h"
+#include "direct.h"
 
 using namespace std;
 

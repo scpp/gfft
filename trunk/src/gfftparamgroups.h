@@ -58,14 +58,14 @@ struct ParallelizationGroup
   typedef Serial Default;
 };
 
-/// \brief Lists all acceptable decimation versions
-/// \ingroup gr_groups
-struct DecimationGroup
-{
-  typedef TYPELIST_2(INTIME,INFREQ) FullList;
-  static const uint_t Length = 2;
-  typedef INFREQ Default;
-};
+// /// \brief Lists all acceptable decimation versions
+// /// \ingroup gr_groups
+// struct DecimationGroup
+// {
+//   typedef TYPELIST_2(INTIME,INFREQ) FullList;
+//   static const uint_t Length = 2;
+//   typedef INFREQ Default;
+// };
 
 /// \brief Lists in-place and out-of-place FFT algorithms
 /// \ingroup gr_groups

@@ -48,30 +48,25 @@ class Type,                    // DFT, IDFT, RDFT, IRDFT
 class Dim,
 class Parall,
 class Place,              // IN_PLACE, OUT_OF_PLACE
-class FactoryPolicy = Empty,
+//class FactoryPolicy,
 id_t IDN = N::ID>
-class Transform;
-
-
-template<class N,
-class VType,
-class Type,                    // DFT, IDFT, RDFT, IRDFT
-class Dim,
-class Parall,
-class FactoryPolicy,
-id_t IDN>
-class Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
+class Transform 
+: public Place::template Interface<typename VType::ValueType>::Result
+// , public Place::template Function<Caller<Loki::Typelist<Parall,
+//     typename Type::template Algorithm<N::value,
+//       typename Factorization<N, SInt>::Result,VType,Parall,Place>::Result> >, typename VType::ValueType>
 {
    typedef typename VType::ValueType T;
-   typedef typename Factorization<N, SInt>::Result NFact;
-   typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
-   typedef typename Type::template Direction<N::value,T> Dir;
-   typedef Separate<N::value,VType,Dir::Sign> Sep;
-
-   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
-   typedef typename IN_PLACE::template List<N::value,NFact,VType,Swap,Dir,Parall::NParProc,W1>::Result TList;
-   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
+   typedef typename Place::template Interface<typename VType::ValueType>::Result FactoryPolicy;
+   
+   typedef typename Factorization<N, SInt>::Result NFact;
+   //typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
+   //typedef typename Type::template Direction<N::value,T> Dir;
+
+//   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
+   
+   typedef typename Type::template Algorithm<N::value,NFact,VType,Parall,Place>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
    
@@ -79,13 +74,13 @@ public:
    typedef VType ValueType;
    typedef Type TransformType;
    typedef Parall ParallType;
-   typedef IN_PLACE PlaceType;
+   typedef Place PlaceType;
 
    enum { ID = IDN };
    static const int_t Len = N::value;
 
    static FactoryPolicy* Create() {
-      return new Transform<N,VType,Type,Dim,Parall,IN_PLACE,FactoryPolicy,ID>();
+      return new Transform<N,VType,Type,Dim,Parall,Place,ID>();
    }
 
    Transform() { }
@@ -93,55 +88,58 @@ public:
 
 //   in-place transform
    void fft(T* data) { run.apply(data); }
-};
 
-
-template<class N,
-class VType,
-class Type,                    // DFT, IDFT, RDFT, IRDFT
-class Dim,
-class Parall,
-class FactoryPolicy,
-id_t IDN>
-class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
-{
-   typedef typename VType::ValueType T;
-   typedef typename Type::template Direction<N::value,T> Dir;
-   typedef Separate<N::value,VType,Dir::Sign> Sep;
-   typedef Caller<Loki::NullType> EmptySwap;
-   typedef typename Factorization<N, SInt>::Result NFact;
-
-   //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
-   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
-   
-   typedef typename OUT_OF_PLACE::template List<N::value,NFact,VType,EmptySwap,Dir,Parall::NParProc,W1>::Result TList;
-   typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
-   
-   Caller<Loki::Typelist<Parall,Alg> > run;
-   
-public:
-   typedef VType ValueType;
-   typedef Type TransformType;
-   typedef Parall ParallType;
-   typedef OUT_OF_PLACE PlaceType;
-
-   enum { ID = IDN, Len = N::value };
-
-   static FactoryPolicy* Create() {
-      return new Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy>();
-   }
-
-   Transform() 
-   {
-   }
- 
-   ~Transform() 
-   {
-   }
-
-   // out-of-place transform
+// out-of-place transform
    void fft(const T* src, T* dst) { run.apply(src, dst); }
 };
+
+
+// template<class N,
+// class VType,
+// class Type,                    // DFT, IDFT, RDFT, IRDFT
+// class Dim,
+// class Parall,
+// class FactoryPolicy,
+// id_t IDN>
+// class Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy,IDN> : public FactoryPolicy 
+// {
+//    typedef typename VType::ValueType T;
+//    typedef typename Factorization<N, SInt>::Result NFact;
+//    typedef Caller<Loki::NullType> EmptySwap;
+//    typedef typename Type::template Direction<N::value,T> Dir;
+//    typedef Separate<N::value,VType,Dir::Sign> Sep;
+// 
+//    //typedef typename GenerateRootList<N::value,Dir::Sign,2>::Result RootList;
+//    typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
+//    
+//    typedef typename OUT_OF_PLACE::template List<N::value,NFact,VType,Parall,Dir,Parall::NParProc,W1>::Result TList;
+//    typedef typename Type::template Algorithm<TList,Sep>::Result Alg;
+//    
+//    Caller<Loki::Typelist<Parall,Alg> > run;
+//    
+// public:
+//    typedef VType ValueType;
+//    typedef Type TransformType;
+//    typedef Parall ParallType;
+//    typedef OUT_OF_PLACE PlaceType;
+// 
+//    enum { ID = IDN, Len = N::value };
+// 
+//    static FactoryPolicy* Create() {
+//       return new Transform<N,VType,Type,Dim,Parall,OUT_OF_PLACE,FactoryPolicy>();
+//    }
+// 
+//    Transform() 
+//    {
+//    }
+//  
+//    ~Transform() 
+//    {
+//    }
+// 
+//    // out-of-place transform
+//    void fft(const T* src, T* dst) { run.apply(src, dst); }
+// };
 
 
 /// Takes types from TList as parameters to define Transform class
@@ -158,12 +156,12 @@ struct DefineTransform {
    typedef typename TList::Tail::Head VType;
    typedef typename TList::Tail::Tail::Head TransformType;
    typedef typename TList::Tail::Tail::Tail::Tail::Tail::Head Place;
-   typedef typename Place::template Interface<typename VType::ValueType>::Result Abstract;
+//    typedef typename Place::template Interface<typename VType::ValueType>::Result Abstract;
    
    typedef Transform<typename TList::Head, VType, TransformType,
                 typename TList::Tail::Tail::Tail::Head,
                 typename TList::Tail::Tail::Tail::Tail::Head,
-                Place,Abstract,ID> Result;
+                Place,ID> Result;
 };
 
 
@@ -256,7 +254,7 @@ class GenerateTransform {
    enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
    enum { L4 = 1 };
    enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
-   enum { L6 = Loki::TL::Length<DecimationGroup::FullList>::value };
+   enum { L6 = Loki::TL::Length<PlaceGroup::FullList>::value };
    typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
 
    typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
@@ -280,9 +278,9 @@ public:
                                    int_t trans_id = TransformTypeGroup::Default::ID, 
                                    int_t dim = 1, 
                                    int_t parall_id = ParallelizationGroup::Default::ID, 
-                                   int_t decim_id = DecimationGroup::Default::ID) 
+                                   int_t place_id = PlaceGroup::Default::ID) 
    {
-      int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, decim_id};
+      int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, place_id};
       int_t obj_id = Translate::apply(narr);
       return factory.CreateObject(obj_id);
    }
