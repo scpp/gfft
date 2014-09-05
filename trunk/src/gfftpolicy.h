@@ -319,9 +319,10 @@ struct DCT1 {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<class TList, class Separator>
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
    struct Algorithm {
-      typedef TList Result;
+//      typedef TList Result;
    };
 };
 
@@ -335,9 +336,10 @@ struct IDCT1 {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<class TList, class Separator>
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
    struct Algorithm {
-      typedef TList Result;
+//      typedef TList Result;
    };
 };
 
@@ -351,9 +353,10 @@ struct DCT2 {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<class TList, class Separator>
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
    struct Algorithm {
-      typedef TList Result;
+      //typedef TList Result;
    };
 };
 
@@ -367,9 +370,10 @@ struct IDCT2 {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<class TList, class Separator>
+   template<int_t N, typename NFact, typename VType,
+            class Parall, class Place>
    struct Algorithm {
-      typedef TList Result;
+      //typedef TList Result;
    };
 };
 

@@ -15,7 +15,7 @@
 /** \file
     \brief Program to demonstrate compile-time computation of PI with arbitrary accuracy
     
-    Two last digits of the resulted PI are not exact due to roundings!
+    Two last digits of the resulted PI may not be correct due to roundings!
 */
 
 #include <iostream>

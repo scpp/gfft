@@ -20,6 +20,7 @@
 */
 
 #include "gfftspec.h"
+#include "gfftspec_inp.h"
 #include "gfftfactor.h"
 #include "gfftswap.h"
 
@@ -396,6 +397,73 @@ public:
 };
 
   
+
+/// Out-of-place DCT-2
+/**
+\tparam N current transform length
+\tparam NFact factorization list
+\tparam T value type of the data array
+\tparam S sign of the transform: 1 - forward, -1 - backward
+\tparam W1 compile-time root of unity
+
+This is the core of decimation in-time FFT algorithm:
+Strided DFT runs K times recursively, where the next 
+factor K is taken from the compile-time list.
+The scaled DFT is performed afterwards.
+\sa DFTk_x_Im_T
+*/
+template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
+class DCT2_impl;
+
+template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class DCT2_impl<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   static const int_t K = Head::first::value;
+   static const int_t M = N/K;
+   
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t N2 = N*C;
+   static const int_t LastK2 = LastK*C;
+   
+   typedef typename IPowBig<W1,K>::Result WK;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   DCT2_impl<M,NFactNext,VType,S,WK,K*LastK> dft_str;
+//   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+//   DCTk_x_Im_T<K,M,VType,S,W1,false> dft_scaled;
+public:
+
+   void apply(const T* src, T* dst) 
+   {
+     // run strided DCT recursively K times
+      int_t lk = 0;
+      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+        dft_str.apply(src + lk, dst + m);
+
+      //dft_scaled.apply(dst);
+   }
+};
+
+// Take the next factor from the list
+template<int_t N, int_t K, typename Tail, typename VType, int S, class W1, int_t LastK>
+class DCT2_impl<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, W1, LastK>
+: public DCT2_impl<N, Tail, VType, S, W1, LastK> {};
+
+
+// Specialization for a prime N
+template<int_t N, typename VType, int S, class W1, int_t LastK>
+class DCT2_impl<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,W1,LastK> 
+{
+   typedef typename VType::ValueType T;
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   DCT2k<N, LastK*C, C, VType, S> spec;
+public:
+   void apply(const T* src, T* dst) { spec.apply(src, dst); }
+};
+
+
 }  //namespace DFT
 
 #endif /*__gfftalg_h*/

@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "metafunc.h"
+#include "metasincos.h"
 
 namespace MF {
   
