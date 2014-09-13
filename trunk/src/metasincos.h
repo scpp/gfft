@@ -66,8 +66,8 @@ struct SinCosDecimal
   typedef typename RationalToDecimal<Divider,Accuracy>::Result DividerDec;
   typedef typename Mult<typename Aux::first,DividerDec>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
-  typedef typename Reduce<XP,Accuracy>::Result XPR;
-  typedef typename Negate<XPR>::Result Result;
+//  typedef typename Reduce<XP,Accuracy>::Result XPR;
+  typedef typename Negate<XP>::Result Result;
   typedef typename SinCosAux<X,Result,Aux>::Result ResultAux;
 };
 
@@ -351,7 +351,7 @@ struct CosPiDecimal {
    typedef typename Simplify<F>::Result SF;
    typedef typename __CosPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
-  
+
 
 } // namespace MF
 

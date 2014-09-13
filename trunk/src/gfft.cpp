@@ -156,7 +156,14 @@ int main(int argc, char *argv[])
 //     }
 //     cout<<"---------------------------------------------"<<endl;
 //     cout << mx1 << endl;
-
+    //typedef SInt<2> X;
+    typedef SBigInt<true,TYPELIST_3(SInt<0>,SInt<0>,SInt<2>)> BI;
+    typedef SDecimal<BI,2> X;
+    typedef SqrtDecimal<0,X,SqrtAux<X,X>::Result,2>::Result SD;
+    Cout<SD>::apply(cout);
+    cout << endl;
+    cout << "           M_PI: " << sqrt(2) << endl;
+    
 
 //  cout << DOUBLE::Accuracy << endl;
 }

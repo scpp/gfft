@@ -18,7 +18,7 @@
 #include "sbigint.h"
 
 
-template<class BigInt, int_t NDecPlaces, base_t DecBase>
+template<class BigInt, int_t NDecPlaces, base_t DecBase = DefaultDecimalBase>
 struct SDecimal {
    typedef BigInt Num;
    static const int_t NDec = NDecPlaces;
@@ -156,5 +156,17 @@ public:
 
 template<class BI, int_t ND, base_t DecBase>
 struct Check<SDecimal<BI,ND,DecBase> > : public Check<BI> {};
+
+///////////////////////////////////////////////
+
+template<class SDec>
+struct DoubleAccuracy;
+
+template<class BI, int_t ND, base_t DecBase>
+struct DoubleAccuracy<SDecimal<BI,ND,DecBase> > {
+  typedef typename Loki::TL::ShiftRight<typename BI::Num,ND,SInt<0> >::Result NList;
+  typedef SBigInt<BI::isPositive,NList,DecBase> NewBI;
+  typedef SDecimal<NewBI,ND+ND,DecBase> Result;
+};
 
 #endif

@@ -27,6 +27,12 @@
 #include "pseudometafunc.h"
 
 
+template<class T, class>
+struct EmptyOperation {
+  typedef T Result;
+};
+
+
 // Works with SRational of decimal bases (10^n) only
 // TODO: change that
 template<class Rational, int_t NDigits, base_t DecBase=DefaultDecimalBase>

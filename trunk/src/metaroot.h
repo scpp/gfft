@@ -22,6 +22,7 @@
 #include <cmath>
 
 #include "metasincos.h"
+#include "metasqrt.h"
 
 namespace MF {
   
