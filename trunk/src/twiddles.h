@@ -19,7 +19,8 @@
     \brief Short-radix in-place FFT specifications 
 */
 
-#include "metafunc.h"
+#include "metasincos.h"
+#include "metasqrt.h"
 
 namespace GFFT {
 

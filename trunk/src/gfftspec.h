@@ -103,10 +103,14 @@ class DFTk<3,SI,DI,VType,S,true>
   typedef typename VType::ValueType T;
   static const int_t SI2 = SI+SI;
   static const int_t DI2 = DI+DI;
-  T m_coef;
+  static const int Acc = VType::Accuracy;
+  typedef Compute<typename MF::SqrtDecAcc<SInt<3>,Acc>::Result,Acc,T> CSqrt3;
+  
+  const T m_coef;
   
 public:
-  DFTk() : m_coef(S * MF::Sqrt<3, T>::value() * 0.5) { } // sqrt(3)/2 = sin(2pi/3)
+  DFTk() : m_coef(S * CSqrt3::value() * 0.5) { } // sqrt(3)/2 = sin(2pi/3)
+  //DFTk() : m_coef(S * Sqrt<3, T>::value() * 0.5) {} // sqrt(2)/2 = cos(pi/4)
   
   void apply(const T* src, T* dst) 
   { 
@@ -300,9 +304,12 @@ template<int_t SI, int_t DI, typename VType, int S>
 class DCT2k<2,SI,DI,VType,S,true> 
 {
   typedef typename VType::ValueType T;
+  static const int Acc = VType::Accuracy;
+  typedef Compute<typename MF::SqrtDecAcc<SInt<2>,Acc>::Result,Acc,T> CSqrt2;
+
   T m_coef;
 public:
-  DCT2k() : m_coef(S * MF::Sqrt<2, T>::value() * 0.5) {} // sqrt(2)/2 = cos(pi/4)
+  DCT2k() : m_coef(S * CSqrt2::value() * 0.5) {} // sqrt(2)/2 = cos(pi/4)
   
   void apply(const T* src, T* dst) 
   { 

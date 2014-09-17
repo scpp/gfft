@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "gfft.h"
+#include "direct.h"
 #include "thirdparty.h"
 
 using namespace std;
@@ -232,11 +233,11 @@ typedef DOUBLE VType;
 typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 2;
-const unsigned Max = 10;
+const unsigned Max = 7;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
-//typedef GenNumList<2, 100, SIntID>::Result NList;
-typedef GenPowerList<Min, Max, 2>::Result NList;
+//typedef GenNumList<2, 15, SIntID>::Result NList;
+typedef GenPowerList<Min, Max, 3>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::Default, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)
@@ -266,11 +267,11 @@ int main(int argc, char *argv[])
   
   cout.precision(16);
 
-  cout << "double-double DFT vs. FFTW:" << endl;
-  FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
-  print_header();
-  comp.apply(Min,Max);
-  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
+//   cout << "double-double DFT vs. FFTW:" << endl;
+//   FFTcompare<DFT_wrapper<dd_real>, FFTW_wrapper<fftw_complex> > comp;
+//   print_header();
+//   comp.apply(Min,Max);
+//   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
   cout << "double-double DFT vs. GFFT:" << endl;
   GFFTcheck<Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
@@ -278,11 +279,11 @@ int main(int argc, char *argv[])
   check_dft.apply();
   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
-  cout << "GFFT vs. FFTW:" << endl;
-  GFFTcheck<Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
-  print_header();
-  check_fftw.apply();
-  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
+//   cout << "GFFT vs. FFTW:" << endl;
+//   GFFTcheck<Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
+//   print_header();
+//   check_fftw.apply();
+//   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
 
   fpu_fix_end(&oldcw);
   return 0;

@@ -239,10 +239,13 @@ class DFTk_inp<3,M,VType,S,true>
   static const int_t I21 = I20+1;
   
   typedef typename VType::ValueType T;
+  static const int Acc = VType::Accuracy;
+  typedef Compute<typename MF::SqrtDecAcc<SInt<3>,Acc>::Result,Acc,T> CSqrt3;
+
   T m_coef;
   
 public:
-  DFTk_inp() : m_coef(S * MF::Sqrt<3, T>::value() * 0.5) { }
+  DFTk_inp() : m_coef(S * CSqrt3::value() * 0.5) { }
   
   void apply(T* data) 
   { 

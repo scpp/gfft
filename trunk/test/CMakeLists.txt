@@ -7,7 +7,9 @@ include_directories(../src)
 add_executable(gfft_performance gfft_performance.cpp)
 add_executable(gfft_accuracy gfft_accuracy.cpp)
 
-#need to link to some other libraries ? just add them here
+### Compiler
+set(CMAKE_CXX_COMPILER g++)
+
 
 if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
@@ -33,7 +35,7 @@ target_link_libraries(gfft_accuracy c m stdc++ gomp qd fftw3 fftw3l)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=100000 -DFFTW -DQD)
+add_definitions(-std=c++11 -time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW -DQD)
 
 target_link_libraries(gfft_performance stdc++ qd gomp)
 target_link_libraries(gfft_accuracy stdc++ gomp qd fftw3 fftw3l)
