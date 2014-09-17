@@ -27,9 +27,9 @@
 #include "pseudometafunc.h"
 
 
-template<class T, class>
+template<class First, class Second>
 struct EmptyOperation {
-  typedef T Result;
+  typedef Second Result;
 };
 
 
@@ -206,13 +206,11 @@ struct GenericAccuracyBasedFunc
   typedef typename FuncStep::template Value<NStartingSteps,X,Aux,Accuracy> FStep;
   typedef typename FStep::Result NextStep;
   typedef typename FStep::ResultAux NextAux;
-  typedef typename Accumulator<NextStep,StartValue>::Result NextValue;
+  typedef typename Accumulator<StartValue,NextStep>::Result NextValue;     // sequence of parameters is important here !!!
   typedef typename GenericAccuracyBasedFuncAdapter<NextValue,Accuracy,DefaultBase>::Result NextDecimal;
   
-  typedef FuncAccuracyLoop<X,FuncStep,Accumulator,Accuracy,NStartingSteps+1,
-                           NextValue,StartDecimal,NextDecimal,NextAux> Loop;
-  //typedef SDecimal<typename Loop::NextDecimal,Accuracy,DefaultDecimalBase> ResultDecimal;
-  typedef typename Loop::Result Result;
+  typedef typename FuncAccuracyLoop<X,FuncStep,Accumulator,Accuracy,NStartingSteps+1,
+                                    NextValue,StartDecimal,NextDecimal,NextAux>::Result Result;
 };
 
 /////////////////////////////////////////////////////
