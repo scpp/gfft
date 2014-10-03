@@ -60,13 +60,16 @@ class Transform
    
    typedef typename Place::template Interface<typename VType::ValueType>::Result FactoryPolicy;
    
-   typedef typename Factorization<N, SInt>::Result NFact;
-   //typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
-   //typedef typename Type::template Direction<N::value,T> Dir;
+   static const int_t NN = (Parall::NParProc > 1) ? N::value/Parall::NParProc : N::value;
+   typedef typename Factorization<SIntID<NN>, SInt>::Result NFact;
+   typedef Pair<SInt<Parall::NParProc>,SInt<1> > T1;
+   typedef typename Loki::Select<(Parall::NParProc > 1),Loki::Typelist<T1,NFact>,NFact>::Result NFactor;
+//    typedef Pair<SInt<2>,SInt<1> > T2;
+//    typedef TYPELIST_2(T1,T2) NFact;
 
 //   typedef typename GetFirstRoot<N::value,Dir::Sign,VType::Accuracy>::Result W1;
    
-   typedef typename Type::template Algorithm<N::value,NFact,VType,Parall,Place>::Result Alg;
+   typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place>::Result Alg;
    
    Caller<Loki::Typelist<Parall,Alg> > run;
    

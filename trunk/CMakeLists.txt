@@ -9,6 +9,6 @@ project(gfft CXX)
 #if you don't want the full compiler output, remove the following line
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-#add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(src)
+#add_subdirectory(test)
 #add_subdirectory(db)

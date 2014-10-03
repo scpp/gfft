@@ -160,6 +160,9 @@ class DFTk<2,SI,DI,VType,S,true>
 public:
   void apply(const T* src, T* dst) 
   { 
+    if (src == dst) {
+      std::cout << ">>>>>>>>>>>>>> !!!!!!!!!!!!!!!! <<<<<<<<<<<<<<" << std::endl;
+    }
     // the temporaries tr, ti are necessary, because may happen src == dst
         const T tr = src[0] - src[SI];
         const T ti = src[1] - src[SI+1];

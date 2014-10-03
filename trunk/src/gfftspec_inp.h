@@ -176,10 +176,12 @@ public:
     }
   }
 };
-/*
-template<int_t M, typename T, int S>
-class DFTk_inp<4,M,T,S> 
+
+template<int_t M, typename VType, int S>
+class DFTk_inp<4,M,VType,S,true> 
 {
+  typedef typename VType::ValueType T;
+
   static const int_t I10 = M;
   static const int_t I11 = M+1;
   static const int_t I20 = M+M;
@@ -189,7 +191,7 @@ class DFTk_inp<4,M,T,S>
   
 public:
   DFTk_inp() { }
-  
+/*  
   void apply(T* data) 
   { 
       T tr = data[I20];
@@ -218,16 +220,60 @@ public:
       data[I20] += tr;
       data[I21] += ti;
   }
+  */
+  void apply(T* data) 
+  {
+      const T sr1 = data[0] + data[I20];
+      const T dr1 = data[0] - data[I20];
+      const T sr2 = data[I10] + data[I30];
+      const T dr2 = data[I10] - data[I30];
+      const T si1 = data[1] + data[I21];
+      const T di1 = data[1] - data[I21];
+      const T si2 = data[I11] + data[I31];
+      const T di2 = data[I11] - data[I31];
+      data[0]   = sr1 + sr2;
+      data[1]   = si1 + si2;
+      data[I10] = dr1 + di2;
+      data[I11] = di1 - dr2;
+      data[I20] = sr1 - sr2;
+      data[I21] = si1 - si2;
+      data[I30] = dr1 - di2;
+      data[I31] = di1 + dr2;
+  }
   template<class LT>
   void apply(T* data, const LT* wr, const LT* wi) 
   { 
+      const T tr1 = data[I10]*wr[0] - data[I11]*wi[0];
+      const T ti1 = data[I10]*wi[0] + data[I11]*wr[0];
+      const T tr2 = data[I20]*wr[1] - data[I21]*wi[1];
+      const T ti2 = data[I20]*wi[1] + data[I21]*wr[1];
+      const T tr3 = data[I30]*wr[2] - data[I31]*wi[2];
+      const T ti3 = data[I30]*wi[2] + data[I31]*wr[2];
+      
+      const T sr1 = data[0] + tr2;
+      const T dr1 = data[0] - tr2;
+      const T sr2 = tr1 + tr3;
+      const T dr2 = tr1 - tr3;
+      const T si1 = data[1] + ti2;
+      const T di1 = data[1] - ti2;
+      const T si2 = ti1 + ti3;
+      const T di2 = ti1 - ti3;
+      
+      data[0]   = sr1 + sr2;
+      data[1]   = si1 + si2;
+      data[I10] = dr1 + di2;
+      data[I11] = di1 - dr2;
+      data[I20] = sr1 - sr2;
+      data[I21] = si1 - si2;
+      data[I30] = dr1 - di2;
+      data[I31] = di1 + dr2;
   }
   template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
   }
 };
-*/
+
 
 // Specialization for N=3
 template<int_t M, typename VType, int S>
@@ -351,6 +397,10 @@ public:
   }  
 };
 
+template<int_t M, typename VType, int S>
+class DFTk_inp<1,M,VType,S,true> 
+{
+};
 
 /// In-place specialization for complex-valued radix 2 FFT 
 /// \tparam T is value type

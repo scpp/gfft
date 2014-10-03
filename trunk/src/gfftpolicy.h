@@ -144,7 +144,7 @@ struct COMPLEX_FLOAT {
 //             class Swap, class Direction, short_t NT, class W1>
 //    class List {
 // //      typedef InTimeOOP<N,NFact,VType,Direction::Sign,W1> InT;
-//       typedef InTimeOOP_OMP<NT,N,NFact,VType,Direction::Sign,W1> InT;
+//       typedef InTimeOOP_omp<NT,N,NFact,VType,Direction::Sign,W1> InT;
 //    public:
 //        typedef TYPELIST_3(Swap,InT,Direction) Result;
 //    };
@@ -215,7 +215,7 @@ struct OUT_OF_PLACE {
             class Parall, class Direction, class W1>
    class List {
       //typedef typename INTIME_OOP::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
-      typedef InTimeOOP_OMP<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef InTimeOOP_omp<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
        typedef TYPELIST_2(InT,Direction) Result;
    };
@@ -417,7 +417,8 @@ struct OpenMP {
    void apply(T*) {
       //omp_set_dynamic(0);
       //omp_set_num_threads(NT);
-      omp_set_nested(true);
+      //omp_set_nested(true);
+      //omp_set_max_active_levels(static_cast<int>(log(NT)/log(2))+1);
    }
 
    template<typename T>
