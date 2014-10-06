@@ -187,12 +187,13 @@ struct IN_PLACE {
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
    
-//    template<typename FuncList, typename T>
-//    struct Function {
-//       FuncList run;
-//     //   in-place transform
-//       void fft(T* data) { run.apply(data); }
-//    };
+   template<typename FuncList, typename T>
+   struct Function : public Interface<T>::Result
+   {
+      FuncList run;
+    //   in-place transform
+      void fft(T* data) { run.apply(data); }
+   };
 };
 
 /*! \brief Out-of-place algorithm
@@ -220,12 +221,13 @@ struct OUT_OF_PLACE {
        typedef TYPELIST_2(InT,Direction) Result;
    };
 
-//    template<typename FuncList, typename T>
-//    struct Function {
-//       FuncList run;
-//     // out-of-place transform
-//       void fft(const T* src, T* dst) { run.apply(src, dst); }
-//    };
+   template<typename FuncList, typename T>
+   struct Function : public Interface<T>::Result
+   {
+      FuncList run;
+    // out-of-place transform
+      void fft(const T* src, T* dst) { run.apply(src, dst); }
+   };
 };
 
 struct IDFT;
