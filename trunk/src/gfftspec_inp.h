@@ -221,6 +221,7 @@ public:
       data[I21] += ti;
   }
   */
+
   void apply(T* data) 
   {
       const T sr1 = data[0] + data[I20];
@@ -268,6 +269,7 @@ public:
       data[I30] = dr1 - di2;
       data[I31] = di1 + dr2;
   }
+  
   template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
@@ -330,6 +332,29 @@ public:
 	data[I21] = ti + dif_r;
   }
   template<class LT>
+  void apply_m(T* data, const LT* wr, const LT* wi) 
+  { 
+        const T tr0 = data[0]*wr[0] - data[1]*wi[0];
+        const T ti0 = data[0]*wi[0] + data[1]*wr[0];
+        const T tr1 = data[I10]*wr[1] - data[I11]*wi[1];
+        const T ti1 = data[I10]*wi[1] + data[I11]*wr[1];
+        const T tr2 = data[I20]*wr[2] - data[I21]*wi[2];
+        const T ti2 = data[I20]*wi[2] + data[I21]*wr[2];
+
+	const T sum_r = tr1 + tr2;
+	const T dif_r = m_coef * (tr1 - tr2);
+	const T sum_i = ti1 + ti2;
+	const T dif_i = m_coef * (ti1 - ti2);
+	const T tr = tr0 - 0.5*sum_r;
+	const T ti = ti0 - 0.5*sum_i;
+	data[0] = tr0 + sum_r;
+	data[1] = ti0 + sum_i;
+	data[I10] = tr + dif_i;
+	data[I11] = ti - dif_r;
+	data[I20] = tr - dif_i;
+	data[I21] = ti + dif_r;
+  }
+  template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
       const T sum_r = data[I10] + data[I20];
@@ -383,6 +408,18 @@ public:
         data[M+1] = data[1]-ti;
         data[0] += tr;
         data[1] += ti;
+  }
+  template<class LT>
+  void apply_m(T* data, const LT* wr, const LT* wi) 
+  { 
+        const T tr0 = data[0] * wr[0] - data[1] * wi[0];
+        const T ti0 = data[0] * wi[0] + data[1] * wr[0];
+        const T tr1 = data[M] * wr[1] - data[M+1] * wi[1];
+        const T ti1 = data[M] * wi[1] + data[M+1] * wr[1];
+        data[M] = tr0-tr1;
+        data[M+1] = ti0-ti1;
+        data[0] = tr0+tr1;
+        data[1] = ti0+ti1;
   }
   // For decimation-in-frequency
   template<class LT>

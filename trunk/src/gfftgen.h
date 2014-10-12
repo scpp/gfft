@@ -53,12 +53,14 @@ class Transform
 {
    typedef typename VType::ValueType T;
    
-   static const int_t NN = (Parall::NParProc > 1) ? N::value/Parall::NParProc : N::value;
-   typedef typename Factorization<SIntID<NN>, SInt>::Result NFact;
-   typedef Pair<SInt<Parall::NParProc>,SInt<1> > T1;
-   typedef typename Loki::Select<(Parall::NParProc > 1),Loki::Typelist<T1,NFact>,NFact>::Result NFactor;
-//    typedef Pair<SInt<2>,SInt<1> > T2;
-//    typedef TYPELIST_2(T1,T2) NFact;
+//    static const int_t G = GCD<SInt<N::value>, SInt<Parall::NParProc> >::Result::value;
+//    typedef typename Factorization<SIntID<N::value/G>, SInt>::Result NFact1;
+//    typedef ExtractFactor<Parall::NParProc/G, NFact1> EF;
+//    typedef Pair<SInt<G*EF::value>,SInt<1> > NParall;
+//    typedef typename Loki::Select<(Parall::NParProc==1),
+//       typename EF::Result, Loki::Typelist<NParall,typename EF::Result> >::Result NFactor;
+      
+   typedef typename Parall::template Factor<N>::Result NFactor;
 
    typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place>::Result Alg;
    

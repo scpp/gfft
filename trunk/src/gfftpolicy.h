@@ -392,6 +392,9 @@ struct Serial {
       typedef GFFTswap2<M,P,T> Result;
    };
 
+   template<typename N>
+   struct Factor : public Factorization<N, SInt> {};
+
    template<typename T>
    void apply(T*) { }
 
@@ -415,6 +418,15 @@ struct OpenMP {
 //       typedef GFFTswap2OMP<NT,M,P,T> Result;
    };
 
+   template<typename N>
+   struct Factor {
+      static const int_t G = GCD<SInt<N::value>, SInt<NT> >::Result::value;
+      typedef typename Factorization<SIntID<N::value/G>, SInt>::Result NFact1;
+      typedef ExtractFactor<NT/G, NFact1> EF;
+      typedef Pair<SInt<G*EF::value>,SInt<1> > NParall;
+      typedef Loki::Typelist<NParall,typename EF::Result> Result;
+   };
+   
    template<typename T>
    void apply(T*) {
       //omp_set_dynamic(0);

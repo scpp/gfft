@@ -144,6 +144,57 @@ template<int_t> class IntHolder, typename StartList, int_t AddPower>
 struct Factorization<PowerHolder<M,P>, IntHolder, StartList, AddPower> 
 : public Factorization<SIntID<M>, IntHolder, StartList, P-1> { };
 
+
+
+template<int_t N, typename FactorList, int_t Accum = 1, bool C = (N > Accum)>
+struct ExtractFactor;
+
+template<int_t N, typename NT, int_t P, typename Tail, int_t Accum>
+struct ExtractFactor<N, Loki::Typelist<Pair<NT,SInt<P> >,Tail>, Accum, true>
+{
+  typedef ExtractFactor<N, Tail, Accum> T1;
+  typedef ExtractFactor<N, Loki::Typelist<Pair<NT,SInt<P-1> >,Tail>, Accum*NT::value> Next;
+  typedef typename Next::Result Result;
+  static const int_t value = Next::value;
+};
+
+template<int_t N, typename NT, typename Tail, int_t Accum>
+struct ExtractFactor<N, Loki::Typelist<Pair<NT,SInt<0> >,Tail>, Accum, true>
+{
+  typedef ExtractFactor<N, Tail, Accum> Next;
+  typedef typename Next::Result Result;
+  static const int_t value = Next::value;
+};
+
+template<int_t N, int_t Accum>
+struct ExtractFactor<N, Loki::NullType, Accum, true>
+{
+  typedef ExtractFactor<N, Loki::NullType, Accum, false> Next;
+  typedef typename Next::Result Result;
+  static const int_t value = Next::value;
+};
+  
+template<int_t N, typename NT, int_t P, typename Tail, int_t Accum>
+struct ExtractFactor<N, Loki::Typelist<Pair<NT,SInt<P> >,Tail>, Accum, false>
+{
+  typedef Loki::Typelist<Pair<NT,SInt<P> >,Tail> Result;
+  static const int_t value = Accum;
+};
+
+template<int_t N, typename NT, typename Tail, int_t Accum>
+struct ExtractFactor<N, Loki::Typelist<Pair<NT,SInt<0> >,Tail>, Accum, false>
+{
+  typedef Tail Result;
+  static const int_t value = Accum;
+};
+
+template<int_t N, int_t Accum>
+struct ExtractFactor<N, Loki::NullType, Accum, false>
+{
+  typedef Loki::NullType Result;
+  static const int_t value = Accum;
+};
+
   
 }  //namespace DFT
 

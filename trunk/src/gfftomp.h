@@ -96,6 +96,35 @@ class InTimeOMP<NThreads,N,NFact,VType,S,W1,LastK,false> : public InTime<N,NFact
 
 ///////////////////////
 
+template<int_t K, typename KFact>
+struct Permutation;
+  
+template<int_t K, int_t N, int_t P, typename Tail>
+struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<P> >,Tail> >
+{
+  static const int_t M = K/N;   // K = M*N
+  typedef Permutation<K/N, Loki::Typelist<Pair<SInt<N>,SInt<P-1> >,Tail> > Next;
+  static int_t value(const int_t ii)
+  {
+    assert(ii >= 0 && ii < K);
+    return (ii%N)*M + Next::value(ii/N);
+    //return ii;
+  }
+};
+
+template<int_t K, int_t N, typename Tail>
+struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<0> >,Tail> >
+: public Permutation<K, Tail> {};
+
+template<int_t K>
+struct Permutation<K, Loki::NullType>
+{
+  static int_t value(const int_t ii) 
+  { 
+    return ii;
+  }
+};
+
 // Assume: K >= NThreadsCreate
 template<int_t N2, int_t M2, int_t LastK2, int_t NThreads, int K, 
 int I = 0, bool C = (K>NThreads)>
@@ -138,53 +167,167 @@ struct ParallLoopOOP<N2,M2,LastK2,NThreads,K,I,false>
       }
   }
 };
-/*
-template<int_t N2, int_t LastK2>
-struct ParallSpecOOP<N2,2,LastK2,2>
-{
-  static const int_t M2 = N2/2;
-  
-  template<class DftStr, class T>
-  void apply(DftStr& dft_str, const T* src, T* dst)
-  {
-      // Two times call to dft_str.apply()
-      #pragma omp parallel sections
-      {
-	#pragma omp section
-	dft_str.apply(src, dst);
 
-	#pragma omp section
-	dft_str.apply(src + LastK2, dst + M2);
-      }
-  }
+template<int_t K, typename KFact, int_t M, typename VType, int S, typename W>
+struct DFTk_inp_adapter;
+
+template<int_t K, typename Head, typename Tail, int_t M, typename VType, int S, typename W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1>
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   static const int_t KF = Head::first::value;
+   static const int_t KNext = K/KF;
+   
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t M4 = M2+M2;
+   //static const int_t N2 = K*M2;
+   
+   typedef typename IPowBig<W1,KF>::Result WK;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> KFactNext;
+
+//   InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
+//   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
+
+   DFTk_inp_adapter<KNext,KFactNext,M, VType, S, WK> dft_str;
+   DFTk_x_Im_T<KNext,M2,M,VType,S,W1,false> dft_scaled;
+public:
+
+   void apply(T* data) 
+   {
+     // run strided DFT recursively KF times
+//      for (int_t m=0; m < N2; m+=M4) 
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply(data + i*M4);
+
+      dft_scaled.apply(data);
+   }
+
+   template<class LT>
+   void apply(T* data, const LT* wr, const LT* wi) 
+   {
+      dft_str.apply(data, wr, wi);
+     // run strided DFT recursively KF times
+      for (int_t i=1; i < KF; ++i) 
+	dft_str.apply_m(data + i*M4, wr+1+(i-1)*KF, wi+1+(i-1)*KF);
+
+      dft_scaled.apply(data);
+   }
+   template<class LT>
+   void apply_m(T* data, const LT* wr, const LT* wi) 
+   {
+     // run strided DFT recursively KF times
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply_m(data + i*M4, wr+i*KF, wi+i*KF);
+
+      dft_scaled.apply(data);
+   }
 };
+/*
+template<typename KFact, int_t M, typename VType, int S, typename W1>
+struct DFTk_inp_adapter<4,KFact,M,VType,S,W1> 
+{ 
+   typedef typename VType::ValueType T;
 
-template<int_t N2, int_t LastK2>
-struct ParallSpecOOP<N2,4,LastK2,4>
-{
-  static const int_t M2 = N2/4;
-  
-  template<class DftStr, class T>
-  void apply(DftStr& dft_str, const T* src, T* dst)
-  {
-      // Two times call to dft_str.apply()
-      #pragma omp parallel sections
-      {
-	#pragma omp section
-	dft_str.apply(src, dst);
+   //InTime<4,NFact,VType,S,W1,2> dft_str;
+   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*2;
+   DFTk_inp<2, M2, VType, S> spec_inp;
+   DFTk_x_Im_T<2,M2,M,VType,S,W1,false> dft_scaled;
+//    DFTk_x_Im_T<2,M2,M,VType,S,W2,false> dft_scaled_w;
+public:
 
-	#pragma omp section
-	dft_str.apply(src + LastK2, dst + M2);
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+      spec_inp.apply(data + M2+M2);
 
-	#pragma omp section
-	dft_str.apply(src + 2*LastK2, dst + 2*M2);
+      dft_scaled.apply(data);
+   }
 
-	#pragma omp section
-	dft_str.apply(src + 3*LastK2, dst + 3*M2);
-      }
-  }
+   template<class LT>
+   void apply(T* data, const LT* wr, const LT* wi) 
+   {
+      spec_inp.apply(data, wr, wi);
+      spec_inp.apply_m(data + M2+M2, wr+1, wi+1);
+
+      dft_scaled.apply(data);
+   }
 };
 */
+template<typename H, typename Tail, int_t M, typename VType, int S, typename W>
+struct DFTk_inp_adapter<3,Loki::Typelist<H,Tail>,M,VType,S,W> : public DFTk_inp<3,M*2,VType,S> { };
+
+template<typename H, typename Tail, int_t M, typename VType, int S, typename W>
+struct DFTk_inp_adapter<2,Loki::Typelist<H,Tail>,M,VType,S,W> : public DFTk_inp<2,M*2,VType,S> { };
+
+
+
+
+template<int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+class DFTk_x_Im_T_omp;
+
+// General implementation
+template<int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T_omp<K,KFact,M,Step,VType,S,W,false,true>
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,VType::Accuracy> WR;
+   typedef Compute<typename W::Im,VType::Accuracy> WI;
+   static const int_t N = K*M;
+   static const int_t M2 = M*2;
+   static const int_t S2 = 2*Step;
+
+   typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W1;
+   DFTk_inp_adapter<K,KFact,M,VType,S,W1> spec_inp_a;
+//   DFTk_inp<K,M2,VType,S> spec_inp;
+
+   typedef Permutation<K,KFact> Perm;
+
+public:
+   void apply(T* data) 
+   {
+      spec_inp_a.apply(data);
+
+      LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
+
+      // W = (wpr[0], wpi[0])
+      wpr[0] = WR::value();
+      wpi[0] = WI::value();
+      
+      // W^i = (wpr[i], wpi[i])
+      for (int_t i=0; i<K-2; ++i) {
+	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
+	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
+      }
+      
+      for (int_t i=0; i<K-1; ++i) {
+        int_t ii = Perm::value(i+1) - 1;
+	wr[ii] = wpr[i];
+	wi[ii] = wpi[i];
+      }
+      
+      for (int_t i=0; i<K-1; ++i) {
+	wpr[i] = wr[i];
+	wpi[i] = wi[i];
+      }
+      
+      for (int_t j=S2; j<M2; j+=S2) {
+	spec_inp_a.apply(data+j, wr, wi);
+
+	for (int_t i=0; i<K-1; ++i) {
+	  t = wr[i];
+	  wr[i] = t*wpr[i] - wi[i]*wpi[i];
+	  wi[i] = wi[i]*wpr[i] + t*wpi[i];
+	}
+      }
+   }
+  
+};
+
 
 template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C = ((N>NThreads) && (N>=SwitchToOMP))>
@@ -205,28 +348,32 @@ class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
    static const int_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
-//   typedef typename Factorization<SIntID<K>, SInt>::Result KFact;
+   typedef typename Factorization<SIntID<K>, SInt>::Result KFact;
+   typedef Permutation<K,KFact> Perm;
 
    typedef typename IPowBig<W1,K>::Result WK;
 //   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
 //    InTimeOOP_omp<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
    InTimeOOP<M,Tail,VType,S,WK,K*LastK> dft_str;
 //    DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T_omp<K,KFact,M,1,VType,S,W1,false> dft_scaled;
 
    ParallLoopOOP<N2,M2,LastK2,NThreadsCreate,K> parall;
 public:
 
    void apply(const T* src, T* dst) 
    {
-      parall.apply(dft_str, src, dst);
+      //parall.apply(dft_str, src, dst);
       // K times call to dft_str.apply()
-      //int_t m, lk;
-      //#pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
-//       for (m = lk = 0; m < N2; m+=M2) {
-// 	dft_str.apply(src + lk, dst + m);
-// 	lk += LastK2;
-//       }
+//      int_t m, lk;
+//      #pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
+      //for (m = lk = 0; m < N2; m+=M2) {
+      for (int_t i = 0; i < K; ++i) {
+	int_t ii = Perm::value(i);
+	dft_str.apply(src + ii*LastK2, dst + i*M2);
+//	dft_str.apply(src + i*K*2, dst + i*M2);
+	//lk += LastK2;
+      }
       
       dft_scaled.apply(dst);
    }
@@ -238,6 +385,7 @@ class InTimeOOP_omp<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
 
 template<int_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
 class InTimeOOP_omp<NThreads,N,NFact,T,S,W1,LastK,false> : public InTimeOOP<N,NFact,T,S,W1,LastK> { };
+
 
 
 /** \class {GFFT::InFreqOMP}

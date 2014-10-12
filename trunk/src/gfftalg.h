@@ -103,52 +103,6 @@ public:
    }
 };
 
-template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
-class InTime;
-
-template<int_t K, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
-bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
-class DFTk_x_Im_T;
-
-template<int_t K, int_t M, typename VType, int S>
-struct DFTk_inp_adapter;
-
-template<int_t M, typename VType, int S>
-struct DFTk_inp_adapter<2,M,VType,S> : public DFTk_inp<2,M,VType,S> { };
-
-template<int_t M, typename VType, int S>
-struct DFTk_inp_adapter<3,M,VType,S> : public DFTk_inp<3,M,VType,S> { };
-
-template<int_t M, typename VType, int S>
-struct DFTk_inp_adapter<4,M,VType,S> 
-{ 
-   typedef typename VType::ValueType T;
-
-   typedef Pair<SInt<2>,SInt<2> > T1;
-   typedef TYPELIST_1(T1) NFact;
-
-   typedef typename GetFirstRoot<4,S,VType::Accuracy>::Result W1;
-
-   //InTime<4,NFact,VType,S,W1,2> dft_str;
-   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-   static const int_t M2 = M*2;
-   DFTk_inp<2, M2, VType, S> spec_inp;
-   DFTk_x_Im_T<2,M2,M,VType,S,W1,false> dft_scaled;
-public:
-
-   void apply(T* data) 
-   {
-      std::swap(data[M2],data[M2+M2]);
-      std::swap(data[M2+1],data[M2+M2+1]);
-      std::swap(data[M2+2],data[M2+M2+2]);
-      std::swap(data[M2+3],data[M2+M2+3]);
-
-      spec_inp.apply(data);
-      spec_inp.apply(data + M2+M2);
-
-      dft_scaled.apply(data);
-   }
-};
 
 /// In-place scaled FFT algorithm
 /**
@@ -164,9 +118,9 @@ The class performs DFT(k) with the Kronecker product by the mxm identity matrix 
 and twiddle factors (T).
 \sa InTime, IterateInTime
 */
-// template<int_t K, int_t M, typename VType, int S, class W, bool doStaticLoop,
-// bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
-// class DFTk_x_Im_T;
+template<int_t K, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
+class DFTk_x_Im_T;
 
 // Rely on the static template loop
 template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
@@ -184,7 +138,6 @@ class DFTk_x_Im_T<K,M,Step,VType,S,W,false,true>
    static const int_t M2 = M*2;
    static const int_t S2 = 2*Step;
    DFTk_inp<K,M2,VType,S> spec_inp;
-   //DFTk_inp_adapter<K,M,VType,S> spec_inp_a;
 public:
    void apply(T* data) 
    {
@@ -210,8 +163,8 @@ public:
 	wi[i] = wpi[i];
       }
       
-      for (int_t i=S2; i<M2; i+=S2) {
-	spec_inp.apply(data+i, wr, wi);
+      for (int_t j=S2; j<M2; j+=S2) {
+	spec_inp.apply(data+j, wr, wi);
 
 	for (int_t i=0; i<K-1; ++i) {
 	  t = wr[i];
@@ -317,8 +270,8 @@ factor K is taken from the compile-time list.
 The scaled DFT is performed afterwards.
 \sa InFreq, DFTk_x_Im_T
 */
-// template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
-// class InTime;
+template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
+class InTime;
 
 template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
 class InTime<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
