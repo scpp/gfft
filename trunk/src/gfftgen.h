@@ -73,6 +73,8 @@ public:
    typedef Parall ParallType;
    typedef Place PlaceType;
 
+   typedef ExecType Instance;
+
    enum { ID = IDN };
    static const int_t Len = N::value;
 

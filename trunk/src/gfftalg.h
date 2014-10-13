@@ -186,6 +186,7 @@ class DFTk_x_Im_T<3,M,Step,VType,S,W,false,true>
    typedef Compute<typename W::Im,VType::Accuracy> WI;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
+   static const int_t S2 = 2*Step;
    DFTk_inp<3,M2,VType,S> spec_inp;
 public:
    void apply(T* data) 
@@ -209,7 +210,7 @@ public:
       wi[0] = wpi1;
       wr[1] = wpr2;
       wi[1] = wpi2;
-      for (int_t i=2; i<M2; i+=2) {
+      for (int_t i=S2; i<M2; i+=S2) {
 	spec_inp.apply(data+i, wr, wi);
 
         t = wr[0];

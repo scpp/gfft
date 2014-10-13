@@ -221,7 +221,7 @@ public:
       data[I21] += ti;
   }
   */
-
+/*
   void apply(T* data) 
   {
       const T sr1 = data[0] + data[I20];
@@ -269,7 +269,7 @@ public:
       data[I30] = dr1 - di2;
       data[I31] = di1 + dr2;
   }
-  
+  */
   template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
