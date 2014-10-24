@@ -108,7 +108,6 @@ struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<P> >,Tail> >
   {
     assert(ii >= 0 && ii < K);
     return (ii%N)*M + Next::value(ii/N);
-    //return ii;
   }
 };
 
@@ -191,15 +190,13 @@ struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1>
    //static const int_t N2 = K*M2;
    
    typedef typename IPowBig<W1,KF>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> KFactNext;
-
-   typedef Compute<typename W1::Re,VType::Accuracy> WR;
-   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> KFactNext;
 
    //   InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
 
-   DFTk_inp_adapter<KF,KFactNext,M,VType,S,WK> dft_str;
+   //DFTk_inp_adapter<KF,Loki::NullType,M,VType,S,WK> dft_str;
+   DFTk_inp<KF,M2,VType,S> dft_str;
    DFTk_x_Im_T_omp<KNext,KFactNext,KF*M,M,VType,S,W1,false> dft_scaled;
 public:
 
@@ -232,16 +229,14 @@ public:
    }
 };
 
-// template<int_t K, int_t KF, typename Tail, int_t M, typename VType, int S, class W>
-// struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >,Tail>, M, VType, S, W>
-// : public DFTk_inp_adapter<K, Tail, M, VType, S, W> {};
+template<int_t K, int_t KF, typename Tail, int_t M, typename VType, int S, typename W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >, Tail>, M, VType, S, W1>
+: public DFTk_inp_adapter<K, Tail, M, VType, S, W1> { };
 
-template<typename H, typename Tail, int_t M, typename VType, int S, typename W>
-struct DFTk_inp_adapter<3,Loki::Typelist<H,Tail>,M,VType,S,W> : public DFTk_inp<3,M*2,VType,S> { };
-
-template<typename H, typename Tail, int_t M, typename VType, int S, typename W>
-struct DFTk_inp_adapter<2,Loki::Typelist<H,Tail>,M,VType,S,W> : public DFTk_inp<2,M*2,VType,S> { };
-
+// Specialization for prime N
+template<int_t K, int_t M, typename VType, int S, class W1>
+struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType>,M,VType,S,W1> 
+: public DFTk_inp<K, M*(Loki::TypeTraits<typename VType::ValueType>::isStdFundamental ? 2 : 1), VType, S> { };
 
 
 
@@ -349,13 +344,13 @@ public:
 
    void apply(const T* src, T* dst) 
    {
-//      parall.apply(dft_str, src, dst);
+      parall.apply(dft_str, src, dst);
       // K times call to dft_str.apply()
 //      #pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
-      for (int_t i = 0; i < K; ++i) {
-	int_t ii = Perm::value(i);
-	dft_str.apply(src + ii*LastK2, dst + i*M2);
-      }
+//       for (int_t i = 0; i < K; ++i) {
+// 	int_t ii = Perm::value(i);
+// 	dft_str.apply(src + ii*LastK2, dst + i*M2);
+//       }
       
       dft_scaled.apply(dst);
    }

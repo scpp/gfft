@@ -135,6 +135,51 @@ public:
   }
   
   template<class LT>
+  void apply_m(T* data, const LT* wr, const LT* wi) 
+  { 
+    const T t = data[0];
+    data[0] = t*wr[0] - data[1]*wi[0];
+    data[1] = t*wi[0] + data[1]*wr[0];
+    T sr[K], si[K], dr[K], di[K];
+    for (int_t i=1; i<K+1; ++i) {
+      const int_t k = i*M;
+      const T tr1 = data[k]*wr[i] - data[k+1]*wi[i];
+      const T ti1 = data[k]*wi[i] + data[k+1]*wr[i];
+      const T tr2 = data[NM-k]*wr[N-i] - data[NM-k+1]*wi[N-i];
+      const T ti2 = data[NM-k]*wi[N-i] + data[NM-k+1]*wr[N-i];
+      sr[i-1] = tr1 + tr2;
+      si[i-1] = ti1 + ti2;
+      dr[i-1] = tr1 - tr2;
+      di[i-1] = ti1 - ti2;
+    }
+    
+    for (int_t i=1; i<K+1; ++i) {
+      T re1(0), re2(0), im1(0), im2(0);
+      for (int_t j=0; j<K; ++j) {
+	const bool sign_change = (i*(j+1) % N) > K;
+	const int_t kk = (i+j*i)%N;
+	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+	const T s1 = m_s[k]*di[j];
+	const T s2 = m_s[k]*dr[j];
+	re1 += m_c[k]*sr[j];
+	im1 += m_c[k]*si[j];
+	re2 += sign_change ? -s1 : s1;
+	im2 -= sign_change ? -s2 : s2;
+      }
+      const int_t k = i*M;
+      data[k] = data[0] + re1 + re2;
+      data[k+1] = data[1] + im1 + im2;
+      data[NM-k] = data[0] + re1 - re2;
+      data[NM-k+1] = data[1] + im1 - im2;
+    }
+    
+    for (int_t i=0; i<K; ++i) {
+      data[0] += sr[i];
+      data[1] += si[i];
+    }
+  }
+
+  template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
     T sr[K], si[K], dr[K], di[K];
