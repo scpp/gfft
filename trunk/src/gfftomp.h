@@ -108,6 +108,8 @@ struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<P> >,Tail> >
   {
     assert(ii >= 0 && ii < K);
     return (ii%N)*M + Next::value(ii/N);
+//    return (ii%N)*M + (ii/N);
+    //return ii;
   }
 };
 
@@ -195,16 +197,20 @@ struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1>
    //   InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
 
-   //DFTk_inp_adapter<KF,Loki::NullType,M,VType,S,WK> dft_str;
-   DFTk_inp<KF,M2,VType,S> dft_str;
-   DFTk_x_Im_T_omp<KNext,KFactNext,KF*M,M,VType,S,W1,false> dft_scaled;
+//    DFTk_inp<KF,M2,VType,S> dft_str;
+//    DFTk_x_Im_T_omp<KNext,KFactNext,KF*M,M,VType,S,W1,false> dft_scaled;
+
+   DFTk_inp_adapter<KNext,KFactNext,M,VType,S,WK> dft_str;
+   DFTk_x_Im_T<KF,KNext*M,M,VType,S,W1,false> dft_scaled;
 public:
 
    void apply(T* data) 
    {
      // run strided DFT recursively KF times
-      for (int_t i=0; i < KNext; ++i) 
-	dft_str.apply(data + i*MKF);
+//       for (int_t i=0; i < KNext; ++i) 
+// 	dft_str.apply(data + i*MKF);
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply(data + i*M2*KNext);
 
       dft_scaled.apply(data);
    }
@@ -214,16 +220,20 @@ public:
    {
       dft_str.apply(data, wr, wi);
 
-      for (int_t i=1; i < KNext; ++i) 
-	dft_str.apply_m(data + i*MKF, wr+i*KF-1, wi+i*KF-1);
+//       for (int_t i=1; i < KNext; ++i) 
+// 	dft_str.apply_m(data + i*MKF, wr+i*KF-1, wi+i*KF-1);
+      for (int_t i=1; i < KF; ++i) 
+	dft_str.apply_m(data + i*M2*KNext, wr+i*KNext-1, wi+i*KNext-1);
 
       dft_scaled.apply(data);
    }
    template<class LT>
    void apply_m(T* data, const LT* wr, const LT* wi) 
    {
-      for (int_t i=0; i < KNext; ++i) 
-	dft_str.apply_m(data + i*MKF, wr+i*KF, wi+i*KF);
+//       for (int_t i=0; i < KNext; ++i) 
+// 	dft_str.apply_m(data + i*MKF, wr+i*KF, wi+i*KF);
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply_m(data + i*M2*KNext, wr+i*KNext, wi+i*KNext);
 
       dft_scaled.apply(data);
    }
@@ -256,7 +266,8 @@ class DFTk_x_Im_T_omp<K,KFact,M,Step,VType,S,W,false,true>
    DFTk_inp_adapter<K,KFact,M,VType,S,W1> spec_inp_a;
 //   DFTk_inp<K,M2,VType,S> spec_inp;
 
-   typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
+//   typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
+   typedef Permutation<K,KFact> Perm;
 
 public:
    void apply(T* data) 
@@ -296,7 +307,6 @@ public:
 	}
       }
    }
-  
 };
 
 template<typename KFact, int_t M, int_t Step, typename VType, int S, class W>
@@ -326,11 +336,10 @@ class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
    static const int_t N2 = N*C;
    static const int_t LastK2 = LastK*C;
    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
-   static const int_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
    typedef typename Factorization<SIntID<K>, SInt>::Result KFact;
-   //typedef typename Loki::TL::Reverse<KF>::Result KFact;
-   typedef Permutation<K,KFact> Perm;
+   //typedef Permutation<K,KFact> Perm;
+   typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
 
    typedef typename IPowBig<W1,K>::Result WK;
 //   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
@@ -344,13 +353,13 @@ public:
 
    void apply(const T* src, T* dst) 
    {
-      parall.apply(dft_str, src, dst);
+//      parall.apply(dft_str, src, dst);
       // K times call to dft_str.apply()
 //      #pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
-//       for (int_t i = 0; i < K; ++i) {
-// 	int_t ii = Perm::value(i);
-// 	dft_str.apply(src + ii*LastK2, dst + i*M2);
-//       }
+      for (int_t i = 0; i < K; ++i) {
+	int_t ii = Perm::value(i);
+	dft_str.apply(src + ii*LastK2, dst + i*M2);
+      }
       
       dft_scaled.apply(dst);
    }
