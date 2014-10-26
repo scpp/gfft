@@ -81,7 +81,7 @@ class GFFTbench<Loki::Typelist<H,T>,IN_PLACE,Counter>
   typedef typename H::ValueType::ValueType Tp;
   typedef GFFTbenchBase<Tp> Base;
   GFFTbench<T,IN_PLACE,Counter-1> next;
-  H gfft;
+  typename H::Instance gfft;
 public:
   void cputime()
   {
@@ -148,6 +148,14 @@ public:
    }
 };
 
+template<>
+class GFFTbench<Loki::NullType,IN_PLACE> {
+public:
+  void cputime() { }
+  void realtime() { }
+};
+
+
 template<class H, class T, int Counter>
 class GFFTbench<Loki::Typelist<H,T>,OUT_OF_PLACE,Counter> 
 : public GFFTbenchBase<typename H::ValueType::ValueType> 
@@ -155,7 +163,7 @@ class GFFTbench<Loki::Typelist<H,T>,OUT_OF_PLACE,Counter>
   typedef typename H::ValueType::ValueType Tp;
   typedef GFFTbenchBase<Tp> Base;
   GFFTbench<T,OUT_OF_PLACE,Counter-1> next;
-  H gfft;
+  typename H::Instance gfft;
 public:
   void cputime()
   {
@@ -259,7 +267,7 @@ int main(int argc, char *argv[])
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default>  List_cfs;
 
    // Single- and multi-threaded out-of-place transforms
-   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
+   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, IN_PLACE> List_dp;
 //    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_cfp;

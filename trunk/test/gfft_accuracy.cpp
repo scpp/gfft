@@ -166,7 +166,7 @@ class GFFTcheck<Loki::Typelist<H,T>, DFTClass, OUT_OF_PLACE> {
   static const int_t N = H::Len;
   static const int_t N2 = 2*N;
   
-  H gfft;
+  typename H::Instance gfft;
   
 public:
   void apply() 

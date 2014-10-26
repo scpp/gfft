@@ -10,5 +10,5 @@ project(gfft CXX)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_subdirectory(src)
-#add_subdirectory(test)
+add_subdirectory(test)
 #add_subdirectory(db)

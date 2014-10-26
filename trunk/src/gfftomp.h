@@ -37,33 +37,46 @@ too large for transforms with smaller sizes.
 static const int_t SwitchToOMP = (1<<1);
 
 
-template<int_t K, typename KFact>
-struct Permutation;
-  
-template<int_t K, int_t N, int_t P, typename Tail>
-struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<P> >,Tail> >
+
+// Assume: K >= NThreads
+template<int_t M2, int_t NThreads, int K, int I = 0, bool C = (K>NThreads)>
+struct ParallLoop;
+
+template<int_t M2, int_t NThreads, int K, int I>
+struct ParallLoop<M2,NThreads,K,I,true>
 {
-  static const int_t M = K/N;   // K = M*N
-  typedef Permutation<K/N, Loki::Typelist<Pair<SInt<N>,SInt<P-1> >,Tail> > Next;
-  static int_t value(const int_t ii)
+  static const int_t NThreadsAlreadyCreated = I*NThreads;
+  
+  ParallLoop<M2,NThreads,K-NThreads,I+1> NextStep;
+  
+  template<class DftStr, class T>
+  void apply(DftStr& dft_str, T* data)
   {
-    assert(ii >= 0 && ii < K);
-    return (ii%N)*M + Next::value(ii/N);
-//    return (ii%N)*M + (ii/N);
-    //return ii;
+      #pragma omp parallel num_threads(NThreads)
+      {
+	int tid = omp_get_thread_num() + NThreadsAlreadyCreated;
+	dft_str.apply(data + tid*M2);
+	//#pragma omp barrier
+      }
+      
+      NextStep.apply(dft_str, data);
   }
 };
 
-template<int_t K, int_t N, typename Tail>
-struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<0> >,Tail> >
-: public Permutation<K, Tail> {};
-
-template<int_t K>
-struct Permutation<K, Loki::NullType>
+template<int_t M2, int_t NThreads, int K, int I>
+struct ParallLoop<M2,NThreads,K,I,false>
 {
-  static int_t value(const int_t ii) 
-  { 
-    return ii;
+  static const int_t NThreadsAlreadyCreated = I*NThreads;
+  
+  template<class DftStr, class T>
+  void apply(DftStr& dft_str, T* data)
+  {
+      #pragma omp parallel num_threads(K)
+      {
+	int tid = omp_get_thread_num() + NThreadsAlreadyCreated;
+	dft_str.apply(data + tid*M2);
+	#pragma omp barrier
+      }
   }
 };
 
@@ -107,35 +120,21 @@ class InTime_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
    
    typedef typename Factorization<SIntID<K>, SInt>::Result KFact;
-   //typedef Permutation<K,KFact> Perm;
-   typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
-
-   typedef typename IPowBig<W1,K>::Result WK;
-
-//    typedef typename VType::ValueType T;
-//    typedef typename VType::TempType LocalVType;
-//    static const int_t K = Head::first::value;
-//    static const int_t M = N/K;
-// 
-//    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-//    static const int_t M2 = M*C;
-//    static const int_t N2 = N*C;
-// 
-//    static const int_t NThreadsCreate = (NThreads > K) ? K : NThreads;
-//    static const int_t NThreadsNext = (NThreads != NThreadsCreate) ? NThreads-NThreadsCreate : 1;
    
-//    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-//    typedef Loki::Typelist<Pair<SInt<K>,SInt<1> >, Loki::NullType> KFact;
+   typedef typename IPowBig<W1,K>::Result WK;
 
    InTime<M,Tail,VType,S,WK,K*LastK> dft_str;
 //    DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
    DFTk_x_Im_T_omp<K,KFact,M,1,VType,S,W1,false> dft_scaled;
+
+   ParallLoop<M2,NThreadsCreate,K> parall;
 public:
    void apply(T* data) 
    {
+      parall.apply(dft_str, data);
 //      #pragma omp parallel for shared(data) schedule(static) num_threads(NThreadsCreate)
-      for (int_t m = 0; m < N2; m+=M2)
-	dft_str.apply(data + m);
+//       for (int_t m = 0; m < N2; m+=M2) 
+// 	dft_str.apply(data + m);
       
       dft_scaled.apply(data);
    }
@@ -193,6 +192,34 @@ struct ParallLoopOOP<Perm,N2,M2,LastK2,NThreads,K,I,false>
   }
 };
 
+
+template<int_t K, typename KFact>
+struct Permutation;
+  
+template<int_t K, int_t N, int_t P, typename Tail>
+struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<P> >,Tail> >
+{
+  static const int_t M = K/N;   // K = M*N
+  typedef Permutation<K/N, Loki::Typelist<Pair<SInt<N>,SInt<P-1> >,Tail> > Next;
+  static int_t value(const int_t ii)
+  {
+    assert(ii >= 0 && ii < K);
+    return (ii%N)*M + Next::value(ii/N);
+  }
+};
+
+template<int_t K, int_t N, typename Tail>
+struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<0> >,Tail> >
+: public Permutation<K, Tail> {};
+
+template<int_t K>
+struct Permutation<K, Loki::NullType>
+{
+  static int_t value(const int_t ii) 
+  { 
+    return ii;
+  }
+};
 
 
 template<int_t K, typename KFact, int_t M, typename VType, int S, typename W>

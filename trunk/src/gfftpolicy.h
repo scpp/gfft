@@ -123,47 +123,6 @@ struct COMPLEX_FLOAT {
 #endif
 };
 
-// /*! \brief Decimation in-time
-// \ingroup gr_params
-// */
-// struct INTIME {
-//    static const id_t ID = 0;
-//    template<int_t N, typename NFact, typename VType,
-//             class Swap, class Direction, short_t NT, class W1>
-//    class List {
-// //      typedef InTime<N,NFact,VType,Direction::Sign,W1> InT;
-//       typedef InTime_omp<NT,N,NFact,VType,Direction::Sign,W1> InT;
-//    public:
-//       typedef TYPELIST_3(Swap,InT,Direction) Result;
-//    };
-// };
-// 
-// struct INTIME_OOP {
-//    static const id_t ID = 0;
-//    template<int_t N, typename NFact, typename VType,
-//             class Swap, class Direction, short_t NT, class W1>
-//    class List {
-// //      typedef InTimeOOP<N,NFact,VType,Direction::Sign,W1> InT;
-//       typedef InTimeOOP_omp<NT,N,NFact,VType,Direction::Sign,W1> InT;
-//    public:
-//        typedef TYPELIST_3(Swap,InT,Direction) Result;
-//    };
-// };
-
-// /*! \brief Decimation in-frequency
-// \ingroup gr_params
-// */
-// struct INFREQ {
-//    static const id_t ID = 1;
-//    template<int_t N, typename NFact, typename VType,
-//             class Swap, class Direction, short_t NT, class W1>
-//    class List {
-// //      typedef InFreq<N,NFact,VType,Direction::Sign,W1> InF;
-//       typedef InFreqOMP<NT,N,NFact,VType,Direction::Sign,W1> InF;
-//    public:
-//       typedef TYPELIST_3(InF,Swap,Direction) Result;
-//    };
-// };
 
 /*! \brief In-place algorithm 
 \ingroup gr_params
@@ -180,8 +139,7 @@ struct IN_PLACE {
             class Parall, class Direction, class W1>
    class List {
       typedef typename VType::ValueType T;
-      typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
-      //typedef typename INTIME::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
+      typedef typename Parall::template Swap<NFact,T>::Result Swap;
       typedef InTime_omp<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
@@ -387,8 +345,11 @@ struct Serial {
    static const id_t ID = 0;
    static const uint_t NParProc = 1;
 
-   template<uint_t M, uint_t P, class T>
+   // used for in-place transforms only
+   template<typename NFact, typename T>
    struct Swap {
+      static const uint_t M = NFact::Head::first::value;
+      static const uint_t P = NFact::Head::second::value;
       typedef GFFTswap2<M,P,T> Result;
    };
 
@@ -412,8 +373,12 @@ struct OpenMP {
    static const id_t ID = NT-1;
    static const uint_t NParProc = NT;
 
-   template<uint_t M, uint_t P, class T>
+   // used for in-place transforms only
+   template<typename NFact, typename T>
    struct Swap {
+      static const uint_t M = NFact::Tail::Head::first::value;
+      static const uint_t P = IsMultipleOf<NFact::Head::first::value,M>::value 
+                            + NFact::Tail::Head::second::value;
       typedef GFFTswap2<M,P,T> Result;
 //       typedef GFFTswap2OMP<NT,M,P,T> Result;
    };
