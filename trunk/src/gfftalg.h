@@ -118,144 +118,45 @@ The class performs DFT(k) with the Kronecker product by the mxm identity matrix 
 and twiddle factors (T).
 \sa InTime, IterateInTime
 */
-template<int_t K, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
+template<int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_x_Im_T;
 
 // Rely on the static template loop
 template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<K,M,Step,VType,S,W,true,true> : public IterateInTime<K,M,VType,S,W> {};
+class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<K>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,true,true> 
+: public IterateInTime<K,M,VType,S,W> {};
 
 // General implementation
 template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<K,M,Step,VType,S,W,false,true>
+class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<K>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,false,true>
 {
    typedef typename VType::ValueType T;
-   typedef typename VType::TempType LocalVType;
-   typedef Compute<typename W::Re,VType::Accuracy> WR;
-   typedef Compute<typename W::Im,VType::Accuracy> WI;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
    static const int_t S2 = 2*Step;
    DFTk_inp<K,M2,VType,S> spec_inp;
+   
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
 
-      LocalVType wr[K-1], wi[K-1], wpr[K-1], wpi[K-1], t;
+      ComputeRoots<K,VType,W> roots;
 
-      // W = (wpr[0], wpi[0])
-      wpr[0] = WR::value();
-      wpi[0] = WI::value();
-      //t = Sin<N,1,LocalVType>::value();
-//       wpr[0] = 1 - 2.0*t*t;
-//       wpi[0] = -S*Sin<N,2,LocalVType>::value();
-      
-      // W^i = (wpr[i], wpi[i])
-      for (int_t i=0; i<K-2; ++i) {
-	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
-	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
-      }
-      
-      for (int_t i=0; i<K-1; ++i) {
-	wr[i] = wpr[i];
-	wi[i] = wpi[i];
-      }
-      
-      for (int_t j=S2; j<M2; j+=S2) {
-	spec_inp.apply(data+j, wr, wi);
-
-	for (int_t i=0; i<K-1; ++i) {
-	  t = wr[i];
-	  wr[i] = t*wpr[i] - wi[i]*wpi[i];
-	  wi[i] = wi[i]*wpr[i] + t*wpi[i];
-	}
+      spec_inp.apply(data+S2, roots.get_real(), roots.get_imag());
+      for (int_t j=S2+S2; j<M2; j+=S2) {
+	roots.step();
+	spec_inp.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
   
 };
 
-// Specialization for radix 3
-template<int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<3,M,Step,VType,S,W,false,true> 
-{
-   typedef typename VType::ValueType T;
-   typedef typename VType::TempType LocalVType;
-   typedef Compute<typename W::Re,VType::Accuracy> WR;
-   typedef Compute<typename W::Im,VType::Accuracy> WI;
-   static const int_t N = 3*M;
-   static const int_t M2 = M*2;
-   static const int_t S2 = 2*Step;
-   DFTk_inp<3,M2,VType,S> spec_inp;
-public:
-   void apply(T* data) 
-   {
-      spec_inp.apply(data);
+template<int_t K, int_t KK, int_t M, int_t Step, typename Tail, typename VType, int S, class W>
+class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,W,false,true>
+: public DFTk_x_Im_T<K,Tail,M,Step,VType,S,W,false,true> {};
 
-      LocalVType wr[2],wi[2],t;
-
-      // W = (wpr1, wpi1)
-//       t = Sin<N,1,LocalVType>::value();
-//       const LocalVType wpr1 = 1 - 2.0*t*t;
-//       const LocalVType wpi1 = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr1 = WR::value();
-      const LocalVType wpi1 = WI::value();
-      
-      // W^2 = (wpr2, wpi2)
-      const LocalVType wpr2 = wpr1*wpr1 - wpi1*wpi1;
-      const LocalVType wpi2 = 2*wpr1*wpi1;
-      
-      wr[0] = wpr1;
-      wi[0] = wpi1;
-      wr[1] = wpr2;
-      wi[1] = wpi2;
-      for (int_t i=S2; i<M2; i+=S2) {
-	spec_inp.apply(data+i, wr, wi);
-
-        t = wr[0];
-        wr[0] = t*wpr1 - wi[0]*wpi1;
-        wi[0] = wi[0]*wpr1 + t*wpi1;
-        t = wr[1];
-        wr[1] = t*wpr2 - wi[1]*wpi2;
-        wi[1] = wi[1]*wpr2 + t*wpi2;
-      }
-   }
-};
-
-// Specialization for radix 2
-template<int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<2,M,Step,VType,S,W,false,true> 
-{
-   typedef typename VType::ValueType T;
-   typedef typename VType::TempType LocalVType;
-   typedef Compute<typename W::Re,VType::Accuracy> WR;
-   typedef Compute<typename W::Im,VType::Accuracy> WI;
-   static const int_t N = 2*M;
-   static const int_t S2 = 2*Step;
-   DFTk_inp<2,N,VType,S> spec_inp;
-public:
-   void apply(T* data) 
-   {
-      spec_inp.apply(data);
-
-      LocalVType wr,wi,t;
-//       t = Sin<N,1,LocalVType>::value();
-//       const LocalVType wpr = 1-2.0*t*t;
-//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr = WR::value();
-      const LocalVType wpi = WI::value();
-      wr = wpr;
-      wi = wpi;
-      for (int_t i=S2; i<N; i+=S2) {
-	spec_inp.apply(data+i, &wr, &wi);
-
-        t = wr;
-        wr = wr*wpr - wi*wpi;
-        wi = wi*wpr + t*wpi;
-      }
-   }
-};
 
 /// In-place decimation-in-time FFT version
 /**
@@ -299,9 +200,10 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
+   typedef Loki::Typelist<Pair<SInt<K>,SInt<1> >, Loki::NullType> KFact;
    InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -366,9 +268,10 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
    
    typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   typedef Loki::Typelist<Pair<SInt<K>,SInt<1> >, Loki::NullType> KFact;
    InTimeOOP<M,NFactNext,VType,S,WK,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,false> dft_scaled;
 public:
 
    void apply(const T* src, T* dst) 

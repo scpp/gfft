@@ -132,7 +132,7 @@ struct COMPLEX_FLOAT {
 //             class Swap, class Direction, short_t NT, class W1>
 //    class List {
 // //      typedef InTime<N,NFact,VType,Direction::Sign,W1> InT;
-//       typedef InTimeOMP<NT,N,NFact,VType,Direction::Sign,W1> InT;
+//       typedef InTime_omp<NT,N,NFact,VType,Direction::Sign,W1> InT;
 //    public:
 //       typedef TYPELIST_3(Swap,InT,Direction) Result;
 //    };
@@ -182,7 +182,7 @@ struct IN_PLACE {
       typedef typename VType::ValueType T;
       typedef typename Parall::template Swap<NFact::Head::first::value,NFact::Head::second::value,T>::Result Swap;
       //typedef typename INTIME::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
-      typedef InTimeOMP<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef InTime_omp<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };

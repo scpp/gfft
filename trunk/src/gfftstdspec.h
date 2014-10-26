@@ -221,8 +221,8 @@ public:
     CT s[K], d[K];
     for (int_t i=0; i<K; ++i) {
       const int_t k = (i+1)*SI;
-      s[i] = src[k]   + src[NSI-k];
-      d[i] = src[k]   - src[NSI-k];
+      s[i] = src[k] + src[NSI-k];
+      d[i] = src[k] - src[NSI-k];
     }
     
     for (int_t i=1; i<K+1; ++i) {
