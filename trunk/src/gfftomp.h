@@ -81,7 +81,7 @@ struct ParallLoop<M2,NThreads,K,I,false>
 };
 
 
-template<int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
+template<int_t NThreads, int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W, bool doStaticLoop,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_x_Im_T_omp;
 
@@ -125,7 +125,7 @@ class InTime_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
 
    InTime<M,Tail,VType,S,WK,K*LastK> dft_str;
 //    DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T_omp<K,KFact,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T_omp<NThreads,K,KFact,M,1,VType,S,W1,false> dft_scaled;
 
    ParallLoop<M2,NThreadsCreate,K> parall;
 public:
@@ -296,8 +296,8 @@ struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType
 
 
 // General implementation
-template<int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T_omp<K,KFact,M,Step,VType,S,W,false,true>
+template<int_t NThreads, int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W,false,true>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
@@ -306,6 +306,9 @@ class DFTk_x_Im_T_omp<K,KFact,M,Step,VType,S,W,false,true>
    static const int_t N = K*M;
    static const int_t M2 = M*2;
    static const int_t S2 = 2*Step;
+   
+   static const int_t MQ = M/NThreads;
+   static const int_t MR = M%NThreads;
 
    typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W1;
    DFTk_inp_adapter<K,KFact,M,VType,S,W1> spec_inp_a;
@@ -314,7 +317,7 @@ class DFTk_x_Im_T_omp<K,KFact,M,Step,VType,S,W,false,true>
    typedef Permutation<K,KFact> Perm;
 
 public:
-  /*
+  
    void apply(T* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
@@ -322,25 +325,28 @@ public:
 	int tid = omp_get_thread_num();// + NThreadsAlreadyCreated;
 	if (tid == 0) {
 	  spec_inp_a.apply(data);
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*NThreads, roots.get_real(), roots.get_imag());
+	  for (int_t j=2*NThreads*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
 	}
 	else {
-	  ComputeRoots<K,VType,W,Perm> roots(tid);
-
-// 	  for (int_t j=1; j<tid; ++j) 
-// 	    roots.step();
-
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
 	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-// 	  for (int_t j=S2+S2; j<M2; j+=S2) {
-// 	    roots.step();
-// 	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-// 	  }
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
 	}
 	#pragma omp barrier
       }
    }
-   */
+   /*
    void apply(T* data) 
    {
+     // M times call to spec_inp_a.apply()
       spec_inp_a.apply(data);
       ComputeRoots<K,VType,W,Perm> roots;
 
@@ -350,17 +356,97 @@ public:
 	spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
+   
+   void apply(T* data) 
+   {
+	  spec_inp_a.apply(data);
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,0);
+	  spec_inp_a.apply(data+S2*NThreads, roots.get_real(), roots.get_imag());
+	  for (int_t j=2*NThreads*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+
+	  int tid = 1;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+
+	  tid = 2;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+     
+	  tid = 3;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+	  tid = 4;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+	  tid = 5;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+	  tid = 6;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+	  tid = 7;
+	  {
+	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
+	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
+	  }
+	  }
+  }
+  */
 };
 
-template<typename KFact, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T_omp<3,KFact,M,Step,VType,S,W,false,true>
+/*
+template<int_t NThreads, typename KFact, int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T_omp<NThreads,3,KFact,M,Step,VType,S,W,false,true>
 : public DFTk_x_Im_T<3,KFact,M,Step,VType,S,W,false,true> {};
 
-template<typename KFact, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T_omp<2,KFact,M,Step,VType,S,W,false,true>
+template<int_t NThreads, typename KFact, int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T_omp<NThreads,2,KFact,M,Step,VType,S,W,false,true>
 : public DFTk_x_Im_T<2,KFact,M,Step,VType,S,W,false,true> {};
-
-
+*/
 
 template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C = ((N>NThreads) && (N>=SwitchToOMP))>
@@ -389,7 +475,7 @@ class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
 //    InTimeOOP_omp<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
    InTimeOOP<M,Tail,VType,S,WK,K*LastK> dft_str;
 //    DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T_omp<K,KFact,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T_omp<NThreads,K,KFact,M,1,VType,S,W1,false> dft_scaled;
 
    ParallLoopOOP<Perm,N2,M2,LastK2,NThreadsCreate,K> parall;
 public:

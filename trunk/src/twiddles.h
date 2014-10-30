@@ -99,11 +99,28 @@ class ComputeRoots : public RootsContainer<K,VType>
   
 public:
   ComputeRoots() { init(); }
-  ComputeRoots(const int n) 
+  ComputeRoots(const int nthreads, const int n) 
   { 
     init(); 
-    for (int_t j=1; j<n; ++j) 
-      Base::step();
+    T tr, ti, t;
+    for (int_t i=0; i<K-1; ++i) {
+      tr = wr[i];
+      ti = wi[i];
+      for (int_t j=1; j<(n==0 ? nthreads : n); ++j) {
+	t = wr[i];
+	wr[i] = t*tr - wi[i]*ti;
+	wi[i] = t*ti + tr*wi[i];
+      }
+    }
+    for (int_t i=0; i<K-1; ++i) {
+      tr = wpr[i];
+      ti = wpi[i];
+      for (int_t j=1; j<nthreads; ++j) {
+	t = wpr[i];
+	wpr[i] = t*tr - wpi[i]*ti;
+	wpi[i] = t*ti + tr*wpi[i];
+      }
+    }
   }
   
   void init() 
