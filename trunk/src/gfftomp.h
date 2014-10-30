@@ -34,7 +34,6 @@ OpenMP parallelization is switched on. The overhead is
 too large for transforms with smaller sizes.
 */
 //static const int_t SwitchToOMP = (1<<6);
-static const int_t SwitchToOMP = (1<<1);
 
 
 
@@ -102,12 +101,11 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
-template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
-bool C = ((N>NThreads) && (N>=SwitchToOMP))>
+template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
 class InTime_omp;
 
 template<int_t NThreads, int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InTime_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
+class InTime_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> 
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
@@ -141,11 +139,8 @@ public:
 };
 
 template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InTime_omp<1,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
-: public InTime<N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> { };
-
-template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK>
-class InTime_omp<NThreads,N,NFact,VType,S,W1,LastK,false> : public InTime<N,NFact,VType,S,W1,LastK> { };
+class InTime_omp<1,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> 
+: public InTime<N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> {};
 
 ///////////////////////
 
@@ -317,7 +312,7 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W,false,true>
    typedef Permutation<K,KFact> Perm;
 
 public:
-  
+  /*
    void apply(T* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
@@ -343,7 +338,8 @@ public:
 	#pragma omp barrier
       }
    }
-   /*
+   */
+   // Sequential version
    void apply(T* data) 
    {
      // M times call to spec_inp_a.apply()
@@ -356,86 +352,7 @@ public:
 	spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
-   
-   void apply(T* data) 
-   {
-	  spec_inp_a.apply(data);
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,0);
-	  spec_inp_a.apply(data+S2*NThreads, roots.get_real(), roots.get_imag());
-	  for (int_t j=2*NThreads*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-
-	  int tid = 1;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-
-	  tid = 2;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-     
-	  tid = 3;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-	  tid = 4;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-	  tid = 5;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-	  tid = 6;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-	  tid = 7;
-	  {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
-	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
-	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
-	    roots.step();
-	    spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
-	  }
-	  }
-  }
-  */
+    
 };
 
 /*
@@ -448,12 +365,11 @@ class DFTk_x_Im_T_omp<NThreads,2,KFact,M,Step,VType,S,W,false,true>
 : public DFTk_x_Im_T<2,KFact,M,Step,VType,S,W,false,true> {};
 */
 
-template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
-bool C = ((N>NThreads) && (N>=SwitchToOMP))>
+template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
 class InTimeOOP_omp;
 
 template<int_t NThreads, int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true> 
+class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> 
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
@@ -471,11 +387,9 @@ class InTimeOOP_omp<NThreads,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK,true>
    typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
 
    typedef typename IPowBig<W1,K>::Result WK;
-//   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
-//    InTimeOOP_omp<NThreadsNext,M,NFactNext,VType,S,WK,K*LastK> dft_str;
    InTimeOOP<M,Tail,VType,S,WK,K*LastK> dft_str;
 //    DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T_omp<NThreads,K,KFact,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T_omp<NThreadsCreate,K,KFact,M,1,VType,S,W1,false> dft_scaled;
 
    ParallLoopOOP<Perm,N2,M2,LastK2,NThreadsCreate,K> parall;
 public:
@@ -483,8 +397,7 @@ public:
    void apply(const T* src, T* dst) 
    {
       parall.apply(dft_str, src, dst);
-      // K times call to dft_str.apply()
-//      #pragma omp parallel for shared(src,dst) private(m,lk) schedule(static) num_threads(NThreadsCreate)
+
 //       for (int_t i = 0; i < K; ++i) {
 // 	int_t ii = Perm::value(i);
 // 	dft_str.apply(src + ii*LastK2, dst + i*M2);
@@ -494,13 +407,9 @@ public:
    }
 };
 
-template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
-class InTimeOOP_omp<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true> 
-: public InTimeOOP<N,Loki::Typelist<Head,Tail>,T,S,W1,LastK> { };
-
-template<int_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
-class InTimeOOP_omp<NThreads,N,NFact,T,S,W1,LastK,false> : public InTimeOOP<N,NFact,T,S,W1,LastK> { };
-
+template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+class InTimeOOP_omp<1,N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> 
+: public InTimeOOP<N,Loki::Typelist<Head,Tail>,VType,S,W1,LastK> { };
 
 
 /** \class {GFFT::InFreqOMP}
@@ -519,6 +428,7 @@ threads and so on until NThreads has become equal 1. Then the sequential version
 in template class InTime is inherited.
 \sa InFreqOMP, InTime, InFreq
 */
+/*
 template<short_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1, 
 bool C=((N>NThreads) && (N>=SwitchToOMP))>
 class InFreqOMP;
@@ -562,7 +472,7 @@ class InFreqOMP<1,N,Loki::Typelist<Head,Tail>,T,S,W1,LastK,true>
 template<short_t NThreads, int_t N, typename NFact, typename T, int S, class W1, int_t LastK>
 class InFreqOMP<NThreads,N,NFact,T,S,W1,LastK,false> : public InFreq<N,NFact,T,S,W1,LastK> { };
 
-
+*/
 
 /** \class {GFFT::GFFTswap2OMP}
 \brief Binary reordering parallelized by %OpenMP

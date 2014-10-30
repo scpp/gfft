@@ -139,8 +139,9 @@ struct IN_PLACE {
             class Parall, class Direction, class W1>
    class List {
       typedef typename VType::ValueType T;
-      typedef typename Parall::template Swap<NFact,T>::Result Swap;
-      typedef InTime_omp<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef typename Parall::template ActualParall<N>::Result NewParall;
+      typedef typename NewParall::template Swap<NFact,T>::Result Swap;
+      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
@@ -174,7 +175,7 @@ struct OUT_OF_PLACE {
             class Parall, class Direction, class W1>
    class List {
       //typedef typename INTIME_OOP::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
-      typedef InTimeOOP_omp<Parall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef InTimeOOP_omp<Parall::template ActualParall<N>::Result::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
        typedef TYPELIST_2(InT,Direction) Result;
    };
@@ -345,6 +346,11 @@ struct Serial {
    static const id_t ID = 0;
    static const uint_t NParProc = 1;
 
+   template<int_t N>
+   struct ActualParall {
+      typedef Serial Result;
+   };
+
    // used for in-place transforms only
    template<typename NFact, typename T>
    struct Swap {
@@ -363,6 +369,8 @@ struct Serial {
    void apply(const T*, T*) { }
 };
 
+static const int_t SwitchToOMP = (1<<8);
+
 /*! \brief %Transform is parallelized using %OpenMP standard
 \tparam NT number of parallel threads
 \sa Serial
@@ -373,6 +381,12 @@ struct OpenMP {
    static const id_t ID = NT-1;
    static const uint_t NParProc = NT;
 
+   template<int_t N>
+   struct ActualParall {
+      static const bool C = ((N > NT*NT) && (N >= SwitchToOMP));
+      typedef typename Loki::Select<C,OpenMP<NT>,Serial>::Result Result;
+   };
+   
    // used for in-place transforms only
    template<typename NFact, typename T>
    struct Swap {
@@ -389,7 +403,11 @@ struct OpenMP {
       typedef typename Factorization<SIntID<N::value/G>, SInt>::Result NFact1;
       typedef ExtractFactor<NT/G, NFact1> EF;
       typedef Pair<SInt<G*EF::value>,SInt<1> > NParall;
-      typedef Loki::Typelist<NParall,typename EF::Result> Result;
+      typedef Loki::Typelist<NParall,typename EF::Result> Multithreaded;
+      typedef typename Factorization<N, SInt>::Result Singlethreaded;
+      static const bool C = ((N::value > NT*NT) && (N::value >= SwitchToOMP));
+      typedef typename Loki::Select<C,   // Condition to turn on multithreaded mode
+	  Multithreaded, Singlethreaded>::Result Result;
    };
    
    template<typename T>
