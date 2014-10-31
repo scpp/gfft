@@ -207,13 +207,16 @@ template<int_t K, int_t N, typename Tail>
 struct Permutation<K, Loki::Typelist<Pair<SInt<N>,SInt<0> >,Tail> >
 : public Permutation<K, Tail> {};
 
+// template<>
+// struct Permutation<4, Loki::Typelist<Pair<SInt<2>,SInt<2> >,Loki::NullType> >
+// {
+//   static int_t value(const int_t ii) { return ii; }
+// };
+
 template<int_t K>
 struct Permutation<K, Loki::NullType>
 {
-  static int_t value(const int_t ii) 
-  { 
-    return ii;
-  }
+  static int_t value(const int_t ii) { return ii; }
 };
 
 
@@ -237,7 +240,7 @@ struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1>
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> KFactNext;
 
 //    DFTk_inp<KF,M2,VType,S> dft_str;
-//    DFTk_x_Im_T_omp<KNext,KFactNext,KF*M,M,VType,S,W1,false> dft_scaled;
+//    DFTk_x_Im_T_omp<1,KNext,KFactNext,KF*M,M,VType,S,W1,false> dft_scaled;
 
    typedef Loki::Typelist<Pair<SInt<KF>,SInt<1> >, Loki::NullType> KF_fact;
    DFTk_inp_adapter<KNext,KFactNext,M,VType,S,WK> dft_str;
@@ -283,11 +286,15 @@ template<int_t K, int_t KF, typename Tail, int_t M, typename VType, int S, typen
 struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >, Tail>, M, VType, S, W1>
 : public DFTk_inp_adapter<K, Tail, M, VType, S, W1> { };
 
-// Specialization for prime N
+// Specialization for prime K
 template<int_t K, int_t M, typename VType, int S, class W1>
 struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType>,M,VType,S,W1> 
 : public DFTk_inp<K, M*(Loki::TypeTraits<typename VType::ValueType>::isStdFundamental ? 2 : 1), VType, S> { };
 
+// Specialization for K=4
+// template<int_t M, typename VType, int S, class W1>
+// struct DFTk_inp_adapter<4,Loki::Typelist<Pair<SInt<2>, SInt<2> >, Loki::NullType>,M,VType,S,W1> 
+// : public DFTk_inp<4, M*(Loki::TypeTraits<typename VType::ValueType>::isStdFundamental ? 2 : 1), VType, S> { };
 
 
 // General implementation
@@ -296,15 +303,10 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W,false,true>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   typedef Compute<typename W::Re,VType::Accuracy> WR;
-   typedef Compute<typename W::Im,VType::Accuracy> WI;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
    static const int_t S2 = 2*Step;
    
-   static const int_t MQ = M/NThreads;
-   static const int_t MR = M%NThreads;
-
    typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W1;
    DFTk_inp_adapter<K,KFact,M,VType,S,W1> spec_inp_a;
 
@@ -398,6 +400,7 @@ public:
    {
       parall.apply(dft_str, src, dst);
 
+//       #pragma omp parallel for shared(src,dst) schedule(static) num_threads(NThreadsCreate)
 //       for (int_t i = 0; i < K; ++i) {
 // 	int_t ii = Perm::value(i);
 // 	dft_str.apply(src + ii*LastK2, dst + i*M2);

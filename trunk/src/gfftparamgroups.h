@@ -53,8 +53,8 @@ struct TransformTypeGroup
 /// \ingroup gr_groups
 struct ParallelizationGroup
 {
-  typedef TYPELIST_4(Serial,OpenMP<2>,OpenMP<3>,OpenMP<4>) FullList;
-//  typedef TYPELIST_4(OpenMP<2>,OpenMP<4>,OpenMP<8>,OpenMP<16>) FullList;
+//  typedef TYPELIST_4(Serial,OpenMP<2>,OpenMP<3>,OpenMP<4>) FullList;
+  typedef TYPELIST_4(OpenMP<1>,OpenMP<2>,OpenMP<4>,OpenMP<8>) FullList;
   static const uint_t Length = 3;
   typedef Serial Default;
 };

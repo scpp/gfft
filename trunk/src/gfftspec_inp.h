@@ -221,7 +221,7 @@ public:
     }
   }
 };
-
+/*
 template<int_t M, typename VType, int S>
 class DFTk_inp<4,M,VType,S,true> 
 {
@@ -236,37 +236,36 @@ class DFTk_inp<4,M,VType,S,true>
   
 public:
   DFTk_inp() { }
-/*  
-  void apply(T* data) 
-  { 
-      T tr = data[I20];
-      T ti = data[I21];
-      data[I20] = data[0]-tr;
-      data[I21] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[I30];
-      ti = data[I31];
-      data[I30] = S*(data[I11]-ti);
-      data[I31] = S*(tr-data[I10]);
-      data[I10] += tr;
-      data[I11] += ti;
+  
+//   void apply(T* data) 
+//   { 
+//       T tr = data[I20];
+//       T ti = data[I21];
+//       data[I20] = data[0]-tr;
+//       data[I21] = data[1]-ti;
+//       data[0] += tr;
+//       data[1] += ti;
+//       tr = data[I30];
+//       ti = data[I31];
+//       data[I30] = S*(data[I11]-ti);
+//       data[I31] = S*(tr-data[I10]);
+//       data[I10] += tr;
+//       data[I11] += ti;
+// 
+//       tr = data[I10];
+//       ti = data[I11];
+//       data[I10] = data[0]-tr;
+//       data[I11] = data[1]-ti;
+//       data[0] += tr;
+//       data[1] += ti;
+//       tr = data[I30];
+//       ti = data[I31];
+//       data[I30] = data[I20]-tr;
+//       data[I31] = data[I21]-ti;
+//       data[I20] += tr;
+//       data[I21] += ti;
+//   }
 
-      tr = data[I10];
-      ti = data[I11];
-      data[I10] = data[0]-tr;
-      data[I11] = data[1]-ti;
-      data[0] += tr;
-      data[1] += ti;
-      tr = data[I30];
-      ti = data[I31];
-      data[I30] = data[I20]-tr;
-      data[I31] = data[I21]-ti;
-      data[I20] += tr;
-      data[I21] += ti;
-  }
-  */
-/*
   void apply(T* data) 
   {
       const T sr1 = data[0] + data[I20];
@@ -314,13 +313,13 @@ public:
       data[I30] = dr1 - di2;
       data[I31] = di1 + dr2;
   }
-  */
+  
   template<class LT>
   void apply(const LT* wr, const LT* wi, T* data) 
   { 
   }
 };
-
+*/
 
 // Specialization for N=3
 template<int_t M, typename VType, int S>

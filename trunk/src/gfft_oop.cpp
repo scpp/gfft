@@ -29,7 +29,7 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = (1<<24);
+static const int_t N = 32;
 static const int_t NThreads = 4;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 // do simple dft
    dft.apply();
     
-   ValueType::ValueType* dataout1 = dft.getdata();
+//   ValueType::ValueType* dataout1 = dft.getdata();
 
 // print out transformed data
    cout.precision(3);
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
    cout<<"Check against DFT:"<<endl;
    double mx(-1);
    for (i=0; i < n; ++i) {
-//      cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
+      cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
    }

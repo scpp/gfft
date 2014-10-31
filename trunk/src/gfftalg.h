@@ -157,6 +157,39 @@ template<int_t K, int_t KK, int_t M, int_t Step, typename Tail, typename VType, 
 class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,W,false,true>
 : public DFTk_x_Im_T<K,Tail,M,Step,VType,S,W,false,true> {};
 
+// Specialization for radix 2
+template<int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,false,true> 
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,2> WR;
+   typedef Compute<typename W::Im,2> WI;
+   static const int_t N = 2*M;
+   static const int_t S2 = 2*Step;
+   DFTk_inp<2,N,VType,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+
+      LocalVType wr,wi,t;
+//       t = Sin<N,1,LocalVType>::value();
+//       const LocalVType wpr = 1-2.0*t*t;
+//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
+      const LocalVType wpr = WR::value();
+      const LocalVType wpi = WI::value();
+      wr = wpr;
+      wi = wpi;
+      for (int_t i=S2; i<N; i+=S2) {
+	spec_inp.apply(data+i, &wr, &wi);
+
+        t = wr;
+        wr = wr*wpr - wi*wpi;
+        wi = wi*wpr + t*wpi;
+      }
+   }
+};
 
 /// In-place decimation-in-time FFT version
 /**
