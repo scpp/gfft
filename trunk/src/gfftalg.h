@@ -32,7 +32,7 @@ namespace GFFT {
 using namespace MF;
 
 
-static const int_t StaticLoopLimit = (1<<6);
+static const int_t StaticLoopLimit = (1<<10);
 
 // !!! This will work for K == 2 inly !!!
 template<int_t K, int_t M, typename VType, int S, class W1, int NIter = 1, class W = W1>
@@ -214,34 +214,37 @@ class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,
 template<int_t M, int_t Step, typename VType, int S, class W>
 class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,true,true> 
 : public SmartIterate<DFTk_inp<2,2*M,VType,S>,M,VType,S> {};
-// {
-//    typedef typename VType::ValueType T;
-//    typedef typename VType::TempType LocalVType;
-//    typedef Compute<typename W::Re,VType::Accuracy> WR;
-//    typedef Compute<typename W::Im,VType::Accuracy> WI;
-//    static const int_t N = 2*M;
-//    static const int_t S2 = 2*Step;
-//    DFTk_inp<2,N,VType,S> spec_inp;
-// public:
-//    void apply(T* data) 
-//    {
-//       spec_inp.apply(data);
-// 
-//       LocalVType wr,wi,t;
-//       const LocalVType wpr = WR::value();
-//       const LocalVType wpi = WI::value();
-//       wr = wpr;
-//       wi = wpi;
-// 
-//       spec_inp.apply(data+S2, &wr, &wi);
-//       for (int_t i=S2+S2; i<N; i+=S2) {
-//         t = wr;
-//         wr = wr*wpr - wi*wpi;
-//         wi = wi*wpr + t*wpi;
-// 	spec_inp.apply(data+i, &wr, &wi);
-//       }
-//    }
-// };
+
+template<int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,false,true> 
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   typedef Compute<typename W::Re,VType::Accuracy> WR;
+   typedef Compute<typename W::Im,VType::Accuracy> WI;
+   static const int_t N = 2*M;
+   static const int_t S2 = 2*Step;
+   DFTk_inp<2,N,VType,S> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+
+      LocalVType wr,wi,t;
+      const LocalVType wpr = WR::value();
+      const LocalVType wpi = WI::value();
+      wr = wpr;
+      wi = wpi;
+
+      spec_inp.apply(data+S2, &wr, &wi);
+      for (int_t i=S2+S2; i<N; i+=S2) {
+        t = wr;
+        wr = wr*wpr - wi*wpi;
+        wi = wi*wpr + t*wpi;
+	spec_inp.apply(data+i, &wr, &wi);
+      }
+   }
+};
 
 // Specialization for radix 2
 template<int_t Step, typename VType, int S, class W>

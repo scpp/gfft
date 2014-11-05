@@ -134,6 +134,10 @@ public:
   typedef SDecimal<Sum,ND,DecBase> Result;
 };
 
+template<class BI, int_t ND, base_t DecBase, int_t N>
+class Add<SInt<N>, SDecimal<BI,ND,DecBase> > 
+: public Add<SDecimal<BI,ND,DecBase>,SInt<N> > {};
+
 ///////////////////////////////////////////////
 
 template<class BI1, class BI2, int_t ND, base_t DecBase>

@@ -393,7 +393,7 @@ struct Print<Typelist<Head,Tail> > {
         template <template<int_t> class IntHolder, class T>
         struct Compare<NullType,Typelist<IntHolder<0>,T> >
         {
-            static const int value = Compare<T,NullType>::value;
+            static const int value = Compare<NullType,T>::value;
         };
 
 	template <>

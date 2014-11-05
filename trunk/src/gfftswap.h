@@ -124,6 +124,21 @@ public:
    }
 };
 
+template<typename T>
+class GFFTswap2<2,2,T,0> {
+public:
+   void apply(T* data, int_t n=0, int_t r=0) {
+     std::swap(data[2],data[4]);
+     std::swap(data[3],data[5]);
+   }
+};
+
+template<typename T>
+class GFFTswap2<2,1,T,0> {
+public:
+   void apply(T* data, int_t n=0, int_t r=0) { }
+};
+
 /// Binary reordering of array elements
 /*!
 \tparam M^P length of the data

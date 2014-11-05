@@ -14,7 +14,7 @@ add_executable(gfft_oop gfft_oop.cpp)
 #add_executable(metapi metapi.cpp)
 #add_executable(metasqrt metasqrt.cpp)
 
-# add_executable(metaf metaf.cpp)
+#add_executable(metaf metaf.cpp)
 
 if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
@@ -46,7 +46,7 @@ target_link_libraries(metapi c m stdc++ gomp)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -fopenmp -O0 -g -DGFFTDOC)
+add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
 
 #target_link_libraries(gfft stdc++ gomp)
 target_link_libraries(gfft_inp stdc++ gomp)
