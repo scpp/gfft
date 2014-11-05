@@ -446,19 +446,19 @@ public:
 //////////////////////////////////////////////////////
 template<int_t N>
 class Sign<SInt<N> > {
-   static const char value = (N>0) ? 1 : ((N<0) ? -1 : 0);
+   static const int value = (N>0) ? 1 : ((N<0) ? -1 : 0);
 };
 
 template<bool S, class NList, base_t Base>
 class Sign<SBigInt<S,NList,Base> > {
 public:
-   static const char value = S ? 1 : -1;
+   static const int value = S ? 1 : -1;
 };
 
 template<bool S, base_t Base>
 class Sign<SBigInt<S,Loki::NullType,Base> > {
 public:
-   static const char value = 0;
+   static const int value = 0;
 };
 
 ///////////////////////////////////////////////////////
@@ -550,7 +550,7 @@ template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Add<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
    typedef SBigInt<S1,NList1,Base> BI1;
    typedef SBigInt<S2,NList2,Base> BI2;
-   static const char C = NL::Compare<NList1,NList2>::value;
+   static const int C = NL::Compare<NList1,NList2>::value;
 public:
    typedef typename __Add<BI1,BI2,C>::Result Result;
 };
@@ -584,7 +584,7 @@ template<bool S1, class NList1, bool S2, class NList2, base_t Base>
 class Sub<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> > {
    typedef SBigInt<S1,NList1,Base> BI1;
    typedef SBigInt<!S2,NList2,Base> BI2;
-   static const char C = NL::Compare<NList1,NList2>::value;
+   static const int C = NL::Compare<NList1,NList2>::value;
 public:
    typedef typename __Add<BI1,BI2,C>::Result Result;
 };
@@ -742,7 +742,7 @@ template<class B1, class B2>
 class BigDiv;
 
 
-template<class B1, class B2, int_t L1, int_t L2, char C>
+template<class B1, class B2, int_t L1, int_t L2, int C>
 struct DivSelect;
 
 template<class B1, class B2, int_t L1, int_t L2>
@@ -856,7 +856,7 @@ class Div<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base> >
 {
   static const int_t L1 = Loki::TL::Length<NList1>::value;
   static const int_t L2 = Loki::TL::Length<NList2>::value;
-  static const char C = NL::Compare<NList1,NList2>::value;
+  static const int C = NL::Compare<NList1,NList2>::value;
   
   typedef DivSelect<SBigInt<S1,NList1,Base>,SBigInt<S2,NList2,Base>,L1,L2,C> T;
 public:

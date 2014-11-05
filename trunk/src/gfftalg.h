@@ -32,9 +32,9 @@ namespace GFFT {
 using namespace MF;
 
 
-static const int_t StaticLoopLimit = 8;
+static const int_t StaticLoopLimit = (1<<6);
 
-
+// !!! This will work for K == 2 inly !!!
 template<int_t K, int_t M, typename VType, int S, class W1, int NIter = 1, class W = W1>
 class IterateInTime
 {
@@ -103,6 +103,59 @@ public:
    }
 };
 
+///////////////////////////////////////////////////
+
+template<class DFTk, int_t M, typename VType, int S, int NIter = M-2>
+struct SmartIterate
+{
+   typedef typename VType::ValueType T;
+   typedef typename VType::TempType LocalVType;
+   static const int_t M2 = 2*M;
+   static const int_t I = (M-NIter);
+   static const int_t N = M2;
+//    typedef typename Simplify<SRational<SInt<I>,SInt<N> > >::Result R;
+//    static const int_t I1 = R::Numer::value;
+//    static const int_t N1 = R::Denom::value;
+
+   typedef typename CosPiDecimal<I,N,VType::Accuracy>::Result Re;
+   typedef typename SinPiDecimal<I,N,VType::Accuracy>::Result Sin2;
+   typedef typename Loki::Select<(S<0),Sin2,
+          typename Negate<Sin2>::Result>::Result Im;
+
+//   typedef typename GetFirstRoot<M2,S,VType::Accuracy>::Result W;
+   typedef Compute<Re,VType::Accuracy> WR;
+   typedef Compute<Im,VType::Accuracy> WI;
+   
+   DFTk spec_inp;
+   
+   SmartIterate<DFTk,M,VType,S,NIter-2> next;
+
+   void apply(T* data) 
+   {
+     LocalVType wr = WR::value();
+     LocalVType wi = WI::value();
+     spec_inp.apply(data+(M-NIter),&wr,&wi);
+
+     wr = -wr;
+     spec_inp.apply(data+M2-(M-NIter),&wr,&wi);
+     
+     next.apply(data);
+   }
+};
+
+template<class DFTk, int_t M, typename VType, int S>
+struct SmartIterate<DFTk,M,VType,S,0>
+{
+   typedef typename VType::ValueType T;
+   DFTk spec_inp;
+
+   void apply(T* data) 
+   {
+     spec_inp.apply(data);
+     spec_inp.apply_1(data+M);
+   }
+};
+
 
 /// In-place scaled FFT algorithm
 /**
@@ -123,9 +176,9 @@ bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_x_Im_T;
 
 // Rely on the static template loop
-template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<K>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,true,true> 
-: public IterateInTime<K,M,VType,S,W> {};
+// template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
+// class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<K>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,true,true> 
+// : public SmartIterate<K,M,VType,S> {};
 
 // General implementation
 template<int_t K, int_t M, int_t Step, typename VType, int S, class W>
@@ -159,35 +212,49 @@ class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,
 
 // Specialization for radix 2
 template<int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,false,true> 
+class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,M,Step,VType,S,W,true,true> 
+: public SmartIterate<DFTk_inp<2,2*M,VType,S>,M,VType,S> {};
+// {
+//    typedef typename VType::ValueType T;
+//    typedef typename VType::TempType LocalVType;
+//    typedef Compute<typename W::Re,VType::Accuracy> WR;
+//    typedef Compute<typename W::Im,VType::Accuracy> WI;
+//    static const int_t N = 2*M;
+//    static const int_t S2 = 2*Step;
+//    DFTk_inp<2,N,VType,S> spec_inp;
+// public:
+//    void apply(T* data) 
+//    {
+//       spec_inp.apply(data);
+// 
+//       LocalVType wr,wi,t;
+//       const LocalVType wpr = WR::value();
+//       const LocalVType wpi = WI::value();
+//       wr = wpr;
+//       wi = wpi;
+// 
+//       spec_inp.apply(data+S2, &wr, &wi);
+//       for (int_t i=S2+S2; i<N; i+=S2) {
+//         t = wr;
+//         wr = wr*wpr - wi*wpi;
+//         wi = wi*wpr + t*wpi;
+// 	spec_inp.apply(data+i, &wr, &wi);
+//       }
+//    }
+// };
+
+// Specialization for radix 2
+template<int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T<2,Loki::Typelist<Pair<SInt<2>,SInt<1> >,Loki::NullType>,2,Step,VType,S,W,false,true> 
 {
    typedef typename VType::ValueType T;
-   typedef typename VType::TempType LocalVType;
-   typedef Compute<typename W::Re,2> WR;
-   typedef Compute<typename W::Im,2> WI;
-   static const int_t N = 2*M;
    static const int_t S2 = 2*Step;
-   DFTk_inp<2,N,VType,S> spec_inp;
+   DFTk_inp<2,4,VType,S> spec_inp;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
-
-      LocalVType wr,wi,t;
-//       t = Sin<N,1,LocalVType>::value();
-//       const LocalVType wpr = 1-2.0*t*t;
-//       const LocalVType wpi = -S*Sin<N,2,LocalVType>::value();
-      const LocalVType wpr = WR::value();
-      const LocalVType wpi = WI::value();
-      wr = wpr;
-      wi = wpi;
-      for (int_t i=S2; i<N; i+=S2) {
-	spec_inp.apply(data+i, &wr, &wi);
-
-        t = wr;
-        wr = wr*wpr - wi*wpi;
-        wi = wi*wpr + t*wpi;
-      }
+      spec_inp.apply_1(data+S2);
    }
 };
 
@@ -235,8 +302,8 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    typedef Loki::Typelist<Pair<SInt<K>,SInt<1> >, Loki::NullType> KFact;
    InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
-//   DFTk_x_Im_T<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,false> dft_scaled;
+   DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   //DFTk_x_Im_T<K,KFact,M,1,VType,S,W1,false> dft_scaled;
 public:
    void apply(T* data) 
    {

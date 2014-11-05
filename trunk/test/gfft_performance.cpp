@@ -121,7 +121,7 @@ public:
 
      uint_t i,it;
      
-     it = size_t(2000000./(double)H::Len)+1;
+     it = size_t(5000000./(double)H::Len)+1;
      Tp* data    = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
  
@@ -267,8 +267,8 @@ int main(int argc, char *argv[])
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default>  List_cfs;
 
    // Single- and multi-threaded out-of-place transforms
-//   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, OpenMP<1>, IN_PLACE> List_dp;
-   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
+   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, OpenMP<1>, IN_PLACE> List_dp;
+//   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
 //    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_cfp;

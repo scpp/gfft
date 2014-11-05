@@ -14,6 +14,8 @@ add_executable(gfft_oop gfft_oop.cpp)
 #add_executable(metapi metapi.cpp)
 #add_executable(metasqrt metasqrt.cpp)
 
+# add_executable(metaf metaf.cpp)
+
 if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### Intel compiler
@@ -53,6 +55,8 @@ target_link_libraries(gfft_oop stdc++ gomp)
 #target_link_libraries(cgfft_oop stdc++ gomp)
 # target_link_libraries(metapi c m stdc++ gomp)
 # target_link_libraries(metasqrt c m stdc++ gomp)
+
+#target_link_libraries(metaf c m stdc++ gomp)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")
 

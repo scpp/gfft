@@ -453,6 +453,23 @@ public:
         data[0] += tr;
         data[1] += ti;
   }
+  // as one above with wr = 0, wi = -1
+  void apply_1(T* data) 
+  { 
+        const T tr = data[M+1];
+        const T ti = -data[M];
+        data[M] = data[0]-tr;
+        data[M+1] = data[1]-ti;
+        data[0] += tr;
+        data[1] += ti;
+
+//         data[0] += data[M+1];
+//         data[1] -= data[M];
+// 	const T tr = ;
+//         const T ti = ;
+//         data[M] = data[0]-tr;
+//         data[M+1] = data[1]-ti;
+  }
   template<class LT>
   void apply_m(T* data, const LT* wr, const LT* wi) 
   { 

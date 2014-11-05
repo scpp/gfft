@@ -355,7 +355,8 @@ struct Print<Typelist<Head,Tail> > {
 /// \param NList1 a numlist
 /// \param NList2 a numlist
 /// \return Positive value, if the numlist NList1 greater than NList2,
-///         negative value otherwise. Returns zero, if NList1 and NList2 are equal.
+///         negative value, if the numlist NList1 less than NList2. 
+///	    Returns zero, if NList1 and NList2 are equal.
 ///         (last element is the most significant) \n
 /// Compare<NList1,NList2>::value
 ////////////////////////////////////////////////////////////////////////////////
@@ -366,9 +367,9 @@ struct Print<Typelist<Head,Tail> > {
         struct Compare<Typelist<H1,T1>,Typelist<H2,T2> >
         {
             static const int v = Compare<T1,T2>::value;
-            static const int value = (v==0) ? 
-                  ((H1::value-H2::value)>0 ? 1 : 
-                   (H1::value==H2::value) ? 0 : -1) : v;
+            static const int value = (v == 0) ? 
+                  ((H1::value > H2::value) ? 1 : 
+                   (H1::value == H2::value) ? 0 : -1) : v;
         };
 
         template <class H, class T>
@@ -383,11 +384,22 @@ struct Print<Typelist<Head,Tail> > {
             static const int value = -1;
         };
 
-        template <class H1, class H2>
-        struct Compare<Typelist<H1,NullType>,Typelist<H2,NullType> >
+        template <template<int_t> class IntHolder, class T>
+        struct Compare<Typelist<IntHolder<0>,T>,NullType>
         {
-            static const int value = (H1::value-H2::value)>0 ? 1 : 
-                                      (H1::value==H2::value) ? 0 : -1;
+            static const int value = Compare<T,NullType>::value;
+        };
+
+        template <template<int_t> class IntHolder, class T>
+        struct Compare<NullType,Typelist<IntHolder<0>,T> >
+        {
+            static const int value = Compare<T,NullType>::value;
+        };
+
+	template <>
+        struct Compare<NullType,NullType>
+        {
+            static const int value = 0;
         };
 
 /// \class Sort

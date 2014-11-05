@@ -17,6 +17,7 @@
 */
 
 #include <iostream>
+#include <limits>
 
 #include "gfft.h"
 #include "gfftfactor.h"
@@ -89,11 +90,45 @@ int main(int argc, char *argv[])
 // //typedef MetaPi::Result TPi;
 // typedef EX::FractionToDecimal<TPi,20,10>::Result TPiDec;
 //typedef Print<TPi::Num>::Result TT2;
-typedef PiDecAcc<3>::Result TPiDec;
-cout << "Compile-time PI: ";
-Cout<TPiDec>::apply(cout);
+//typedef CosPiDecimal<15,32,2>::Result Re;
+    static const int Accuracy = 2;
+   typedef SRational<SInt<15>,SInt<32> > F;
+   typedef typename RationalToDecimal<F,Accuracy>::Result FDec;
+   typedef typename PiDecAcc<Accuracy,5>::Result TPi;
+   typedef typename Mult<TPi,FDec>::Result X;
+   typedef typename Reduce<X,Accuracy>::Result XR;
+   typedef typename CosDecAcc<XR,Accuracy>::Result Result;
+//   typedef FuncSeries<XR,CosDecimalFunc,Add,Accuracy,2> Sum;
+//   typedef typename Sum::Result StartValue;
+//   typedef typename Sum::ResultAux Aux;
+//   typedef typename GenericAccuracyBasedFuncAdapter<StartValue,Accuracy,DefaultBase>::Result StartDecimal;
+// 
+//   typedef typename CosDecimalFunc::template Value<2,XR,Aux,Accuracy> FStep;
+//   typedef typename FStep::Result NextStep;
+//   typedef typename FStep::ResultAux NextAux;
+// //typedef typename Add<StartValue::Num,NextStep::Num>::Result BI;     // sequence of parameters is important here !!!
+//   typedef StartValue::Num::Num NList1;
+//   typedef NextStep::Num::Num NList2;
+//   static const bool S1 = StartValue::Num::isPositive;
+//   static const bool S2 = NextStep::Num::isPositive;
+//   static const base_t Base = StartValue::Num::Base;
+//   typedef typename Add<StartValue,NextStep>::Result NextValue;     // sequence of parameters is important here !!!
+// 
+// //   typedef TYPELIST_2(SInt<25>,SInt<0>) NList1;
+// //   typedef TYPELIST_1(SInt<30>) NList2;
+//    typedef SBigInt<S1,NList1,Base> BI1;
+//    typedef SBigInt<S2,NList2,Base> BI2;
+//    static const int C = NL::Compare<NList1,NList2>::value;
+//    typedef typename __Add<BI1,BI2,C>::Result Res;
+//    //typedef typename Add<StartValue::Num,NextStep::Num>::Result Res;
+
+//typedef Print<NList1>::Result TT2;
+  //typedef PiDecAcc<3>::Result TPiDec;
+
+cout << "Compile-time: ";
+Cout<Result>::apply(cout);
 cout << endl;
-cout << "           M_PI: " << M_PI << endl;
+cout << "Cos(15pi/32): " << cos(15.*M_PI/32.) << endl;
 //cout << Evaluate2Int<SI::Numer,RetType>::value << "/" << Evaluate2Int<SI::Denom,RetType>::value << endl;
 // Cout<TPi1::Numer>::apply(cout);
 // cout << " / " << endl;
