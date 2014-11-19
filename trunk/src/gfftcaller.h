@@ -46,10 +46,16 @@ struct Caller<Loki::Typelist<Head,Tail> >
       next_.apply(data);
    }
    
-   template<typename T>
-   void apply(const T* src, T* dst) {
+   template<typename T1, typename T2>
+   void apply(const T1* src, T2* dst) {
       obj_.apply(src, dst);
       next_.apply(src, dst);
+   }
+
+   template<typename T1, typename T2, typename T3>
+   void apply(const T1* src, T2* dst, T3* p) {
+      obj_.apply(src, dst, p);
+      next_.apply(src, dst, p);
    }
 
 private:
@@ -65,8 +71,11 @@ struct Caller<Loki::NullType>
    template<typename T>
    void apply(T*) { }
 
-   template<typename T>
-   void apply(const T*, T*) { }
+   template<typename T1, typename T2>
+   void apply(const T1*, T2*) { }
+
+   template<typename T1, typename T2, typename T3>
+   void apply(const T1*, T2*, T3*) { }
 };
 
 

@@ -50,7 +50,8 @@ struct Print<Typelist<Head,Tail> > {
         struct Max< Typelist<Num, Tail> >
         {
         private:
-            enum { temp = Max<Tail>::value };
+	    typedef typename Num::value_type T;
+            static const T temp = Max<Tail>::value;
         public:
             typedef SInt<(temp > Num::value) ? temp : Num::value> Result;
         };
@@ -73,7 +74,8 @@ struct Print<Typelist<Head,Tail> > {
         struct Min< Typelist<Num, Tail> >
         {
         private:
-            enum { temp = Min<Tail>::value };
+	    typedef typename Num::value_type T;
+            static const T temp = Min<Tail>::value;
         public:
             typedef SInt<(temp < Num::value) ? temp : Num::value> Result;
         };

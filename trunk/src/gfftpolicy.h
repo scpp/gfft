@@ -26,6 +26,7 @@
 #include <omp.h>
 
 #include "sint.h"
+#include "twiddles.h"
 
 namespace GFFT {
 
@@ -136,12 +137,12 @@ struct IN_PLACE {
    };
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Direction, class W1>
+            typename Parall, typename Direction, typename Twiddles>
    class List {
       typedef typename VType::ValueType T;
       typedef typename Parall::template ActualParall<N>::Result NewParall;
       typedef typename NewParall::template Swap<NFact,T>::Result Swap;
-      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
@@ -149,9 +150,12 @@ struct IN_PLACE {
    template<typename FuncList, typename T>
    struct Function : public Interface<T>::Result
    {
-      FuncList run;
+      FuncList m_run;
     //   in-place transform
-      void fft(T* data) { run.apply(data); }
+      void fft(T* data) 
+      { 
+	m_run.apply(data); 
+      }
    };
 };
 
@@ -172,10 +176,10 @@ struct OUT_OF_PLACE {
 //    };
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Direction, class W1>
+            typename Parall, typename Direction, typename Twiddles>
    class List {
-      //typedef typename INTIME_OOP::template List<N,NFact,VType,Swap,Direction,NT,W1>::Result Result;
-      typedef InTimeOOP_omp<Parall::template ActualParall<N>::Result::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
+      typedef typename Parall::template ActualParall<N>::Result NewParall;
+      typedef InTimeOOP_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles> InT;
    public:
        typedef TYPELIST_2(InT,Direction) Result;
    };
@@ -183,9 +187,12 @@ struct OUT_OF_PLACE {
    template<typename FuncList, typename T>
    struct Function : public Interface<T>::Result
    {
-      FuncList run;
+      FuncList m_run;
     // out-of-place transform
-      void fft(const T* src, T* dst) { run.apply(src, dst); }
+      void fft(const T* src, T* dst) 
+      { 
+	m_run.apply(src, dst); 
+      }
    };
 };
 
@@ -199,16 +206,17 @@ struct IDCT2;
 */
 struct DFT {
    static const id_t ID = 0;
+   static const int Sign = 1;
    typedef IDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Place>
+            typename Parall, typename Place, typename Twiddles>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
-      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
    public:
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result Result;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
    };
 };
 
@@ -217,16 +225,17 @@ struct DFT {
 */
 struct IDFT {
    static const id_t ID = 1;
+   static const int Sign = -1;
    typedef DFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Place>
+            typename Parall, typename Place, typename Twiddles>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
-      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
    public:
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result Result;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
    };
 };
 
@@ -235,16 +244,17 @@ struct IDFT {
 */
 struct RDFT {
    static const id_t ID = 2;
+   static const int Sign = 1;
    typedef IRDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Place>
+            typename Parall, typename Place, typename Twiddles>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result TList;
+      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
    public:
       typedef typename Loki::TL::Append<TList,Separator>::Result Result;
    };
@@ -255,16 +265,17 @@ struct RDFT {
 */
 struct IRDFT {
    static const id_t ID = 3;
+   static const int Sign = -1;
    typedef RDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            class Parall, class Place>
+            typename Parall, typename Place, typename Twiddles>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,W1>::Result TList;
+      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
    public:
       typedef Loki::Typelist<Separator,TList> Result;
    };

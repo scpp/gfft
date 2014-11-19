@@ -24,11 +24,12 @@
 #include "typelistgen.h"
 #include "gfftparamgroups.h"
 
+#include "Singleton.h"
 
 /// Main namespace
 namespace GFFT {
 
-
+  
 /** \class {GFFT::Transform}
 \brief Generic Fast Fourier transform in-place class
 \tparam Power2 defines transform length, which is 2^Power2
@@ -61,11 +62,13 @@ class Transform
 //       typename EF::Result, Loki::Typelist<NParall,typename EF::Result> >::Result NFactor;
       
    typedef typename Parall::template Factor<N>::Result NFactor;
+   typedef Loki::SingletonHolder<RootsHolder<N::value,NFactor,VType,Type::Sign> > Twiddles;
 
-   typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place>::Result Alg;
+   typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place,Twiddles>::Result Alg;
    
    typedef typename Place::template Interface<typename VType::ValueType>::Result ReturnType;
    typedef typename Place::template Function<Caller<Loki::Typelist<Parall,Alg> >, T> ExecType;
+
    
 public:
    typedef VType ValueType;

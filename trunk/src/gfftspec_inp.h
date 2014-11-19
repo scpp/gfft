@@ -33,12 +33,12 @@ namespace GFFT {
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename VType, int S,
+template<int_t N, int_t M, typename VType, int S, typename W,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_inp;
 
-template<int_t N, int_t M, typename VType, int S>
-class DFTk_inp<N,M,VType,S,true>
+template<int_t N, int_t M, typename VType, int S, typename W>
+class DFTk_inp<N,M,VType,S,W,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
@@ -322,8 +322,8 @@ public:
 */
 
 // Specialization for N=3
-template<int_t M, typename VType, int S>
-class DFTk_inp<3,M,VType,S,true> 
+template<int_t M, typename VType, int S, typename W>
+class DFTk_inp<3,M,VType,S,W,true> 
 {
   static const int_t I10 = M;
   static const int_t I11 = M+1;
@@ -421,8 +421,8 @@ public:
 };
 
 // Specialization for N=2
-template<int_t M, typename VType, int S>
-class DFTk_inp<2,M,VType,S,true> 
+template<int_t M, typename VType, int S, typename W>
+class DFTk_inp<2,M,VType,S,W,true> 
 {
   typedef typename VType::ValueType T;
 public:
@@ -495,8 +495,8 @@ public:
   }  
 };
 
-template<int_t M, typename VType, int S>
-class DFTk_inp<1,M,VType,S,true> 
+template<int_t M, typename VType, int S, typename W>
+class DFTk_inp<1,M,VType,S,W,true> 
 {
 };
 

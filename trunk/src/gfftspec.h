@@ -34,12 +34,12 @@ namespace GFFT {
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S,
+template<int_t N, int_t SI, int_t DI, typename VType, int S, typename W,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk;
 
-template<int_t N, int_t SI, int_t DI, typename VType, int S>
-class DFTk<N,SI,DI,VType,S,true>
+template<int_t N, int_t SI, int_t DI, typename VType, int S, typename W>
+class DFTk<N,SI,DI,VType,S,W,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
@@ -97,8 +97,8 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
-class DFTk<3,SI,DI,VType,S,true> 
+template<int_t SI, int_t DI, typename VType, int S, typename W>
+class DFTk<3,SI,DI,VType,S,W,true> 
 {
   typedef typename VType::ValueType T;
   static const int_t SI2 = SI+SI;
@@ -153,8 +153,8 @@ public:
   */
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
-class DFTk<2,SI,DI,VType,S,true> 
+template<int_t SI, int_t DI, typename VType, int S, typename W>
+class DFTk<2,SI,DI,VType,S,W,true> 
 {
   typedef typename VType::ValueType T;
 public:
@@ -208,7 +208,7 @@ inline void _spec2(const T* src, T* dst)
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S,
+template<int_t N, int_t SI, int_t DI, typename VType, int S, typename W,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DCT2k;
 /*
@@ -300,8 +300,8 @@ public:
   }
 };
 */
-template<int_t SI, int_t DI, typename VType, int S>
-class DCT2k<2,SI,DI,VType,S,true> 
+template<int_t SI, int_t DI, typename VType, int S, typename W>
+class DCT2k<2,SI,DI,VType,S,W,true> 
 {
   typedef typename VType::ValueType T;
   static const int Acc = VType::Accuracy;

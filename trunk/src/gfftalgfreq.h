@@ -30,7 +30,7 @@ namespace GFFT {
 
 using namespace MF;
 
-
+/*
 template<int_t K, int_t M, typename VType, int S, class W1, int NIter = 1, class W = W1>
 class IterateInFreq
 {
@@ -45,7 +45,7 @@ class IterateInFreq
 
    typedef typename GetNextRoot<NIter+1,N,W1,W,VType::Accuracy>::Result Wnext;
    IterateInFreq<K,M,VType,S,W1,NIter+1,Wnext> next;
-   DFTk_inp<K,M2,VType,S> spec_inp;
+   DFTk_inp<K,M2,VType,S,W> spec_inp;
    
 public:
    void apply(T* data) 
@@ -71,7 +71,7 @@ class IterateInFreq<K,M,VType,S,W1,M,W>
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
    static const int_t M2 = M*C;
    static const int_t N = K*M;
-   DFTk_inp<K,M2,VType,S> spec_inp;
+   DFTk_inp<K,M2,VType,S,W> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -92,7 +92,7 @@ class IterateInFreq<K,M,VType,S,W1,1,W>
    typedef typename VType::ValueType T;
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
    static const int_t M2 = M*C;
-   DFTk_inp<K,M2,VType,S> spec_inp;
+   DFTk_inp<K,M2,VType,S,W> spec_inp;
    IterateInFreq<K,M,VType,S,W1,2,W> next;
 public:
    void apply(T* data) 
@@ -101,11 +101,11 @@ public:
       next.apply(data);
    }
 };
-
+*/
 
 template<int_t K, int_t M, typename VType, int S, class W, bool doStaticLoop>
 class T_DFTk_x_Im;
-
+/*
 template<int_t K, int_t M, typename VType, int S, class W>
 class T_DFTk_x_Im<K,M,VType,S,W,true>
 {
@@ -117,7 +117,7 @@ public:
       iterate.apply(data);
    }
 };
-
+*/
 template<int_t K, int_t M, typename VType, int S, class W>
 class T_DFTk_x_Im<K,M,VType,S,W,false>
 {
@@ -125,7 +125,7 @@ class T_DFTk_x_Im<K,M,VType,S,W,false>
    typedef typename VType::TempType LocalVType;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
-   DFTk_inp<K,M2,VType,S> spec_inp;
+   DFTk_inp<K,M2,VType,S,W> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -168,7 +168,7 @@ class T_DFTk_x_Im<3,M,VType,S,W,false>
    typedef typename VType::TempType LocalVType;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
-   DFTk_inp<3,M2,VType,S> spec_inp;
+   DFTk_inp<3,M2,VType,S,W> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -208,7 +208,7 @@ class T_DFTk_x_Im<2,M,VType,S,W,false>
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
    static const int_t N = 2*M;
-   DFTk_inp<2,N,VType,S> spec_inp;
+   DFTk_inp<2,N,VType,S,W> spec_inp;
 
 //    IterateInFreq<2,M,VType,S,W> iterate;
 public:
@@ -224,7 +224,6 @@ public:
       wr = 1+wpr;
       wi = wpi;
       for (int_t i=2; i<N; i+=2) {
-//std::cout << i << "/" << N << ": " << t << " --- (" << wr << ", " << wi << ")" << std::endl;
 	spec_inp.apply(&wr, &wi, data+i);
 
         t = wr;
@@ -372,7 +371,7 @@ until the simplest case N=2 has been reached. Then function \a _spec2 is called.
 Therefore, it has two specializations for N=2 and N=1 (the trivial and empty case).
 \sa InTime
 */
-template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
+template<int_t N, typename NFact, typename VType, int S, class W, int_t LastK = 1>
 class InFreq;
 
 // template<int_t N, typename Head, typename Tail, typename T, int S, class W1, int_t LastK>
@@ -382,8 +381,8 @@ class InFreq;
 //   // Transforms in-place are allowed for powers of primes only!!!
 // };
   
-template<int_t N, typename Head, typename VType, int S, class W1, int_t LastK>
-class InFreq<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
+template<int_t N, typename Head, typename VType, int S, class W, int_t LastK>
+class InFreq<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W, LastK>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
@@ -394,11 +393,10 @@ class InFreq<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
    static const int_t M2 = M*C;
    static const int_t N2 = N*C;
    
-//    typedef typename Loki::TL::Next<RList,K-1>::Result RListK;
-   typedef typename IPowBig<W1,K>::Result WK;
+//   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
-   InFreq<M,NFactNext,VType,S,WK,K*LastK> dft_str;
-   T_DFTk_x_Im<K,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
+   InFreq<M,NFactNext,VType,S,W,K*LastK> dft_str;
+   T_DFTk_x_Im<K,M,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
 
 public:
    void apply(T* data) 
@@ -413,18 +411,18 @@ public:
 
 
 // Take the next factor from the list
-template<int_t N, int_t K, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InFreq<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, W1, LastK>
-: public InFreq<N, Tail, VType, S, W1, LastK> {};
+template<int_t N, int_t K, typename Tail, typename VType, int S, class W, int_t LastK>
+class InFreq<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, W, LastK>
+: public InFreq<N, Tail, VType, S, W, LastK> {};
 
 
 // Specialization for prime N
-template<int_t N, typename VType, int S, class W1, int_t LastK>
-class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,W1,LastK> 
+template<int_t N, typename VType, int S, class W, int_t LastK>
+class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,W,LastK> 
 {
   typedef typename VType::ValueType T;
   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-  DFTk_inp<N, C, VType, S> spec_inp;
+  DFTk_inp<N, C, VType, S, W> spec_inp;
 public:
   void apply(T* data) 
   { 

@@ -23,6 +23,7 @@
 
 #include "metasincos.h"
 #include "metasqrt.h"
+#include "metacomplex.h"
 
 namespace MF {
   

@@ -31,6 +31,7 @@ typedef unsigned short short_t;
 */
 template<int_t N>
 struct SInt {
+  typedef int_t value_type;
   static const int_t value = N;
 };
 

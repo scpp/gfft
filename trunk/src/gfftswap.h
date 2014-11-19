@@ -330,7 +330,7 @@ public:
 // Policy for a definition of forward FFT
 template<int_t N, typename T>
 struct Forward {
-   enum { Sign = 1 };
+   static const int Sign = 1;
    void apply(T*) { }
    void apply(const T*, T*) { }
 };
@@ -338,7 +338,7 @@ struct Forward {
 template<int_t N, typename T,
 template<typename> class Complex>
 struct Forward<N,Complex<T> > {
-   enum { Sign = 1 };
+   static const int Sign = 1;
    void apply(Complex<T>*) { }
    void apply(const Complex<T>*, Complex<T>*) { }
 };
@@ -346,7 +346,7 @@ struct Forward<N,Complex<T> > {
 // Policy for a definition of backward FFT
 template<int_t N, typename T>
 struct Backward {
-   enum { Sign = -1 };
+   static const int Sign = -1;
    void apply(T* data) {
       for (T* i=data; i<data+2*N; ++i) *i/=N;
    }
@@ -356,7 +356,7 @@ struct Backward {
 template<int_t N, typename T,
 template<typename> class Complex>
 struct Backward<N,Complex<T> > {
-   enum { Sign = -1 };
+   static const int Sign = -1;
    void apply(Complex<T>* data) {
       for (int_t i=0; i<N; ++i) {
         data[i]/=N;
