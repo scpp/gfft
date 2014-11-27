@@ -43,7 +43,7 @@ class _RootsCompute<N,Loki::Typelist<Head,Tail>,VType,W1,S,LastK, true>
    typedef Compute<typename W1::Im,VType::Accuracy> WI;
 
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    
    _RootsCompute<M,NFactNext,VType,WK,S,K*LastK> next;
 public:
@@ -120,13 +120,13 @@ class RootsHolder<N,NList,VType,Sign,true>
   //typedef typename VType::TempType LT;
 
   typedef typename GetFirstRoot<N,Sign,VType::Accuracy>::Result W1;
-//   typedef Compute<typename W1::Re,VType::Accuracy> WR;
-//   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+  typedef Compute<typename W1::Re,VType::Accuracy> WR;
+  typedef Compute<typename W1::Im,VType::Accuracy> WI;
   static const int_t NN = (N-1)/2;
   
   std::vector<T> m_data;
   
-  _RootsCompute<N,NList,VType,W1,Sign> comp;
+  //_RootsCompute<N,NList,VType,W1,Sign> comp;
 public:
   
   RootsHolder() { init(); }
@@ -136,17 +136,17 @@ public:
   void init()
   {
       m_data.resize(2*NN);
-      std::fill(m_data.begin(), m_data.end(), uninitialized_flag);
-      comp.init(m_data);
-//       const T wpr = WR::value();
-//       const T wpi = WI::value();
-//       m_data[0] = wpr;
-//       m_data[1] = wpi;
-// 
-//       for (int_t i=2; i<2*NN; i+=2) {
-//         m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
-//         m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
-//       }
+//       std::fill(m_data.begin(), m_data.end(), uninitialized_flag);
+//       comp.init(m_data);
+      const T wpr = WR::value();
+      const T wpi = WI::value();
+      m_data[0] = wpr;
+      m_data[1] = wpi;
+
+      for (int_t i=2; i<2*NN; i+=2) {
+        m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
+        m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
+      }
   }
 };
   

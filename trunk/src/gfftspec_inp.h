@@ -483,16 +483,16 @@ public:
         data[1] = ti0+ti1;
   }
   // For decimation-in-frequency
-  template<class LT>
-  void apply(const LT* wr, const LT* wi, T* data) 
-  { 
-        const T tr = data[0] - data[M];
-        const T ti = data[1] - data[M+1];
-        data[0] += data[M];
-        data[1] += data[M+1];
-        data[M]   = tr * (*wr) - ti * (*wi);
-        data[M+1] = ti * (*wr) + tr * (*wi);
-  }  
+//   template<class LT>
+//   void apply(const LT* wr, const LT* wi, T* data) 
+//   { 
+//         const T tr = data[0] - data[M];
+//         const T ti = data[1] - data[M+1];
+//         data[0] += data[M];
+//         data[1] += data[M+1];
+//         data[M]   = tr * (*wr) - ti * (*wi);
+//         data[M+1] = ti * (*wr) + tr * (*wi);
+//   }  
 };
 
 template<int_t M, typename VType, int S, typename W>

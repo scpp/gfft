@@ -101,7 +101,7 @@ public:
   {
     input_data = new T [n*2];
     output_data = new T [n*2];
-   
+
     for (int_t i=0; i < n; ++i) {
        input_data[2*i] = data[i].real();
        input_data[2*i+1] = data[i].imag();

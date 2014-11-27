@@ -29,7 +29,7 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = 32;
+static const int_t N = 16;
 static const int_t NThreads = 1;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
@@ -88,15 +88,23 @@ int main(int argc, char *argv[])
 
    cout<<"Check against DFT:"<<endl;
    double mx(-1);
+   double s = 0.;
    for (i=0; i < n; ++i) {
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
+      s += dataout[2*i]*dataout[2*i];
+      s += dataout[2*i+1]*dataout[2*i+1];
    }
    cout<<"---------------------------------------------"<<endl;
-   cout << mx << endl;
+   cout << mx << "  " << sqrt(s) << endl;
 
    delete [] data;
    delete [] dataout;
+
+//    typedef typename OpenMP<1>::template Factor<SIntID<N> >::Result NFactor;
+//    typedef ExtractFactor<PrecomputeRoots, NFactor> EF;
+//   
+//    typedef Print<EF::Result>::Result TTT;
 }
 

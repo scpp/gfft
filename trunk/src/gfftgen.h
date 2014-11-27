@@ -56,19 +56,21 @@ class Transform
    
 //    static const int_t G = GCD<SInt<N::value>, SInt<Parall::NParProc> >::Result::value;
 //    typedef typename Factorization<SIntID<N::value/G>, SInt>::Result NFact1;
-//    typedef ExtractFactor<Parall::NParProc/G, NFact1> EF;
 //    typedef Pair<SInt<G*EF::value>,SInt<1> > NParall;
 //    typedef typename Loki::Select<(Parall::NParProc==1),
 //       typename EF::Result, Loki::Typelist<NParall,typename EF::Result> >::Result NFactor;
       
    typedef typename Parall::template Factor<N>::Result NFactor;
-   typedef Loki::SingletonHolder<RootsHolder<N::value,NFactor,VType,Type::Sign> > Twiddles;
+   static const int_t NR = (2*PrecomputeRoots > N::value) ? N::value/2 : PrecomputeRoots;
+   typedef ExtractFactor<NR, NFactor> EF;
+   //static const int_t NN = N::value/NFactor::Head::first::value;
+   //typedef Loki::Typelist<Pair<typename NFactor::Head::first, SInt<NFactor::Head::second::value-1> >, typename NFactor::Tail> NFactNext;
+   typedef Loki::SingletonHolder<RootsHolder<EF::value,typename EF::Result,VType,Type::Sign> > Twiddles;
 
    typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place,Twiddles>::Result Alg;
    
    typedef typename Place::template Interface<typename VType::ValueType>::Result ReturnType;
    typedef typename Place::template Function<Caller<Loki::Typelist<Parall,Alg> >, T> ExecType;
-
    
 public:
    typedef VType ValueType;

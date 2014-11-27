@@ -32,6 +32,9 @@ namespace GFFT {
 using namespace MF;
 
 static const int_t StaticLoopLimit = (1<<10);
+
+static const int_t PrecomputeRoots = (1<<12);
+
 /*
 // !!! This will work for K == 2 inly !!!
 template<int_t K, int_t M, typename VType, int S, class W1, int NIter = 1, class W = W1>
@@ -205,33 +208,80 @@ public:
   
 };
 
-// template<int_t K, int_t LastK, int_t M, int_t Step, typename Tail, typename VType, int S, class W>
-// class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,W,false,true>
-// : public DFTk_x_Im_T<K,Tail,M,Step,VType,S,W,false,true> {};
+// Specialization for radix 2
+// template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W>
+// class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W,true,true> 
+// : public SmartIterate<DFTk_inp<2,2*M,VType,S,W>,M,VType,S> {};
 
 // Specialization for radix 2
 template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W,true,true> 
-: public SmartIterate<DFTk_inp<2,2*M,VType,S,W>,M,VType,S> {};
+{
+   typedef typename VType::ValueType T;
+   static const int_t N = 2*M;
+   static const int_t S2 = 2*Step;
+   static const int_t NR = (2*PrecomputeRoots > LastK*M) ? LastK*M/2 : PrecomputeRoots;
+   static const int_t K = N/NR;
+   static const int_t K2 = 2*K;
+   typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;
+   typedef Compute<typename W1::Re,VType::Accuracy> WR;
+   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+   DFTk_inp<2,N,VType,S,W> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
+      
+      T wr,wi,t;
+      const T wpr = WR::value();
+      const T wpi = WI::value();
+      wr = wpr;
+      wi = wpi;
+
+      spec_inp.apply(data+S2, &wr, &wi);
+      for (int_t i=S2+S2; i<K2; i+=S2) {
+        t = wr;
+        wr = wr*wpr - wi*wpi;
+        wi = wi*wpr + t*wpi;
+	spec_inp.apply(data+i, &wr, &wi);
+      }
+
+      const T* roots = W::Instance().getData(); 
+      for (int_t k=0; k<NR-2; k+=2) {
+	wr = roots[k];
+	wi = roots[k+1];
+	spec_inp.apply(data+(k/2+1)*K*S2, &wr, &wi);
+	for (int_t i=S2; i<K2; i+=S2) {
+	  t = wr;
+	  wr = wr*wpr - wi*wpi;
+	  wi = wi*wpr + t*wpi;
+	  spec_inp.apply(data+(k/2+1)*K*S2+i, &wr, &wi);
+	}
+      }
+   }  
+};
 
 template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W,false,true> 
 {
    typedef typename VType::ValueType T;
 //    typedef typename VType::TempType LocalVType;
-//    typedef Compute<typename W::Re,VType::Accuracy> WR;
-//    typedef Compute<typename W::Im,VType::Accuracy> WI;
+//    typedef typename GetFirstRoot<2*M,S,VType::Accuracy>::Result W1;
+//    typedef Compute<typename W1::Re,VType::Accuracy> WR;
+//    typedef Compute<typename W1::Im,VType::Accuracy> WI;
    static const int_t N = 2*M;
    static const int_t S2 = 2*Step;
+   static const int_t NR = (2*PrecomputeRoots > LastK*M) ? LastK*M/2 : PrecomputeRoots;
+   static const int_t Inc = 2*NR/N;
    DFTk_inp<2,N,VType,S,W> spec_inp;
 public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
 
-//       LocalVType wr,wi,t;
-//       const LocalVType wpr = WR::value();
-//       const LocalVType wpi = WI::value();
+//       T wr,wi,t;
+//       const T wpr = WR::value();
+//       const T wpi = WI::value();
 //       wr = wpr;
 //       wi = wpi;
 // 
@@ -244,10 +294,10 @@ public:
 //       }
       
       const T* roots = W::Instance().getData(); 
-      int_t lk = LastK-S2;
+      int_t lk = Inc-S2;
       for (int_t i=S2; i<N; i+=S2) {
 	spec_inp.apply(data+i, roots+lk, roots+lk+1);
-	lk += LastK;
+	lk += Inc;
       }
 
 //       const T* roots = Loki::SingletonHolder<RootsHolder<N,Loki::NullType,VType,S> >::Instance().getData(); 
@@ -256,7 +306,44 @@ public:
 //       }
    }
 };
+/*
+template<int_t M, int_t Step, typename VType, int S, class W>
+class DFTk_x_Im_T<2,2,M,Step,VType,S,W,false,true> 
+{
+   typedef typename VType::ValueType T;
+//    typedef typename VType::TempType LocalVType;
+   static const int_t N = 2*M;
+   static const int_t S2 = 2*Step;
+   typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;
+   typedef Compute<typename W1::Re,VType::Accuracy> WR;
+   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+   DFTk_inp<2,N,VType,S,W> spec_inp;
+public:
+   void apply(T* data) 
+   {
+      spec_inp.apply(data);
 
+      T wr,wi,t;
+      const T wpr = WR::value();
+      const T wpi = WI::value();
+      wr = wpr;
+      wi = wpi;
+
+      spec_inp.apply(data+S2, &wr, &wi);
+      
+      const T* roots = W::Instance().getData(); 
+      int_t lk = 0;
+      for (int_t i=S2+S2; i<N; i+=S2) {
+	spec_inp.apply(data+i, roots+lk, roots+lk+1);
+	i += S2;
+        wr = roots[lk]*wpr - roots[lk+1]*wpi;
+        wi = roots[lk+1]*wpr + roots[lk]*wpi;
+	spec_inp.apply(data+i, &wr, &wi);
+	lk += 2;
+      }
+   }
+};
+*/
 // Specialization for radix 2
 template<int_t Step, int_t LastK, typename VType, int S, class W>
 class DFTk_x_Im_T<2,LastK,2,Step,VType,S,W,false,true> 
@@ -315,8 +402,8 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W, LastK>
    //typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,VType,S,W,K*LastK> dft_str;
-   //DFTk_x_Im_T<K,LastK,M,1,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,false> dft_scaled;
+   //DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
+   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,(N>PrecomputeRoots)> dft_scaled;
 public:
    void apply(T* data) 
    {
@@ -378,12 +465,14 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, VType, S, W, LastK>
    static const int_t M2 = M*C;
    static const int_t N2 = N*C;
    static const int_t LastK2 = LastK*C;
+   static const int_t NR = (2*PrecomputeRoots > LastK*N) ? LastK*N/2 : PrecomputeRoots;
    
    //typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
    InTimeOOP<M,NFactNext,VType,S,W,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,LastK,M,VType,S,W1,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,false> dft_scaled;
+   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,(M>=NR)> dft_scaled;
+//   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,false> dft_scaled;
 public:
 
    void apply(const T* src, T* dst) 
