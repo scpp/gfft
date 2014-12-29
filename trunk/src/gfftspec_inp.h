@@ -50,6 +50,8 @@ class DFTk_inp<N,M,VType,S,W,true>
   LocalVType m_c[K], m_s[K];
   
 public:
+  typedef W RootsHolder; 
+
   DFTk_inp() 
   { 
     ComputeTwiddles<LocalVType, N, S, K>::apply(m_c, m_s);
@@ -337,6 +339,8 @@ class DFTk_inp<3,M,VType,S,W,true>
   T m_coef;
   
 public:
+  typedef W RootsHolder; 
+
   DFTk_inp() : m_coef(S * CSqrt3::value() * 0.5) { }
   
   void apply(T* data) 
@@ -426,6 +430,8 @@ class DFTk_inp<2,M,VType,S,W,true>
 {
   typedef typename VType::ValueType T;
 public:
+  typedef W RootsHolder; 
+
   void apply(T* data) 
   { 
       const T tr = data[M];

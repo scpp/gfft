@@ -110,7 +110,7 @@ public:
   }  
 };
 
-template<int_t N, typename NList, typename VType, int Sign, bool C = (N>4)>
+template<int_t N, typename NList, typename VType, int Sign, bool C = (N>=4)>
 class RootsHolder;
 
 template<int_t N, typename NList, typename VType, int Sign>
@@ -119,42 +119,44 @@ class RootsHolder<N,NList,VType,Sign,true>
   typedef typename VType::ValueType T;
   //typedef typename VType::TempType LT;
 
-  typedef typename GetFirstRoot<N,Sign,VType::Accuracy>::Result W1;
-  typedef Compute<typename W1::Re,VType::Accuracy> WR;
-  typedef Compute<typename W1::Im,VType::Accuracy> WI;
-  static const int_t NN = (N-1)/2;
+//   typedef typename GetFirstRoot<N,Sign,VType::Accuracy>::Result W1;
+//   typedef Compute<typename W1::Re,VType::Accuracy> WR;
+//   typedef Compute<typename W1::Im,VType::Accuracy> WI;
   
   std::vector<T> m_data;
   
   //_RootsCompute<N,NList,VType,W1,Sign> comp;
 public:
+  static const int_t Length = (N-1)/2;
   
   RootsHolder() { init(); }
   
-  const T* getData() const { return &(m_data[0]); }
+  T* getData() { return &(m_data[0]); }
   
   void init()
   {
-      m_data.resize(2*NN);
-//       std::fill(m_data.begin(), m_data.end(), uninitialized_flag);
+      m_data.resize(2*Length);
+      std::fill(m_data.begin(), m_data.end(), uninitialized_flag);
 //       comp.init(m_data);
-      const T wpr = WR::value();
-      const T wpi = WI::value();
-      m_data[0] = wpr;
-      m_data[1] = wpi;
-
-      for (int_t i=2; i<2*NN; i+=2) {
-        m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
-        m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
-      }
+//       const T wpr = WR::value();
+//       const T wpi = WI::value();
+//       m_data[0] = wpr;
+//       m_data[1] = wpi;
+// 
+//       for (int_t i=2; i<2*NN; i+=2) {
+//         m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
+//         m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
+//       }
   }
 };
   
 template<int_t N, typename NList, typename VType, int Sign>
 class RootsHolder<N,NList,VType,Sign,false>
 {
+  typedef typename VType::ValueType T;
 public:
   RootsHolder() {}
+  T* getData() { return NULL; }
   void init() {}
 };
 

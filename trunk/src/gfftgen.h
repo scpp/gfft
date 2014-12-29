@@ -61,11 +61,12 @@ class Transform
 //       typename EF::Result, Loki::Typelist<NParall,typename EF::Result> >::Result NFactor;
       
    typedef typename Parall::template Factor<N>::Result NFactor;
-   static const int_t NR = (2*PrecomputeRoots > N::value) ? N::value/2 : PrecomputeRoots;
+   static const int_t NR = (4*PrecomputeRoots > N::value) ? N::value/4 : PrecomputeRoots;
+//   static const int_t NR = PrecomputeRoots;
    typedef ExtractFactor<NR, NFactor> EF;
    //static const int_t NN = N::value/NFactor::Head::first::value;
    //typedef Loki::Typelist<Pair<typename NFactor::Head::first, SInt<NFactor::Head::second::value-1> >, typename NFactor::Tail> NFactNext;
-   typedef Loki::SingletonHolder<RootsHolder<EF::value,typename EF::Result,VType,Type::Sign> > Twiddles;
+   typedef Loki::SingletonHolder<RootsHolder<NR,typename EF::Result,VType,Type::Sign> > Twiddles;
 
    typedef typename Type::template Algorithm<N::value,NFactor,VType,Parall,Place,Twiddles>::Result Alg;
    

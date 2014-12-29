@@ -142,7 +142,8 @@ struct IN_PLACE {
       typedef typename VType::ValueType T;
       typedef typename Parall::template ActualParall<N>::Result NewParall;
       typedef typename NewParall::template Swap<NFact,T>::Result Swap;
-      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles> InT;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles,W1> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
@@ -179,7 +180,8 @@ struct OUT_OF_PLACE {
             typename Parall, typename Direction, typename Twiddles>
    class List {
       typedef typename Parall::template ActualParall<N>::Result NewParall;
-      typedef InTimeOOP_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles> InT;
+      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+      typedef InTimeOOP_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles,W1> InT;
    public:
        typedef TYPELIST_2(InT,Direction) Result;
    };
@@ -214,7 +216,7 @@ struct DFT {
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
-      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
+//      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
    public:
       typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
    };
@@ -233,7 +235,6 @@ struct IDFT {
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
-      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
    public:
       typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
    };
@@ -253,7 +254,6 @@ struct RDFT {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
       typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
    public:
       typedef typename Loki::TL::Append<TList,Separator>::Result Result;
@@ -274,7 +274,6 @@ struct IRDFT {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      //typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
       typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
    public:
       typedef Loki::Typelist<Separator,TList> Result;

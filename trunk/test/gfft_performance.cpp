@@ -251,7 +251,7 @@ void print_header()
   cout<<"---------------------------------------------------------------------------------"<<endl;
 }
 
-static const unsigned int MinP = 2;
+static const unsigned int MinP = 4;
 static const unsigned int MaxP = 26;
 
 int main(int argc, char *argv[])

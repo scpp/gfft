@@ -50,18 +50,18 @@ and twiddle factors (T).
 // bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 // class DFTk_x_Im_T;
 
-template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W>
-class DFTk_x_Im_T<K,LastK,M,Step,VType,S,W,false,false>
+template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class SW, class W1>
+class DFTk_x_Im_T<K,LastK,M,Step,VType,S,SW,W1,false,false>
 {
    typedef typename VType::ValueType CT;
    static const int_t N = K*M;
-   DFTk_inp<K,M,VType,S,W> spec_inp;
+   DFTk_inp<K,M,VType,S,SW> spec_inp;
 public:
    void apply(CT* data) 
    {
       spec_inp.apply(data);
 
-      ComputeRootsStd<K,VType,W> roots;
+      ComputeRootsStd<K,VType,W1> roots;
       
       spec_inp.apply(data+Step, roots.get());
       for (int_t i=Step+Step; i<M; i+=Step) {
