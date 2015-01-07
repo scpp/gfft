@@ -33,7 +33,7 @@ using namespace MF;
 
 static const int_t StaticLoopLimit = (1<<3);
 
-static const int_t PrecomputeRoots = (1<<3);
+static const int_t PrecomputeRoots = StaticLoopLimit;
 
 /*
 // !!! This will work for K == 2 inly !!!
@@ -114,7 +114,7 @@ struct SmartIterate
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
    static const int_t M2 = 2*M;
-   static const int_t Step = N/M2/2;
+   static const int_t Step = PrecomputeRoots/M2;
    static const int_t I = Step*(M-NIter) - 2;
    
    //static const int_t N = M2;
@@ -132,7 +132,7 @@ struct SmartIterate
 //    typedef Compute<Im,VType::Accuracy> WI;
    typedef Compute<typename WK::Re,VType::Accuracy> WR;
    typedef Compute<typename WK::Im,VType::Accuracy> WI;
-    
+
    typedef typename DFTk::RootsHolder SW;
    
    //typedef typename IPowBig<W1,2>::Result WK;
@@ -231,7 +231,8 @@ class DFTk_x_Im_T;
 // Rely on the static template loop
 template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class SW, class W1>
 class DFTk_x_Im_T<K,LastK,M,Step,VType,S,SW,W1,true,true> 
-: public SmartIterate<DFTk_inp<K,M*2,VType,S,SW>,M,LastK*M,VType,S,W1> {};
+: public DFTk_x_Im_T<K,LastK,M,Step,VType,S,SW,W1,false,true> {};
+//: public SmartIterate<DFTk_inp<K,M*2,VType,S,SW>,M,LastK*M,VType,S,W1> {};
 
 // General implementation
 template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class SW, class W1>
@@ -267,7 +268,7 @@ class DFTk_x_Im_T<2,LastK,M,Step,VType,S,SW,W1,false,true>
    static const int_t N = 2*M;
    static const int_t S2 = 2*Step;
    //static const int_t NR = (4*PrecomputeRoots > LastK*M) ? LastK*M/4 : PrecomputeRoots;
-   static const int_t NR = (PrecomputeRoots-1)/2;
+   static const int_t NR = (PrecomputeRoots>=N) ? 2 : PrecomputeRoots/2;
    static const int_t K = N/PrecomputeRoots;
    static const int_t K2 = 2*K;
    //typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;

@@ -61,8 +61,8 @@ class Transform
 //       typename EF::Result, Loki::Typelist<NParall,typename EF::Result> >::Result NFactor;
       
    typedef typename Parall::template Factor<N>::Result NFactor;
-   static const int_t NR = (4*PrecomputeRoots > N::value) ? N::value/4 : PrecomputeRoots;
-//   static const int_t NR = PrecomputeRoots;
+//   static const int_t NR = (4*PrecomputeRoots > N::value) ? N::value/4 : PrecomputeRoots;
+   static const int_t NR = PrecomputeRoots;
    typedef ExtractFactor<NR, NFactor> EF;
    //static const int_t NN = N::value/NFactor::Head::first::value;
    //typedef Loki::Typelist<Pair<typename NFactor::Head::first, SInt<NFactor::Head::second::value-1> >, typename NFactor::Tail> NFactNext;

@@ -27,7 +27,7 @@ using namespace MF;
 
 static const int uninitialized_flag = 1000; 
 
-template<int_t N, typename NList, typename VType, typename W1, int S, int_t LastK=1, bool C = (N>4)>
+template<int_t N, typename NList, typename VType, typename W1, int S, int_t LastK=1, bool C = (N>=4)>
 class _RootsCompute;
 
 template<int_t N, typename Head, typename Tail, typename VType, typename W1, int S, int_t LastK>
@@ -119,13 +119,13 @@ class RootsHolder<N,NList,VType,Sign,true>
   typedef typename VType::ValueType T;
   //typedef typename VType::TempType LT;
 
-//   typedef typename GetFirstRoot<N,Sign,VType::Accuracy>::Result W1;
-//   typedef Compute<typename W1::Re,VType::Accuracy> WR;
-//   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+  typedef typename GetFirstRoot<N,Sign,VType::Accuracy>::Result W1;
+  typedef Compute<typename W1::Re,VType::Accuracy> WR;
+  typedef Compute<typename W1::Im,VType::Accuracy> WI;
   
   std::vector<T> m_data;
   
-  //_RootsCompute<N,NList,VType,W1,Sign> comp;
+//  _RootsCompute<N,NList,VType,W1,Sign> comp;
 public:
   static const int_t Length = (N-1)/2;
   
@@ -137,16 +137,17 @@ public:
   {
       m_data.resize(2*Length);
       std::fill(m_data.begin(), m_data.end(), uninitialized_flag);
-//       comp.init(m_data);
-//       const T wpr = WR::value();
-//       const T wpi = WI::value();
-//       m_data[0] = wpr;
-//       m_data[1] = wpi;
-// 
-//       for (int_t i=2; i<2*NN; i+=2) {
-//         m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
-//         m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
-//       }
+//      comp.init(m_data);
+
+      const T wpr = WR::value();
+      const T wpi = WI::value();
+      m_data[0] = wpr;
+      m_data[1] = wpi;
+
+      for (int_t i=2; i<2*Length; i+=2) {
+        m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
+        m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
+      }
   }
 };
   
