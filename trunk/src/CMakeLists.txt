@@ -46,7 +46,7 @@ target_link_libraries(metapi c m stdc++ gomp)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
+add_definitions(-time -Wall -DNUM=${MYNUM} -DAUTO=${MYAUTO} -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
 
 #target_link_libraries(gfft stdc++ gomp)
 #target_link_libraries(gfft_inp stdc++ gomp)

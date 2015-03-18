@@ -25,17 +25,28 @@ using namespace std;
 
 using namespace GFFT;
 
+#define DO_EXPAND(VAL)  VAL ## 1
+#define EXPAND(VAL)     DO_EXPAND(VAL)
+
+#if !defined(NUM) //|| EXPAND(NUM) == 1 
+#define NUM 8
+#endif
+
+#if !defined(AUTO) || EXPAND(AUTO) == 1 
+#define FULLOUTPUT
+#endif
 
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = (1<<10);
+static const int_t N = NUM;
 static const int_t NThreads = 1;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
 //typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, Place> TransformSet;
 typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, OpenMP<NThreads>, Place> TransformSet;
+
 
 int main(int argc, char *argv[])
 {
@@ -75,14 +86,16 @@ int main(int argc, char *argv[])
 
 // do simple dft
    dft.apply();
-    
+
    ValueType::ValueType* dataout1 = dft.getdata();
 
 // print out transformed data
    cout.precision(3);
+#ifdef FULLOUTPUT
    cout<<"Result of transform:"<<endl;
    for (i=0; i < n; ++i)
      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+#endif
 
    dft.diff(dataout);
 
@@ -90,14 +103,16 @@ int main(int argc, char *argv[])
    double mx(-1);
    double s = 0.;
    for (i=0; i < n; ++i) {
+#ifdef FULLOUTPUT
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
+#endif
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
       s += dataout[2*i]*dataout[2*i];
       s += dataout[2*i+1]*dataout[2*i+1];
    }
    cout<<"---------------------------------------------"<<endl;
-   cout << mx << "  " << sqrt(s) << endl;
+   cout << N << ": " << mx << "  " << sqrt(s) << endl;
 
    delete [] data;
    delete [] dataout;

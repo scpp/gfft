@@ -31,7 +31,7 @@ namespace GFFT {
 
 using namespace MF;
 
-static const int_t StaticLoopLimit = (1<<3);
+static const int_t StaticLoopLimit = (1<<10);
 
 static const int_t PrecomputeRoots = StaticLoopLimit;
 
@@ -160,7 +160,7 @@ struct SmartIterate
      next.apply(data);
    }
 };
-
+/*
 template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK, int NIter>
 struct SmartIterate<DFTk, M, N, VType, S, W1, WK, NIter, 2>
 {
@@ -192,7 +192,7 @@ struct SmartIterate<DFTk, M, N, VType, S, W1, WK, NIter, 2>
      next.apply(data);
    }
 };
-
+*/
 template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK, int C>
 struct SmartIterate<DFTk,M,N,VType,S,W1,WK,0,C>
 : public SmartIterate<DFTk,M,N,VType,S,W1,WK,0,2> {};
@@ -290,31 +290,39 @@ public:
       spec_inp.apply(data+S2, &wr, &wi);
       t = -wr;
       spec_inp.apply(data+N-S2, &t, &wi);
-      for (int_t i=S2+S2; i<K2; i+=S2) {
-        t = wr;
-        wr = wr*wpr - wi*wpi;
-        wi = wi*wpr + t*wpi;
-	spec_inp.apply(data+i, &wr, &wi);
-	t = -wr;
-	spec_inp.apply(data+N-i, &t, &wi);
-      }
+//       for (int_t i=S2+S2; i<K2; i+=S2) {
+//         t = wr;
+//         wr = wr*wpr - wi*wpi;
+//         wi = wi*wpr + t*wpi;
+// 	spec_inp.apply(data+i, &wr, &wi);
+// 	t = -wr;
+// 	spec_inp.apply(data+N-i, &t, &wi);
+//       }
 
-      const T* roots = SW::Instance().getData(); 
-      for (int_t k=0; k<NR-2; k+=2) {
-	wr = roots[k];
-	wi = roots[k+1];
-	spec_inp.apply(data+(k/2+1)*K*S2, &wr, &wi);
-	t = -wr;
-	spec_inp.apply(data+N-(k/2+1)*K*S2, &t, &wi);
-	for (int_t i=S2; i<K2; i+=S2) {
+      for (int_t i=S2+S2; i<M; i+=S2) {
 	  t = wr;
 	  wr = wr*wpr - wi*wpi;
 	  wi = wi*wpr + t*wpi;
-	  spec_inp.apply(data+(k/2+1)*K*S2+i, &wr, &wi);
+	  spec_inp.apply(data+i, &wr, &wi);
 	  t = -wr;
-	  spec_inp.apply(data+N-(k/2+1)*K*S2-i, &t, &wi);
-	}
+	  spec_inp.apply(data+N-i, &t, &wi);
       }
+      //const T* roots = SW::Instance().getData(); 
+//       for (int_t k=0; k<NR-2; k+=2) {
+// 	wr = roots[k];
+// 	wi = roots[k+1];
+// 	spec_inp.apply(data+(k/2+1)*K*S2, &wr, &wi);
+// 	t = -wr;
+// 	spec_inp.apply(data+N-(k/2+1)*K*S2, &t, &wi);
+// 	for (int_t i=S2; i<K2; i+=S2) {
+// 	  t = wr;
+// 	  wr = wr*wpr - wi*wpi;
+// 	  wi = wi*wpr + t*wpi;
+// 	  spec_inp.apply(data+(k/2+1)*K*S2+i, &wr, &wi);
+// 	  t = -wr;
+// 	  spec_inp.apply(data+N-(k/2+1)*K*S2-i, &t, &wi);
+// 	}
+//       }
    }  
 //    void apply(T* data) 
 //    {
