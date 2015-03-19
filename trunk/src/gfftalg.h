@@ -497,11 +497,11 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, SW, W1, LastK>
    static const int_t M2 = M*C;
    static const int_t N2 = N*C;
    
-   //typedef typename IPowBig<W1,K>::Result WK;
+   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
-   InTime<M,NFactNext,VType,S,SW,W1,K*LastK> dft_str;
+   InTime<M,NFactNext,VType,S,SW,WK,K*LastK> dft_str;
    //DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
-   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,SW,W1,(N>=PrecomputeRoots)> dft_scaled;
+   DFTk_x_Im_T<K,K*LastK,M,1,VType,S,SW,W1,(N<=PrecomputeRoots)> dft_scaled;
 public:
    void apply(T* data) 
    {

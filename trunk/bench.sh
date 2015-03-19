@@ -11,6 +11,6 @@ for n in `seq 1 12`
 do
     cd ./build
     cmake -H.. -B. -DMYAUTO=1 -DMYNUM="(1<<${n})" .; time make
-    src/gfft_oop
+    src/gfft_inp
     read -p "Press [Enter] key to continue..."
 done

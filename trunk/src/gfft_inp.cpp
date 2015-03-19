@@ -25,12 +25,22 @@ using namespace std;
 
 using namespace GFFT;
 
+#define DO_EXPAND(VAL)  VAL ## 1
+#define EXPAND(VAL)     DO_EXPAND(VAL)
+
+#if !defined(NUM) //|| EXPAND(NUM) == 1 
+#define NUM 8
+#endif
+
+#if !defined(AUTO) || EXPAND(AUTO) == 1 
+#define FULLOUTPUT
+#endif
 
 typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 // >>>>>>>>> Transforms in-place accept powers of a single prime only!
 
-static const int_t N = 16;
+static const int_t N = NUM;
 static const int_t NThreads = 1;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
@@ -65,9 +75,9 @@ int main(int argc, char *argv[])
     DFT_wrapper<T> dft(data, n);
 
 // print out sample data
-    cout<<"Input data:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+//     cout<<"Input data:"<<endl;
+//     for (i=0; i < n; ++i)
+//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
 
 // apply FFT in-place
     fftobj->fft(data);
@@ -79,20 +89,24 @@ int main(int argc, char *argv[])
 
 // print out transformed data
     cout.precision(3);
+#ifdef FULLOUTPUT
     cout<<"Result of transform:"<<endl;
     for (i=0; i < n; ++i)
       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+#endif
 
     dft.diff(data);
     
     cout<<"Check against DFT:"<<endl;
     T mx(-1);
     for (i=0; i < n; ++i) {
+#ifdef FULLOUTPUT
       cout<<"("<<fabs(data[2*i])<<","<<fabs(data[2*i+1])<<")"<<endl;
+#endif
       mx = std::max(mx, fabs(data[2*i]));
       mx = std::max(mx, fabs(data[2*i+1]));
     }
     cout<<"---------------------------------------------"<<endl;
-    cout << mx << endl;
+    cout << N << ": " << mx << endl;
 }
 

@@ -103,9 +103,9 @@ int main(int argc, char *argv[])
    double mx(-1);
    double s = 0.;
    for (i=0; i < n; ++i) {
-#ifdef FULLOUTPUT
+//#ifdef FULLOUTPUT
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
-#endif
+//#endif
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
       s += dataout[2*i]*dataout[2*i];
