@@ -251,8 +251,8 @@ void print_header()
   cout<<"---------------------------------------------------------------------------------"<<endl;
 }
 
-static const unsigned int MinP = 1;
-static const unsigned int MaxP = 10;
+static const unsigned int MinP = 2;
+static const unsigned int MaxP = 26;
 
 int main(int argc, char *argv[])
 {
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default>  List_cfs;
 
    // Single- and multi-threaded out-of-place transforms
-   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, OpenMP<1>, OUT_OF_PLACE> List_dp;
+   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, OpenMP<3>, OUT_OF_PLACE> List_dp;
 //   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
 //    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;

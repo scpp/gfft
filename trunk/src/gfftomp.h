@@ -314,7 +314,7 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,SW,W1,false,true>
    typedef Permutation<K,KFact> Perm;
 
 public:
-  /*
+  
    void apply(T* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
@@ -322,7 +322,7 @@ public:
 	int tid = omp_get_thread_num();// + NThreadsAlreadyCreated;
 	if (tid == 0) {
 	  spec_inp_a.apply(data);
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  ComputeRoots<K,VType,W1,Perm> roots(NThreads,tid);
 	  spec_inp_a.apply(data+S2*NThreads, roots.get_real(), roots.get_imag());
 	  for (int_t j=2*NThreads*S2; j<M2; j+=S2*NThreads) {
 	    roots.step();
@@ -330,7 +330,7 @@ public:
 	  }
 	}
 	else {
-	  ComputeRoots<K,VType,W,Perm> roots(NThreads,tid);
+	  ComputeRoots<K,VType,W1,Perm> roots(NThreads,tid);
 	  spec_inp_a.apply(data+S2*tid, roots.get_real(), roots.get_imag());
 	  for (int_t j=(NThreads+tid)*S2; j<M2; j+=S2*NThreads) {
 	    roots.step();
@@ -340,7 +340,8 @@ public:
 	#pragma omp barrier
       }
    }
-   */
+   
+  /*
    // Sequential version
    void apply(T* data) 
    {
@@ -354,7 +355,7 @@ public:
 	spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
-    
+    */
 };
 
 /*
