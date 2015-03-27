@@ -379,7 +379,7 @@ struct Serial {
    void apply(const T*, T*) { }
 };
 
-static const int_t SwitchToOMP = (1<<8);
+static const int_t SwitchToOMP = (1<<5);
 
 /*! \brief %Transform is parallelized using %OpenMP standard
 \tparam NT number of parallel threads

@@ -40,8 +40,8 @@ typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 // >>>>>>>>> Transforms in-place accept powers of a single prime only!
 
-static const int_t N = NUM;
-static const int_t NThreads = 2;
+static const int_t N = (1<<5); //NUM;
+static const int_t NThreads = 4;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;

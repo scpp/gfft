@@ -7,7 +7,7 @@ declare -a parr=("1" "2" "3" "4" "5" "6")
 echo "============ Powers of 2 ================"
 
 #for n in "${parr[@]}"
-for n in `seq 8 12`
+for n in `seq 8 10`
 do
     cd ./build
     cmake -H.. -B. -DMYAUTO=1 -DMYNUM="(1<<${n})" .; time make

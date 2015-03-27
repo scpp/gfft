@@ -113,7 +113,7 @@ class GFFTcheck<Loki::Typelist<H,T>, DFTClass, IN_PLACE>
   static const int_t N = H::Len;
   static const int_t N2 = 2*N;
   
-  H gfft;
+  typename H::Instance gfft;
   
 public:
   void apply() 
@@ -229,16 +229,16 @@ public:
 
 
 typedef DOUBLE VType;
-//typedef IN_PLACE Place;
-typedef OUT_OF_PLACE Place;
+typedef IN_PLACE Place;
+//typedef OUT_OF_PLACE Place;
 
-const unsigned Min = 3;
-const unsigned Max = 7;
+const unsigned Min = 2;
+const unsigned Max = 10;
 
-typedef TYPELIST_3(OpenMP<2>, OpenMP<3>, OpenMP<4>) ParallList;
+typedef TYPELIST_3(OpenMP<2>, OpenMP<4>, OpenMP<8>) ParallList;
 //typedef GenNumList<2, 15, SIntID>::Result NList;
 typedef GenPowerList<Min, Max, 2>::Result NList;
-typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, OpenMP<4>, Place> Trans;
+typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallList, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)
 {

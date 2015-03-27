@@ -39,8 +39,8 @@ using namespace GFFT;
 typedef DOUBLE ValueType;
 typedef OUT_OF_PLACE Place;
 
-static const int_t N = NUM;
-static const int_t NThreads = 2;
+static const int_t N = (1<<5); //NUM;
+static const int_t NThreads = 4;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -91,11 +91,11 @@ int main(int argc, char *argv[])
 
 // print out transformed data
    cout.precision(3);
-#ifdef FULLOUTPUT
+//#ifdef FULLOUTPUT
    cout<<"Result of transform:"<<endl;
    for (i=0; i < n; ++i)
      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
-#endif
+//#endif
 
    dft.diff(dataout);
 
@@ -103,9 +103,9 @@ int main(int argc, char *argv[])
    double mx(-1);
    double s = 0.;
    for (i=0; i < n; ++i) {
-#ifdef FULLOUTPUT
+//#ifdef FULLOUTPUT
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
-#endif
+//#endif
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
       s += dataout[2*i]*dataout[2*i];

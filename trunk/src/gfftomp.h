@@ -307,14 +307,14 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,SW,W1,false,true>
    static const int_t M2 = M*2;
    static const int_t S2 = 2*Step;
    
-   //typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W;
-   DFTk_inp_adapter<K,KFact,M,VType,S,SW,W1> spec_inp_a;
+   typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W;
+   DFTk_inp_adapter<K,KFact,M,VType,S,SW,W> spec_inp_a;
 
 //   typedef Permutation<K,typename Loki::TL::Reverse<KFact>::Result> Perm;
    typedef Permutation<K,KFact> Perm;
 
 public:
-  
+  /*
    void apply(T* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
@@ -340,8 +340,8 @@ public:
 	#pragma omp barrier
       }
    }
-   
-  /*
+   */
+  
    // Sequential version
    void apply(T* data) 
    {
@@ -355,7 +355,7 @@ public:
 	spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
-    */
+    
 };
 
 /*
@@ -399,13 +399,13 @@ public:
 
    void apply(const T* src, T* dst) 
    {
-      parall.apply(dft_str, src, dst);
+//      parall.apply(dft_str, src, dst);
 
 //       #pragma omp parallel for shared(src,dst) schedule(static) num_threads(NThreadsCreate)
-//       for (int_t i = 0; i < K; ++i) {
-// 	int_t ii = Perm::value(i);
-// 	dft_str.apply(src + ii*LastK2, dst + i*M2);
-//       }
+      for (int_t i = 0; i < K; ++i) {
+	int_t ii = Perm::value(i);
+	dft_str.apply(src + ii*LastK2, dst + i*M2);
+      }
       
       dft_scaled.apply(dst);
    }
