@@ -217,6 +217,14 @@ public:
    }
 };
 
+template<typename T,
+template<typename> class Complex>
+class GFFTswap2<2,2,Complex<T>,0> {
+public:
+   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+      swap(data[1],data[2]);
+   }
+};
 
 /// Reordering of data for real-valued transforms
 /*!

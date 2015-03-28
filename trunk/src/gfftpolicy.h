@@ -82,6 +82,7 @@ struct DOUBLE {
 #else  
    static const int Accuracy = 4;
 #endif
+   static const char* name() { return "double"; }
 };
 
 /*! \brief Single precision type representation
@@ -96,6 +97,7 @@ struct FLOAT {
 #else
    static const int Accuracy = 2;
 #endif
+   static const char* name() { return "float"; }
 };
 
 /*! \brief Complex number of double precision type representation
@@ -110,6 +112,7 @@ struct COMPLEX_DOUBLE {
 #else  
    static const int Accuracy = 4;
 #endif
+   static const char* name() { return "std::complex<double>"; }
 };
 
 /*! \brief Complex number of single precision type representation
@@ -124,6 +127,7 @@ struct COMPLEX_FLOAT {
 #else
    static const int Accuracy = 2;
 #endif
+   static const char* name() { return "std::complex<float>"; }
 };
 
 
@@ -160,6 +164,8 @@ struct IN_PLACE {
 	m_run.apply(data); 
       }
    };
+   
+   static const char* name() { return "in-place"; }
 };
 
 /*! \brief Out-of-place algorithm
@@ -198,6 +204,8 @@ struct OUT_OF_PLACE {
 	m_run.apply(src, dst); 
       }
    };
+
+   static const char* name() { return "out-of-place"; }
 };
 
 struct IDFT;

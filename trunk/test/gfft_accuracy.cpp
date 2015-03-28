@@ -22,12 +22,16 @@ using namespace std;
 
 using namespace GFFT;
 
-typedef COMPLEX_DOUBLE VType;
-//typedef IN_PLACE Place;
-typedef OUT_OF_PLACE Place;
+typedef DOUBLE VType;
+// typedef FLOAT VType;
+// typedef COMPLEX_DOUBLE VType;
+// typedef COMPLEX_FLOAT VType;
+
+typedef IN_PLACE Place;
+//typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 2;
-const unsigned Max = 11;
+const unsigned Max = 7;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<4>, OpenMP<8>) ParallList;
 //typedef GenNumList<2, 15, SIntID>::Result NList;
@@ -67,7 +71,7 @@ int main(int argc, char *argv[])
 //   comp.apply(Min,Max);
 //   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
-  cout << "double-double DFT vs. GFFT:" << endl;
+  cout << "double-double DFT vs. GFFT " << Place::name() << ", " << VType::name() << endl;
   GFFTcheck<Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
   print_header();
   check_dft.apply();

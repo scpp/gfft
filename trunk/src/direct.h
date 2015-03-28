@@ -82,6 +82,10 @@ public:
   {
     init(data, n);
   }
+  DFT_wrapper(const std::complex<float>* data, int_t n) : size(n)
+  {
+    init(data, n);
+  }
   ~DFT_wrapper() 
   {
     delete [] input_data;
