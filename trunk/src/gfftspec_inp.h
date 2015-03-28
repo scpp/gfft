@@ -180,47 +180,48 @@ public:
     }
   }
 
-  template<class LT>
-  void apply(const LT* wr, const LT* wi, T* data) 
-  { 
-    T sr[K], si[K], dr[K], di[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
-      sr[i] = data[k]   + data[NM-k];
-      si[i] = data[k+1] + data[NM-k+1];
-      dr[i] = data[k]   - data[NM-k];
-      di[i] = data[k+1] - data[NM-k+1];
-    }
-    
-    for (int_t i=1; i<K+1; ++i) {
-      T re1(0), re2(0), im1(0), im2(0);
-      for (int_t j=0; j<K; ++j) {
-	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
-	const T s1 = m_s[k]*di[j];
-	const T s2 = m_s[k]*dr[j];
-	re1 += m_c[k]*sr[j];
-	im1 += m_c[k]*si[j];
-	re2 += sign_change ? -s1 : s1;
-	im2 -= sign_change ? -s2 : s2;
-      }
-      const int_t k = i*M;
-      const T tr1 = data[0] + re1 + re2;
-      const T ti1 = data[1] + im1 + im2;
-      const T tr2 = data[0] + re1 - re2;
-      const T ti2 = data[1] + im1 - im2;
-      data[k] = tr1*wr[i-1] - ti1*wi[i-1];
-      data[k+1] = tr1*wi[i-1] + ti1*wr[i-1];
-      data[NM-k] = tr2*wr[K-i+1] - ti2*wi[K-i+1];
-      data[NM-k+1] = tr2*wi[K-i+1] + ti2*wr[K-i+1];
-    }
-    
-    for (int_t i=0; i<K; ++i) {
-      data[0] += sr[i];
-      data[1] += si[i];
-    }
-  }
+  // For decimation-in-frequency (obsolete)
+//   template<class LT>
+//   void apply(const LT* wr, const LT* wi, T* data) 
+//   { 
+//     T sr[K], si[K], dr[K], di[K];
+//     for (int_t i=0; i<K; ++i) {
+//       const int_t k = (i+1)*M;
+//       sr[i] = data[k]   + data[NM-k];
+//       si[i] = data[k+1] + data[NM-k+1];
+//       dr[i] = data[k]   - data[NM-k];
+//       di[i] = data[k+1] - data[NM-k+1];
+//     }
+//     
+//     for (int_t i=1; i<K+1; ++i) {
+//       T re1(0), re2(0), im1(0), im2(0);
+//       for (int_t j=0; j<K; ++j) {
+// 	const bool sign_change = (i*(j+1) % N) > K;
+// 	const int_t kk = (i+j*i)%N;
+// 	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+// 	const T s1 = m_s[k]*di[j];
+// 	const T s2 = m_s[k]*dr[j];
+// 	re1 += m_c[k]*sr[j];
+// 	im1 += m_c[k]*si[j];
+// 	re2 += sign_change ? -s1 : s1;
+// 	im2 -= sign_change ? -s2 : s2;
+//       }
+//       const int_t k = i*M;
+//       const T tr1 = data[0] + re1 + re2;
+//       const T ti1 = data[1] + im1 + im2;
+//       const T tr2 = data[0] + re1 - re2;
+//       const T ti2 = data[1] + im1 - im2;
+//       data[k] = tr1*wr[i-1] - ti1*wi[i-1];
+//       data[k+1] = tr1*wi[i-1] + ti1*wr[i-1];
+//       data[NM-k] = tr2*wr[K-i+1] - ti2*wi[K-i+1];
+//       data[NM-k+1] = tr2*wi[K-i+1] + ti2*wr[K-i+1];
+//     }
+//     
+//     for (int_t i=0; i<K; ++i) {
+//       data[0] += sr[i];
+//       data[1] += si[i];
+//     }
+//   }
 };
 /*
 template<int_t M, typename VType, int S>
@@ -314,11 +315,6 @@ public:
       data[I30] = dr1 - di2;
       data[I31] = di1 + dr2;
   }
-  
-  template<class LT>
-  void apply(const LT* wr, const LT* wi, T* data) 
-  { 
-  }
 };
 */
 
@@ -400,26 +396,27 @@ public:
 	data[I20] = tr - dif_i;
 	data[I21] = ti + dif_r;
   }
-  template<class LT>
-  void apply(const LT* wr, const LT* wi, T* data) 
-  { 
-      const T sum_r = data[I10] + data[I20];
-      const T dif_r = m_coef * (data[I10] - data[I20]);
-      const T sum_i = data[I11] + data[I21];
-      const T dif_i = m_coef * (data[I11] - data[I21]);
-      const T tr = data[0] - 0.5*sum_r;
-      const T ti = data[1] - 0.5*sum_i;
-      const T trpdi = tr + dif_i;
-      const T trmdi = tr - dif_i;
-      const T tipdr = ti + dif_r;
-      const T timdr = ti - dif_r;
-      data[0] += sum_r;
-      data[1] += sum_i;
-      data[I10] = trpdi*wr[0] - timdr*wi[0];
-      data[I11] = trpdi*wi[0] + timdr*wr[0];
-      data[I20] = trmdi*wr[1] - tipdr*wi[1];
-      data[I21] = trmdi*wi[1] + tipdr*wr[1];
-  }
+  // For decimation-in-frequency (obsolete)
+//   template<class LT>
+//   void apply(const LT* wr, const LT* wi, T* data) 
+//   { 
+//       const T sum_r = data[I10] + data[I20];
+//       const T dif_r = m_coef * (data[I10] - data[I20]);
+//       const T sum_i = data[I11] + data[I21];
+//       const T dif_i = m_coef * (data[I11] - data[I21]);
+//       const T tr = data[0] - 0.5*sum_r;
+//       const T ti = data[1] - 0.5*sum_i;
+//       const T trpdi = tr + dif_i;
+//       const T trmdi = tr - dif_i;
+//       const T tipdr = ti + dif_r;
+//       const T timdr = ti - dif_r;
+//       data[0] += sum_r;
+//       data[1] += sum_i;
+//       data[I10] = trpdi*wr[0] - timdr*wi[0];
+//       data[I11] = trpdi*wi[0] + timdr*wr[0];
+//       data[I20] = trmdi*wr[1] - tipdr*wi[1];
+//       data[I21] = trmdi*wi[1] + tipdr*wr[1];
+//   }
 };
 
 // Specialization for N=2

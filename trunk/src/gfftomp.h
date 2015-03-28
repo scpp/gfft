@@ -221,11 +221,12 @@ struct Permutation<K, Loki::NullType>
 };
 
 
-template<int_t K, typename KFact, int_t M, typename VType, int S, typename W1>
+template<int_t K, typename KFact, int_t M, typename VType, int S, typename W1,
+bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 struct DFTk_inp_adapter;
 
 template<int_t K, typename Head, typename Tail, int_t M, typename VType, int S, typename W1>
-struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1, true>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
@@ -283,18 +284,80 @@ public:
 };
 
 template<int_t K, int_t KF, typename Tail, int_t M, typename VType, int S, typename W1>
-struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >, Tail>, M, VType, S, W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >, Tail>, M, VType, S, W1, true>
 : public DFTk_inp_adapter<K, Tail, M, VType, S, W1> { };
 
 // Specialization for prime K
 template<int_t K, int_t M, typename VType, int S, class W1>
-struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType>,M,VType,S,W1> 
-: public DFTk_inp<K, M*(Loki::TypeTraits<typename VType::ValueType>::isStdFundamental ? 2 : 1), VType, S> { };
+struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType>,M,VType,S,W1,true> 
+: public DFTk_inp<K, M*2, VType, S> { };
 
 // Specialization for K=4
 // template<int_t M, typename VType, int S, class W1>
 // struct DFTk_inp_adapter<4,Loki::Typelist<Pair<SInt<2>, SInt<2> >, Loki::NullType>,M,VType,S,W1> 
 // : public DFTk_inp<4, M*(Loki::TypeTraits<typename VType::ValueType>::isStdFundamental ? 2 : 1), VType, S> { };
+
+///////////////////////////////////////////////////
+
+template<int_t K, typename Head, typename Tail, int_t M, typename VType, int S, typename W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Head, Tail>, M, VType, S, W1, false>
+{
+   typedef typename VType::ValueType CT;
+   static const int_t KF = Head::first::value;
+   static const int_t KNext = K/KF;
+   
+   static const int C = Loki::TypeTraits<CT>::isStdFundamental ? 2 : 1;
+   static const int_t M2 = M*C;
+   static const int_t MKF = M2*KF;
+   
+   typedef typename IPowBig<W1,KF>::Result WK;
+   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> KFactNext;
+
+//    DFTk_inp<KF,M2,VType,S> dft_str;
+//    DFTk_x_Im_T_omp<1,KNext,KFactNext,KF*M,M,VType,S,W1> dft_scaled;
+
+   DFTk_inp_adapter<KNext,KFactNext,M,VType,S,WK> dft_str;
+   DFTk_x_Im_T<KF,KF*KNext,KNext*M,M,VType,S,W1> dft_scaled;
+public:
+
+   void apply(CT* data) 
+   {
+     // run strided DFT recursively KF times
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply(data + i*M2*KNext);
+
+      dft_scaled.apply(data);
+   }
+
+   void apply(CT* data, const CT* w) 
+   {
+      dft_str.apply(data, w);
+
+      for (int_t i=1; i < KF; ++i) 
+	dft_str.apply_m(data + i*M2*KNext, w+i*KNext-1);
+
+      dft_scaled.apply(data);
+   }
+
+   void apply_m(CT* data, const CT* w) 
+   {
+      for (int_t i=0; i < KF; ++i) 
+	dft_str.apply_m(data + i*M2*KNext, w+i*KNext);
+
+      dft_scaled.apply(data);
+   }
+};
+
+template<int_t K, int_t KF, typename Tail, int_t M, typename VType, int S, typename W1>
+struct DFTk_inp_adapter<K, Loki::Typelist<Pair<SInt<KF>, SInt<0> >, Tail>, M, VType, S, W1, false>
+: public DFTk_inp_adapter<K, Tail, M, VType, S, W1> { };
+
+// Specialization for prime K
+template<int_t K, int_t M, typename VType, int S, class W1>
+struct DFTk_inp_adapter<K,Loki::Typelist<Pair<SInt<K>, SInt<1> >, Loki::NullType>,M,VType,S,W1,false> 
+: public DFTk_inp<K, M, VType, S> { };
+
+///////////////////////////////////////////////////
 
 
 // General implementation
@@ -367,6 +430,64 @@ template<int_t NThreads, typename KFact, int_t M, int_t Step, typename VType, in
 class DFTk_x_Im_T_omp<NThreads,2,KFact,M,Step,VType,S,W,false,true>
 : public DFTk_x_Im_T<2,KFact,M,Step,VType,S,W,false,true> {};
 */
+
+template<int_t NThreads, int_t K, typename KFact, int_t M, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W1,SimpleSpec,false>
+{
+   typedef typename VType::ValueType CT;
+   static const int_t N = K*M;
+   
+   typedef typename GetFirstRoot<K,S,VType::Accuracy>::Result W;
+   DFTk_inp_adapter<K,KFact,M,VType,S,W> spec_inp_a;
+
+   typedef Permutation<K,KFact> Perm;
+
+public:
+  
+   void apply(CT* data) 
+   {
+      #pragma omp parallel num_threads(K) shared(data)
+      {
+	int tid = omp_get_thread_num();
+	if (tid == 0) {
+	  spec_inp_a.apply(data);
+	  ComputeRootsStd<K,VType,W1,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+Step*NThreads, roots.get());
+	  for (int_t j=2*NThreads*Step; j<M; j+=Step*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get());
+	  }
+	}
+	else {
+	  ComputeRootsStd<K,VType,W1,Perm> roots(NThreads,tid);
+	  spec_inp_a.apply(data+Step*tid, roots.get());
+	  for (int_t j=(NThreads+tid)*Step; j<M; j+=Step*NThreads) {
+	    roots.step();
+	    spec_inp_a.apply(data+j, roots.get());
+	  }
+	}
+	#pragma omp barrier
+      }
+   }
+   
+  /*
+   // Sequential version
+   void apply(CT* data) 
+   {
+     // M times call to spec_inp_a.apply()
+      spec_inp_a.apply(data);
+      ComputeRootsStd<K,VType,W1,Perm> roots;
+
+      spec_inp_a.apply(data+Step, roots.get());
+      for (int_t j=Step+Step; j<M; j+=Step) {
+	roots.step();
+	spec_inp_a.apply(data+j, roots.get());
+      }
+   }
+    */
+};
+
+///////////////////////////////////////////////////////////
 
 template<int_t NThreads, int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
 class InTimeOOP_omp;

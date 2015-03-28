@@ -331,7 +331,57 @@ public:
 template<int_t K, typename VType, typename W1, typename Permut = Loki::NullType>
 class ComputeRootsStd
 {
+  typedef typename VType::ValueType CT;
   
+  typedef Compute<typename W1::Re,VType::Accuracy> WR;
+  typedef Compute<typename W1::Im,VType::Accuracy> WI;
+
+  CT w[K-1], wp[K-1];
+  
+public:
+  const CT* get() const { return w; }
+  
+  ComputeRootsStd() { init(); }
+  ComputeRootsStd(const int nthreads, const int n) 
+  { 
+    init(); 
+    CT t;
+    for (int_t i=0; i<K-1; ++i) {
+      t = w[i];
+      for (int_t j=1; j<(n==0 ? nthreads : n); ++j) 
+	w[i] *= t;
+    }
+    for (int_t i=0; i<K-1; ++i) {
+      t = wp[i];
+      for (int_t j=1; j<nthreads; ++j) 
+	wp[i] *= t;
+    }
+  }
+  
+  void init() 
+  {
+    wp[0] = CT(WR::value(), WI::value());
+    //LocalVType t = Sin<N,1,LocalVType>::value();
+//       wp[0] = Complex<LocalVType>(1 - 2.0*t*t, -S*Sin<N,2,LocalVType>::value());
+      
+    // W^i = (wpr[i], wpi[i])
+    for (int_t i=0; i<K-2; ++i) 
+      wp[i+1] = wp[i]*wp[0];
+      
+    for (int_t i=0; i<K-1; ++i) {
+      int_t ii = Permut::value(i+1) - 1;
+      w[ii] = wp[i];
+    }
+
+    for (int_t i=0; i<K-1; ++i) 
+      wp[i] = w[i];
+  }
+  
+  void step()
+  {
+    for (int_t i=0; i<K-1; ++i) 
+      w[i] = w[i]*wp[i];
+  }
 };
 
 // Specialization without permutation

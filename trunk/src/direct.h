@@ -123,11 +123,12 @@ public:
     for (int_t i=0; i<size*2; ++i) 
       data[i] -= to_double(output_data[i]);
   }
-  template<class Tp>
-  void diff(std::complex<Tp>* data)
+  
+  template<typename Tp, template<typename> class Complex>
+  void diff(Complex<Tp>* data)
   {
     for (int_t i=0; i<size; ++i) {
-      data[i] -= std::complex<Tp>(output_data[2*i], output_data[2*i+1]);
+      data[i] -= Complex<Tp>(to_double(output_data[2*i]), to_double(output_data[2*i+1]));
     }
   }
   
