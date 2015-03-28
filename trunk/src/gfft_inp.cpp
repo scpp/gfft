@@ -25,17 +25,6 @@ using namespace std;
 
 using namespace GFFT;
 
-#define DO_EXPAND(VAL)  VAL ## 1
-#define EXPAND(VAL)     DO_EXPAND(VAL)
-
-#if !defined(NUM) //|| EXPAND(NUM) == 1 
-#define NUM 8
-#endif
-
-#if !defined(AUTO) || EXPAND(AUTO) == 1 
-#define FULLOUTPUT
-#endif
-
 typedef DOUBLE ValueType;
 typedef IN_PLACE Place;
 // >>>>>>>>> Transforms in-place accept powers of a single prime only!

@@ -34,5 +34,8 @@
 #include "gfftcaller.h"
 #include "gfftgen.h"
 
+#if FULLOUTPUT == 1 
+#define FOUT
+#endif
 
 #endif /*__gfft_h*/

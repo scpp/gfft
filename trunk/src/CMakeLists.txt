@@ -6,15 +6,37 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 include_directories(../loki)
 
 #all source files 
-#add_executable(gfft gfft.cpp)
-add_executable(gfft_inp gfft_inp.cpp)
-add_executable(gfft_oop gfft_oop.cpp)
+add_executable(gfft gfft.cpp)
+#add_executable(gfft_inp gfft_inp.cpp)
+#add_executable(gfft_oop gfft_oop.cpp)
 #add_executable(cgfft_inp cgfft_inp.cpp)
 #add_executable(cgfft_oop cgfft_oop.cpp)
 #add_executable(metapi metapi.cpp)
 #add_executable(metasqrt metasqrt.cpp)
 
 #add_executable(metaf metaf.cpp)
+
+# Set default values 
+if(NOT DEFINED ${NUM})
+set(NUM 16)
+endif(NOT DEFINED ${NUM})
+
+if(NOT DEFINED ${FULLOUTPUT})
+set(FULLOUTPUT 1)
+endif(NOT DEFINED ${FULLOUTPUT})
+
+if(NOT DEFINED ${TYPE})
+set(TYPE "DOUBLE")
+endif(NOT DEFINED ${TYPE})
+
+if(NOT DEFINED ${PLACE})
+set(PLACE "OUT_OF_PLACE")
+endif(NOT DEFINED ${PLACE})
+
+if(NOT DEFINED ${NUMTHREADS})
+set(NUMTHREADS 1)
+endif(NOT DEFINED ${NUMTHREADS})
+
 
 if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
@@ -46,11 +68,12 @@ target_link_libraries(metapi c m stdc++ gomp)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -DNUM=${MYNUM} -DAUTO=${MYAUTO} -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
+add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
-#target_link_libraries(gfft stdc++ gomp)
-target_link_libraries(gfft_inp stdc++ gomp)
-target_link_libraries(gfft_oop stdc++ gomp)
+target_link_libraries(gfft stdc++ gomp)
+#target_link_libraries(gfft_inp stdc++ gomp)
+#target_link_libraries(gfft_oop stdc++ gomp)
 #target_link_libraries(cgfft_inp stdc++ gomp)
 #target_link_libraries(cgfft_oop stdc++ gomp)
 # target_link_libraries(metapi c m stdc++ gomp)

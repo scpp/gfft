@@ -28,7 +28,7 @@
 #include "sint.h"
 #include "twiddles.h"
 
-static const int_t SwitchToOMP = (1<<2);
+static const int_t SwitchToOMP = (1<<8);
 
 namespace GFFT {
 

@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /** \file
-    \brief Sample program to represent %GFFT usage
+    \brief Sample program to show %GFFT usage
 */
 
 #include <iostream>
@@ -25,22 +25,11 @@ using namespace std;
 
 using namespace GFFT;
 
-#define DO_EXPAND(VAL)  VAL ## 1
-#define EXPAND(VAL)     DO_EXPAND(VAL)
+typedef TYPE ValueType;
+typedef PLACE Place;
 
-#if !defined(NUM) //|| EXPAND(NUM) == 1 
-#define NUM 8
-#endif
-
-#if !defined(AUTO) || EXPAND(AUTO) == 1 
-#define FULLOUTPUT
-#endif
-
-typedef DOUBLE ValueType;
-typedef OUT_OF_PLACE Place;
-
-static const int_t N = IPow<3,3>::value; //NUM;
-static const int_t NThreads = 4;
+static const int_t N = NUM;
+static const int_t NThreads = NUMTHREADS;
 //typedef typename GenNumList<2, 3>::Result NList;
 //typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
 typedef TYPELIST_1(SIntID<N>) NList;
@@ -77,9 +66,11 @@ int main(int argc, char *argv[])
     DFT_wrapper<ValueType::ValueType> dft(data, n);
 
  // print out sample data
-//     cout<<"Input data:"<<endl;
-//     for (i=0; i < n; ++i)
-//       cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+#ifdef FOUT
+    cout<<"Input data:"<<endl;
+    for (i=0; i < n; ++i)
+      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+#endif
 
 // apply FFT out-of-place
    fftobj->fft(data, dataout);
@@ -91,11 +82,11 @@ int main(int argc, char *argv[])
 
 // print out transformed data
    cout.precision(3);
-//#ifdef FULLOUTPUT
+#ifdef FOUT
    cout<<"Result of transform:"<<endl;
    for (i=0; i < n; ++i)
      cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
-//#endif
+#endif
 
    dft.diff(dataout);
 
@@ -103,9 +94,9 @@ int main(int argc, char *argv[])
    double mx(-1);
    double s = 0.;
    for (i=0; i < n; ++i) {
-//#ifdef FULLOUTPUT
+#ifdef FOUT
       cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
-//#endif
+#endif
       mx = max(mx, fabs(dataout[2*i]));
       mx = max(mx, fabs(dataout[2*i+1]));
       s += dataout[2*i]*dataout[2*i];
@@ -116,10 +107,5 @@ int main(int argc, char *argv[])
 
    delete [] data;
    delete [] dataout;
-
-//    typedef typename OpenMP<1>::template Factor<SIntID<N> >::Result NFactor;
-//    typedef ExtractFactor<PrecomputeRoots, NFactor> EF;
-//   
-//    typedef Print<EF::Result>::Result TTT;
 }
 
