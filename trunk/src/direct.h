@@ -74,6 +74,10 @@ public:
   {
     init(data, n);
   }
+  DFT_wrapper(const float* data, int_t n) : size(n)
+  {
+    init(data, n);
+  }
   DFT_wrapper(const std::complex<double>* data, int_t n) : size(n)
   {
     init(data, n);

@@ -46,16 +46,13 @@ The class performs DFT(k) with the Kronecker product by the mxm identity matrix 
 and twiddle factors (T).
 \sa InTime
 */
-// template<int_t K, int_t M, typename T, int S, class W, bool doStaticLoop,
-// bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
-// class DFTk_x_Im_T;
 
-template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class SW, class W1>
-class DFTk_x_Im_T<K,LastK,M,Step,VType,S,SW,W1,false,false>
+template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+class DFTk_x_Im_T<K,LastK,M,Step,VType,S,W1,SimpleSpec,false>
 {
    typedef typename VType::ValueType CT;
    static const int_t N = K*M;
-   DFTk_inp<K,M,VType,S,SW> spec_inp;
+   DFTk_inp<K,M,VType,S> spec_inp;
 public:
    void apply(CT* data) 
    {
@@ -72,9 +69,6 @@ public:
   
 };
 
-// template<int_t K, int_t KK, int_t M, int_t Step, typename Tail, typename VType, int S, class W>
-// class DFTk_x_Im_T<K,Loki::Typelist<Pair<SInt<KK>,SInt<0> >,Tail>,M,Step,VType,S,W,false,false>
-// : public DFTk_x_Im_T<K,Tail,M,Step,VType,S,W,false,false> {};
   
 }  //namespace DFT
 

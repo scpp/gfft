@@ -28,6 +28,8 @@
 #include "sint.h"
 #include "twiddles.h"
 
+static const int_t SwitchToOMP = (1<<8);
+
 namespace GFFT {
 
 typedef unsigned int id_t;
@@ -143,7 +145,7 @@ struct IN_PLACE {
       typedef typename Parall::template ActualParall<N>::Result NewParall;
       typedef typename NewParall::template Swap<NFact,T>::Result Swap;
       typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
-      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles,W1> InT;
+      typedef InTime_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
       typedef TYPELIST_3(Swap,InT,Direction) Result;
    };
@@ -181,7 +183,7 @@ struct OUT_OF_PLACE {
    class List {
       typedef typename Parall::template ActualParall<N>::Result NewParall;
       typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
-      typedef InTimeOOP_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,Twiddles,W1> InT;
+      typedef InTimeOOP_omp<NewParall::NParProc,N,NFact,VType,Direction::Sign,W1> InT;
    public:
        typedef TYPELIST_2(InT,Direction) Result;
    };
@@ -378,8 +380,6 @@ struct Serial {
    template<typename T>
    void apply(const T*, T*) { }
 };
-
-static const int_t SwitchToOMP = (1<<5);
 
 /*! \brief %Transform is parallelized using %OpenMP standard
 \tparam NT number of parallel threads

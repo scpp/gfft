@@ -100,9 +100,9 @@ int main(int argc, char *argv[])
     cout<<"Check against DFT:"<<endl;
     T mx(-1);
     for (i=0; i < n; ++i) {
-#ifdef FULLOUTPUT
+//#ifdef FULLOUTPUT
       cout<<"("<<fabs(data[2*i])<<","<<fabs(data[2*i+1])<<")"<<endl;
-#endif
+//#endif
       mx = std::max(mx, fabs(data[2*i]));
       mx = std::max(mx, fabs(data[2*i+1]));
     }

@@ -125,7 +125,7 @@ class T_DFTk_x_Im<K,M,VType,S,W,false>
    typedef typename VType::TempType LocalVType;
    static const int_t N = K*M;
    static const int_t M2 = M*2;
-   DFTk_inp<K,M2,VType,S,W> spec_inp;
+   DFTk_inp<K,M2,VType,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -168,7 +168,7 @@ class T_DFTk_x_Im<3,M,VType,S,W,false>
    typedef typename VType::TempType LocalVType;
    static const int_t N = 3*M;
    static const int_t M2 = M*2;
-   DFTk_inp<3,M2,VType,S,W> spec_inp;
+   DFTk_inp<3,M2,VType,S> spec_inp;
 public:
    void apply(T* data) 
    {
@@ -208,7 +208,7 @@ class T_DFTk_x_Im<2,M,VType,S,W,false>
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
    static const int_t N = 2*M;
-   DFTk_inp<2,N,VType,S,W> spec_inp;
+   DFTk_inp<2,N,VType,S> spec_inp;
 
 //    IterateInFreq<2,M,VType,S,W> iterate;
 public:
@@ -396,7 +396,8 @@ class InFreq<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W, LastK>
 //   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
    InFreq<M,NFactNext,VType,S,W,K*LastK> dft_str;
-   T_DFTk_x_Im<K,M,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
+//    T_DFTk_x_Im<K,M,VType,S,W,(N<=StaticLoopLimit)> dft_scaled;
+   T_DFTk_x_Im<K,M,VType,S,W,false> dft_scaled;
 
 public:
    void apply(T* data) 
@@ -422,7 +423,7 @@ class InFreq<N, Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,
 {
   typedef typename VType::ValueType T;
   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-  DFTk_inp<N, C, VType, S, W> spec_inp;
+  DFTk_inp<N, C, VType, S> spec_inp;
 public:
   void apply(T* data) 
   { 

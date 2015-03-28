@@ -228,12 +228,12 @@ public:
 };
 
 
-typedef DOUBLE VType;
-typedef IN_PLACE Place;
-//typedef OUT_OF_PLACE Place;
+typedef COMPLEX_DOUBLE VType;
+//typedef IN_PLACE Place;
+typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 2;
-const unsigned Max = 10;
+const unsigned Max = 11;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<4>, OpenMP<8>) ParallList;
 //typedef GenNumList<2, 15, SIntID>::Result NList;

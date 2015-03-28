@@ -36,8 +36,8 @@ using namespace MF;
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename VType, int S, typename W>
-class DFTk_inp<N,M,VType,S,W,false>
+template<int_t N, int_t M, typename VType, int S>
+class DFTk_inp<N,M,VType,S,false>
 {
   // N is assumed odd, otherwise compiler would not come here
   
@@ -118,8 +118,8 @@ public:
   }
 };
 
-template<int_t M, typename VType, int S, typename W>
-class DFTk_inp<3,M,VType,S,W,false> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<3,M,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
@@ -156,8 +156,8 @@ public:
   }
 };
 
-template<int_t M, typename VType, int S, typename W>
-class DFTk_inp<2,M,VType,S,W,false> 
+template<int_t M, typename VType, int S>
+class DFTk_inp<2,M,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
@@ -195,8 +195,8 @@ public:
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S, typename W>
-class DFTk<N,SI,DI,VType,S,W,false>
+template<int_t N, int_t SI, int_t DI, typename VType, int S>
+class DFTk<N,SI,DI,VType,S,false>
 {
   // N is assumed odd, otherwise compiler would not come here
   
@@ -248,8 +248,8 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S, typename W>
-class DFTk<3,SI,DI,VType,S,W,false> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<3,SI,DI,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
@@ -273,8 +273,8 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S, typename W>
-class DFTk<2,SI,DI,VType,S,W,false> 
+template<int_t SI, int_t DI, typename VType, int S>
+class DFTk<2,SI,DI,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
