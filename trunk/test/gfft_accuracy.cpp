@@ -22,20 +22,20 @@ using namespace std;
 
 using namespace GFFT;
 
-typedef DOUBLE VType;
-// typedef FLOAT VType;
-// typedef COMPLEX_DOUBLE VType;
-// typedef COMPLEX_FLOAT VType;
+//typedef DOUBLE VType;
+//typedef FLOAT VType;
+//typedef COMPLEX_DOUBLE VType;
+typedef COMPLEX_FLOAT VType;
 
-typedef IN_PLACE Place;
-//typedef OUT_OF_PLACE Place;
+//typedef IN_PLACE Place;
+typedef OUT_OF_PLACE Place;
 
 const unsigned Min = 2;
-const unsigned Max = 7;
+const unsigned Max = 4;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<4>, OpenMP<8>) ParallList;
 //typedef GenNumList<2, 15, SIntID>::Result NList;
-typedef GenPowerList<Min, Max, 2>::Result NList;
+typedef GenPowerList<Min, Max, 3>::Result NList;
 typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallList, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)

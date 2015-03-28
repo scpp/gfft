@@ -377,7 +377,7 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W1,SimpleSpec,true>
    typedef Permutation<K,KFact> Perm;
 
 public:
-  
+  /*  // This has low performance benefit and doesn't work for powers other than 2
    void apply(T* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
@@ -403,8 +403,8 @@ public:
 	#pragma omp barrier
       }
    }
-   
-  /*
+   */
+  
    // Sequential version
    void apply(T* data) 
    {
@@ -418,7 +418,7 @@ public:
 	spec_inp_a.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
-    */
+    
 };
 
 /*
@@ -444,7 +444,8 @@ class DFTk_x_Im_T_omp<NThreads,K,KFact,M,Step,VType,S,W1,SimpleSpec,false>
 
 public:
   
-   void apply(CT* data) 
+   /*  // This has low performance benefit and doesn't work for powers other than 2
+  void apply(CT* data) 
    {
       #pragma omp parallel num_threads(K) shared(data)
       {
@@ -469,8 +470,8 @@ public:
 	#pragma omp barrier
       }
    }
-   
-  /*
+   */
+  
    // Sequential version
    void apply(CT* data) 
    {
@@ -484,7 +485,7 @@ public:
 	spec_inp_a.apply(data+j, roots.get());
       }
    }
-    */
+    
 };
 
 ///////////////////////////////////////////////////////////
