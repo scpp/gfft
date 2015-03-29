@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-set(CMAKE_CXX_COMPILER g++)
+#set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(../loki)
@@ -36,6 +36,7 @@ if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### Intel compiler
 add_definitions(-openmp -O3 -DGFFTDOC)
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft iomp5)
 target_link_libraries(metapi iomp5)
@@ -43,12 +44,15 @@ target_link_libraries(metapi iomp5)
 elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 
 ### MSVC compiler
-add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
+#add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
+add_definitions(/D _USE_MATH_DEFINES)
+add_definitions(/D NUM=${NUM} /D FULLOUTPUT=${FULLOUTPUT} /D TYPE=${TYPE} /D PLACE=${PLACE} /D NUMTHREADS=${NUMTHREADS})
 
 elseif(CMAKE_CXX_COMPILER MATCHES "clang")
 
 ### Clang compiler
 add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft c m stdc++ gomp)
 target_link_libraries(metapi c m stdc++ gomp)

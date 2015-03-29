@@ -46,25 +46,46 @@ T norm2(const T* data, const unsigned int n) {
    return sqrt(s);
 }
 
+// template<typename T, template<typename> class Complex>
+// Complex<T> norm_inf(const Complex<T>* data, const unsigned int n) {
+//    if (n<1) return 0.;
+//    Complex<T> d(fabs(data[0].real()),fabs(data[0].imag()));
+//    for (unsigned int i=1; i<n; ++i) {
+//      if (fabs(data[i].real()) > d.real()) d.real() = fabs(data[i].real());
+//      if (fabs(data[i].imag()) > d.imag()) d.imag() = fabs(data[i].imag());
+//    }
+//    return d;
+// }
+// 
+// template<typename T, template<typename> class Complex>
+// Complex<T> norm2(const Complex<T>* data, const unsigned int n) {
+//    Complex<T> s(0.,0.);
+//    for (unsigned int i=0; i<n; ++i) {
+//      s.real() += data[i].real()*data[i].real();
+//      s.imag() += data[i].imag()*data[i].imag();
+//    }
+//    return Complex<T>(sqrt(s.real()), sqrt(s.imag()));
+// }
+
 template<typename T, template<typename> class Complex>
-Complex<T> norm_inf(const Complex<T>* data, const unsigned int n) {
+T norm_inf(const Complex<T>* data, const unsigned int n) {
    if (n<1) return 0.;
-   Complex<T> d(fabs(data[0].real()),fabs(data[0].imag()));
+   T d(std::max(fabs(data[0].real()),fabs(data[0].imag())));
    for (unsigned int i=1; i<n; ++i) {
-     if (fabs(data[i].real()) > d.real()) d.real() = fabs(data[i].real());
-     if (fabs(data[i].imag()) > d.imag()) d.imag() = fabs(data[i].imag());
+     if (fabs(data[i].real()) > d) d = fabs(data[i].real());
+     if (fabs(data[i].imag()) > d) d = fabs(data[i].imag());
    }
    return d;
 }
 
 template<typename T, template<typename> class Complex>
-Complex<T> norm2(const Complex<T>* data, const unsigned int n) {
-   Complex<T> s(0.,0.);
+T norm2(const Complex<T>* data, const unsigned int n) {
+   T s(0.);
    for (unsigned int i=0; i<n; ++i) {
-     s.real() += data[i].real()*data[i].real();
-     s.imag() += data[i].imag()*data[i].imag();
+     s += data[i].real()*data[i].real();
+     s += data[i].imag()*data[i].imag();
    }
-   return Complex<T>(sqrt(s.real()), sqrt(s.imag()));
+   return sqrt(s);
 }
 
 /////////////////////////////////////////////////////
@@ -131,6 +152,7 @@ template<class H, class Tail, class DFTClass>
 class GFFTcheck<Loki::Typelist<H,Tail>, DFTClass, IN_PLACE> 
 {
   typedef typename H::ValueType::ValueType T1;
+  typedef typename H::ValueType::base_type BT;
   typedef typename DFTClass::value_type T2;
   GFFTcheck<Tail,DFTClass,IN_PLACE> next;
 
@@ -165,13 +187,13 @@ public:
     // External DFT
     dft.apply();
 
-    T1 d = norm_inf(data, N2);
+    BT d = norm_inf(data, N2);
 
     // Subtract result of dft from data
     dft.diff(data);
     
-    T1 nr2 = norm2(data, N2);
-    T1 nrinf = norm_inf(data, N2);
+    BT nr2 = norm2(data, N2);
+    BT nrinf = norm_inf(data, N2);
 #ifdef FOUT
     std::cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << std::endl;
 #endif
@@ -185,6 +207,7 @@ public:
 template<class H, class Tail, class DFTClass>
 class GFFTcheck<Loki::Typelist<H,Tail>, DFTClass, OUT_OF_PLACE> {
   typedef typename H::ValueType::ValueType T1;
+  typedef typename H::ValueType::base_type BT;
   typedef typename DFTClass::value_type T2;
   GFFTcheck<Tail,DFTClass,OUT_OF_PLACE> next;
 
@@ -223,13 +246,13 @@ public:
     // External DFT
     dft.apply();
 
-    T1 d = norm_inf(dataout, N2);
+    BT d = norm_inf(dataout, N2);
 
     // Subtract result of dft from dataout
     dft.diff(dataout);
     
-    T1 nr2 = norm2(dataout, N2);
-    T1 nrinf = norm_inf(dataout, N2);
+    BT nr2 = norm2(dataout, N2);
+    BT nrinf = norm_inf(dataout, N2);
 #ifdef FOUT
     std::cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << std::endl;
 #endif
