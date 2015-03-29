@@ -69,48 +69,6 @@ Complex<T> norm2(const Complex<T>* data, const unsigned int n) {
 
 /////////////////////////////////////////////////////
 
-static const int StartSeed = 17;
-
-template<typename T, bool C = Loki::TypeTraits<T>::isStdFundamental>
-struct GenInput;
-
-template<typename T>
-struct GenInput<T,true>
-{
-  GenInput() { srand(17); }
-  
-  static void rand(T* data, const int i) 
-  { // distribute in [-0.5;0.5] as in FFTW
-    data[2*i]   = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
-    data[2*i+1] = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
-  }
-  static void seq(T* data, const int i) 
-  { 
-    data[2*i]   = static_cast<T>(2*i); 
-    data[2*i+1] = static_cast<T>(2*i+1); 
-  }
-};
-
-template<typename T>
-struct GenInput<T,false>
-{
-  GenInput() { srand(17); }
-  
-  static void rand(T* data, const int i) 
-  { // distribute in [-0.5;0.5] as in FFTW
-    T tmp(::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5, 
-	  ::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5);
-    data[i] = tmp;
-  }
-  static void seq(T* data, const int i) 
-  { 
-    T tmp(static_cast<typename T::value_type>(2*i), static_cast<typename T::value_type>(2*i+1)); 
-    data[i] = tmp;
-  }
-};
-
-/////////////////////////////////////////////////////
-
 template<class FFT1, class FFT2>
 class FFTcompare 
 {

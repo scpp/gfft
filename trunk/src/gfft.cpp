@@ -18,6 +18,11 @@
     The variables NUM, TYPE, PLACE and NUMTHREADS are defined in CMakeLists.txt file 
     in the same folder. They can also be supplied to cmake command
     Example: cmake -DNUM=8 -DTYPE=FLOAT -DPLACE=IN_PLACE -DNUMTHREADS=4 .
+    
+    This sample program is generalized to handle both simple arrays containing consequent pairs 
+    of real and imaginary parts and std::complex. It would also handle any user-defined complex 
+    types, if they define functions real() and imag() and the output operator to std::ostream
+    
 */
 
 #include <iostream>
@@ -43,41 +48,36 @@ typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID
 int main(int argc, char *argv[])
 {
     cout.precision(16);
-    int_t i, n = N;
-    //cin >> n;
+    int_t i;
    
     typedef DFT TransformType;
     typedef ValueType::ValueType T;
+    typedef ValueType::base_type BT;
+    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
 
     TransformSet gfft;
-    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(n, ValueType::ID, TransformType::ID, 1, 
+    TransformSet::ObjectType* fftobj  = gfft.CreateTransformObject(N, ValueType::ID, TransformType::ID, 1, 
 								   OpenMP<NThreads>::ID, Place::ID);
 //     TransformSet::ObjectType* ifftobj = gfft.CreateTransformObject(n, ValueType::ID, TransformType::Inverse::ID, 1, 
 // 								   ParallelizationGroup::Default::ID, Place::ID);
     
 // create sample data
-    T* data = new T [2*n];
+    T* data = new T [C*N];
 #if PLACE == OUT_OF_PLACE
-    T* dataout = new T [2*n];
+    T* dataout = new T [C*N];
 #endif
-    for (i=0; i < n; ++i) {
-//        data[2*i]   = rand()/(double)RAND_MAX - 0.5;   // distribute in [-0.5;0.5] as in FFTW
-//        data[2*i+1] = rand()/(double)RAND_MAX - 0.5;
-       data[2*i] = 2*i;
-       data[2*i+1] = 2*i+1; 
-#if PLACE == OUT_OF_PLACE
-       dataout[2*i] = 0;
-       dataout[2*i+1] = 0; 
-#endif
+    for (i=0; i < N; ++i) {
+//      GenInput<T>::rand(data, i);  // distribute in [-0.5;0.5] as in FFTW
+       GenInput<T>::seq(data, i);
     }
 
-    DFT_wrapper<T> dft(data, n);
+    DFT_wrapper<BT> dft(data, N);
 
  // print out sample data
 #ifdef FOUT
     cout<<"Input data:"<<endl;
-    for (i=0; i < n; ++i)
-      cout<<"("<<data[2*i]<<","<<data[2*i+1]<<")"<<endl;
+    for (i=0; i < N; ++i)
+      cout << GenOutput<T>(data,i) << endl;
 #endif
 
 #if PLACE == OUT_OF_PLACE
@@ -92,14 +92,14 @@ int main(int argc, char *argv[])
 // do simple dft
    dft.apply();
 
-   T* dataout1 = dft.getdata();
+   BT* dataout1 = dft.getdata();
 
 // print out transformed data
    cout.precision(3);
 #ifdef FOUT
    cout<<"Result of transform:"<<endl;
-   for (i=0; i < n; ++i)
-     cout<<"("<<dataout[2*i]<<","<<dataout[2*i+1]<<")   \t("<<dataout1[2*i]<<","<<dataout1[2*i+1]<<") \t"<<endl;
+   for (i=0; i < N; ++i)
+     cout << GenOutput<T>(dataout,i) << "   \t"<< GenOutput<BT>(dataout1,i) <<" \t"<<endl;
 #endif
 
    dft.diff(dataout);
@@ -107,14 +107,16 @@ int main(int argc, char *argv[])
    cout<<"Check against DFT:"<<endl;
    double mx(-1);
    double s = 0.;
-   for (i=0; i < n; ++i) {
+   for (i=0; i < N; ++i) {
 #ifdef FOUT
-      cout<<"("<<fabs(dataout[2*i])<<","<<fabs(dataout[2*i+1])<<")"<<endl;
+      cout << GenOutput<T>(dataout,i) << endl;
 #endif
-      mx = max(mx, fabs(dataout[2*i]));
-      mx = max(mx, fabs(dataout[2*i+1]));
-      s += dataout[2*i]*dataout[2*i];
-      s += dataout[2*i+1]*dataout[2*i+1];
+      double re = ComplexWrapper<T>(dataout,i).real();
+      double im = ComplexWrapper<T>(dataout,i).imag();
+      mx = max(mx, fabs(re));
+      mx = max(mx, fabs(im));
+      s += re*re;
+      s += im*im;
    }
    cout<<"---------------------------------------------"<<endl;
    cout << N << ": " << ValueType::name() << ", " << Place::name() << endl;

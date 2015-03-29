@@ -21,13 +21,117 @@
 
 #include <iostream>
 
-
 #ifdef QD
 #include "qd/dd_real.h"
 #include "qd/qd_real.h"
 #endif
 
 double to_double(const double d) { return d; }
+
+static const int StartSeed = 17;
+
+template<typename T, bool C = Loki::TypeTraits<T>::isStdFundamental>
+struct GenInput;
+
+template<typename T>
+struct GenInput<T,true>
+{
+  GenInput() { srand(17); }
+  
+  static void rand(T* data, const int i) 
+  { // distribute in [-0.5;0.5] as in FFTW
+    data[2*i]   = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
+    data[2*i+1] = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
+  }
+  static void seq(T* data, const int i) 
+  { 
+    data[2*i]   = static_cast<T>(2*i); 
+    data[2*i+1] = static_cast<T>(2*i+1); 
+  }
+};
+
+template<typename T>
+struct GenInput<T,false>
+{
+  GenInput() { srand(17); }
+  
+  static void rand(T* data, const int i) 
+  { // distribute in [-0.5;0.5] as in FFTW
+    T tmp(::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5, 
+	  ::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5);
+    data[i] = tmp;
+  }
+  static void seq(T* data, const int i) 
+  { 
+    T tmp(static_cast<typename T::value_type>(2*i), static_cast<typename T::value_type>(2*i+1)); 
+    data[i] = tmp;
+  }
+};
+
+/////////////////////////////////////////////////////
+
+template<typename T, bool C = Loki::TypeTraits<T>::isStdFundamental>
+struct GenOutput;
+
+template<typename T>
+struct GenOutput<T,true>
+{
+  const T re,im;
+  GenOutput(const T* data, const int i) : re(data[2*i]), im(data[2*i+1]) {}
+};
+
+template<typename T>
+struct GenOutput<T,false>
+{
+  const T c;
+  GenOutput(const T* data, const int i) : c(data[i]) {}
+};
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const GenOutput<T,true>& v)
+{
+  os << "(" << v.re << "," << v.im << ")";
+  return os;
+}
+
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const GenOutput<T,false>& v)
+{
+  os << v.c;       // User-defined complex types should implement this operator themselves like std::complex
+  return os;
+}
+
+/////////////////////////////////////////////////////
+
+template<typename T, bool C = Loki::TypeTraits<T>::isStdFundamental>
+struct ComplexWrapper;
+
+template<typename T>
+struct ComplexWrapper<T,true>
+{
+  T& re,im;
+  ComplexWrapper(T* data, const int i) : re(data[2*i]), im(data[2*i+1]) {}
+
+  T& real() { return re; }
+  T& imag() { return im; }
+  T real() const { return re; }
+  T imag() const { return im; }
+};
+
+template<typename T>
+struct ComplexWrapper<T,false>
+{
+  typedef typename T::value_type VT;
+  T& c;
+  ComplexWrapper(T* data, const int i) : c(data[i]) {}
+
+  VT& real() { return c.real(); }
+  VT& imag() { return c.imag(); }
+  const VT& real() const { return c.real(); }
+  const VT& imag() const { return c.imag(); }
+};
+
+/////////////////////////////////////////////////////
 
 /** \class DFT_wrapper
 \brief A wrapper class for a simple implementation of DFT 

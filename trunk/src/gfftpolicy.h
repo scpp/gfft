@@ -75,6 +75,7 @@ class Empty { };
 */
 struct DOUBLE {
    static const id_t ID = 0;
+   typedef double base_type;
    typedef double ValueType;
    typedef long double TempType;
 #ifdef __x86_64
@@ -90,6 +91,7 @@ struct DOUBLE {
 */
 struct FLOAT {
    static const id_t ID = 1;
+   typedef float base_type;
    typedef float ValueType;
    typedef double TempType;
 #ifdef __x86_64
@@ -105,6 +107,7 @@ struct FLOAT {
 */
 struct COMPLEX_DOUBLE {
    static const id_t ID = 2;
+   typedef double base_type;
    typedef std::complex<double> ValueType;
    typedef std::complex<long double> TempType;
 #ifdef __x86_64
@@ -120,6 +123,7 @@ struct COMPLEX_DOUBLE {
 */
 struct COMPLEX_FLOAT {
    static const id_t ID = 3;
+   typedef float base_type;
    typedef std::complex<float> ValueType;
    typedef std::complex<double> TempType;
 #ifdef __x86_64
