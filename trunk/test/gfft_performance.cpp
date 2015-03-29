@@ -31,13 +31,13 @@ void print_header()
 }
 
 static const unsigned int MinP = 2;
-static const unsigned int MaxP = 4;
+static const unsigned int MaxP = 10;
 
 int main(int argc, char *argv[])
 {
 
    //typedef GenNumList<20000, 20010, SIntID>::Result NList;
-   typedef GenPowerList<MinP, MaxP, 13>::Result NList;
+   typedef GenPowerList<MinP, MaxP, 2>::Result NList;
     
    // Single-threaded out-of-place transforms
 //    typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default> List_ds;

@@ -7,6 +7,7 @@ cmake_minimum_required(VERSION 2.6)
 project(gfft CXX)
 
 #if you don't want the full compiler output, remove the following line
+#set(CMAKE_CXX_COMPILER clang)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 add_subdirectory(src)

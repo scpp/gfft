@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
 
-#set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include_directories(../loki)
@@ -39,7 +38,7 @@ add_definitions(-openmp -O3 -DGFFTDOC)
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft iomp5)
-target_link_libraries(metapi iomp5)
+#target_link_libraries(metapi iomp5)
 
 elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 
@@ -55,7 +54,7 @@ add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft c m stdc++ gomp)
-target_link_libraries(metapi c m stdc++ gomp)
+#target_link_libraries(metapi c m stdc++ gomp)
 
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
