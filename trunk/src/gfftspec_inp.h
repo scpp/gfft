@@ -20,6 +20,7 @@
 */
 
 #include "twiddles.h"
+#include "Singleton.h"
 
 namespace GFFT {
 
@@ -47,6 +48,8 @@ class DFTk_inp<N,M,VType,S,true>
   static const int_t K = (N-1)/2; 
   static const int_t NM = N*M; 
    
+//   typedef Loki::SingletonHolder<ComputeTwiddlesHolder<LocalVType, N, S, K> > Twiddles;
+//   LocalVType *m_c, *m_s;
   LocalVType m_c[K], m_s[K];
   
   void _transform(T* data, T* sr, T* si, T* dr, T* di)
@@ -81,6 +84,8 @@ public:
 
   DFTk_inp() 
   { 
+//     m_c = Twiddles::Instance().getCos();
+//     m_s = Twiddles::Instance().getSin();
     ComputeTwiddles<LocalVType, N, S, K>::apply(m_c, m_s);
   }
   

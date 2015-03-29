@@ -192,7 +192,7 @@ public:
 };
 /*
 // Specialization for radix 2
-template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W1, int SimpleSpec>
+template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,SimpleSpec,true> 
 {
    typedef typename VType::ValueType T;
@@ -243,7 +243,8 @@ public:
    void apply(T* data) 
    {
       spec_inp.apply(data);
-      spec_inp.apply_1(data+M);
+      if (M%2 == 0) 
+	spec_inp.apply_1(data+M);
       
       T wr,wi,t;
       const T wpr = WR::value();
@@ -254,15 +255,6 @@ public:
       spec_inp.apply(data+S2, &wr, &wi);
       t = -wr;
       spec_inp.apply(data+N-S2, &t, &wi);
-//       for (int_t i=S2+S2; i<K2; i+=S2) {
-//         t = wr;
-//         wr = wr*wpr - wi*wpi;
-//         wi = wi*wpr + t*wpi;
-// 	spec_inp.apply(data+i, &wr, &wi);
-// 	t = -wr;
-// 	spec_inp.apply(data+N-i, &t, &wi);
-//       }
-
       for (int_t i=S2+S2; i<M; i+=S2) {
 	  t = wr;
 	  wr = wr*wpr - wi*wpi;

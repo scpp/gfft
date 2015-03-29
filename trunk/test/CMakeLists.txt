@@ -4,8 +4,8 @@ include_directories(../loki)
 include_directories(../src)
 
 #list all source files here
-#add_executable(gfft_performance gfft_performance.cpp)
-add_executable(gfft_accuracy gfft_accuracy.cpp)
+add_executable(gfft_performance gfft_performance.cpp)
+#add_executable(gfft_accuracy gfft_accuracy.cpp)
 
 ### Compiler
 set(CMAKE_CXX_COMPILER g++)
@@ -64,7 +64,7 @@ else(CMAKE_CXX_COMPILER MATCHES "icpc")
 add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW -DQD)
 add_definitions(-DPNUM=${PNUM} -DFULLOUTPUT=${FULLOUTPUT} -DPMIN=${PMIN} -DPMAX=${PMAX} -DTYPE=${TYPE} -DPLACE=${PLACE})
 
-#target_link_libraries(gfft_performance stdc++ qd gomp)
-target_link_libraries(gfft_accuracy stdc++ gomp qd fftw3 fftw3l)
+target_link_libraries(gfft_performance stdc++ qd gomp)
+#target_link_libraries(gfft_accuracy stdc++ gomp qd fftw3 fftw3l)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")

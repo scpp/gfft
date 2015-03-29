@@ -147,7 +147,7 @@ struct IN_PLACE {
    };
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Direction, typename Twiddles>
+            typename Parall, typename Direction>
    class List {
       typedef typename VType::ValueType T;
       typedef typename Parall::template ActualParall<N>::Result NewParall;
@@ -189,7 +189,7 @@ struct OUT_OF_PLACE {
 //    };
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Direction, typename Twiddles>
+            typename Parall, typename Direction>
    class List {
       typedef typename Parall::template ActualParall<N>::Result NewParall;
       typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
@@ -226,13 +226,13 @@ struct DFT {
    typedef IDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Place, typename Twiddles>
+            typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
 //      typedef typename GetFirstRoot<N,Direction::Sign,VType::Accuracy>::Result W1;
    public:
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction>::Result Result;
    };
 };
 
@@ -245,12 +245,12 @@ struct IDFT {
    typedef DFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Place, typename Twiddles>
+            typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
    public:
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result Result;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction>::Result Result;
    };
 };
 
@@ -263,12 +263,12 @@ struct RDFT {
    typedef IRDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Place, typename Twiddles>
+            typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Forward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction>::Result TList;
    public:
       typedef typename Loki::TL::Append<TList,Separator>::Result Result;
    };
@@ -283,12 +283,12 @@ struct IRDFT {
    typedef RDFT Inverse;
 
    template<int_t N, typename NFact, typename VType,
-            typename Parall, typename Place, typename Twiddles>
+            typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
       typedef Backward<N,T> Direction;
       typedef Separate<N,VType,Direction::Sign> Separator;
-      typedef typename Place::template List<N,NFact,VType,Parall,Direction,Twiddles>::Result TList;
+      typedef typename Place::template List<N,NFact,VType,Parall,Direction>::Result TList;
    public:
       typedef Loki::Typelist<Separator,TList> Result;
    };

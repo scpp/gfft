@@ -195,6 +195,16 @@ struct ComputeTwiddles<T,N,S,1>
   }
 };
 
+template<typename T, int_t N, int S, int_t K>
+struct ComputeTwiddlesHolder
+{
+  T m_c[K], m_s[K];
+  
+  ComputeTwiddlesHolder() { ComputeTwiddles<T, N, S, K>::apply(m_c, m_s); }
+  T* getCos() { return m_c; }
+  T* getSin() { return m_s; }
+};
+
 ///////////////////////////////////////////////////////////////////
 
 template<int_t K, typename VType>

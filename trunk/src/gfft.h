@@ -26,7 +26,6 @@
 
 #include "Typelist.h"
 #include "Factory.h"
-#include "Singleton.h"
 
 #include "finit.h"
 #include "gfftomp.h"
