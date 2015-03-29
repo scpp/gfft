@@ -122,6 +122,8 @@ public:
 
 //============================================================
 
+static double MaxRelError = 0;
+
 template<class NList, class DFTClass, class Place>
 class GFFTcheck;
 
@@ -170,9 +172,13 @@ public:
     
     T1 nr2 = norm2(data, N2);
     T1 nrinf = norm_inf(data, N2);
+#ifdef FOUT
     std::cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << std::endl;
-
+#endif
     delete [] data;
+    
+    nrinf /= d;
+    if (MaxRelError < nrinf) MaxRelError = nrinf;
   }
 };
 
@@ -224,10 +230,14 @@ public:
     
     T1 nr2 = norm2(dataout, N2);
     T1 nrinf = norm_inf(dataout, N2);
+#ifdef FOUT
     std::cout << N << "\t" << nr2 << "\t" << nrinf << "\t" << nrinf/d << std::endl;
-
+#endif
     delete [] dataout;
     delete [] data;
+
+    nrinf /= d;
+    if (MaxRelError < nrinf) MaxRelError = nrinf;
   }
 };
 

@@ -33,7 +33,7 @@ using namespace GFFT;
 typedef TYPE VType;
 typedef PLACE Place;
 
-static const int_t N = NUM;
+static const int_t N = PNUM;
 
 const unsigned Min = PMIN;
 const unsigned Max = PMAX;
@@ -76,11 +76,13 @@ int main(int argc, char *argv[])
 //   comp.apply(Min,Max);
 //   cout<<"------------------------------------------------------------------------------"<<endl<<endl;
   
-  cout << "double-double DFT vs. GFFT " << Place::name() << ", " << VType::name() << endl;
-  GFFTcheck<Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
+#ifdef FOUT
+  cout << "double-double DFT vs. GFFT " << endl;
   print_header();
+#endif
+  GFFTcheck<Trans::Result, DFT_wrapper<dd_real>, Place> check_dft;
   check_dft.apply();
-  cout<<"------------------------------------------------------------------------------"<<endl<<endl;
+  cout << Place::name() << ", " << VType::name() << ", " << N << "^[" << Min << "," << Max << "]: " << MaxRelError << endl;
   
 //   cout << "GFFT vs. FFTW:" << endl;
 //   GFFTcheck<Trans::Result, FFTW_wrapper<fftw_complex>, Place> check_fftw;
