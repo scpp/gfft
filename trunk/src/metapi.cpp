@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2009-2014 by Vladimir Mirnyy                            *
+ *   Copyright (C) 2009-2015 by Vladimir Mirnyy                            *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,7 +26,7 @@ using namespace GFFT;
 
 using namespace std;
 
-static const int Accuracy = 7; // *9 - 64-bit; *4 - 32 bit
+static const int Accuracy = 5; // *9 - 64-bit; *4 - 32 bit
 
 int main(int argc, char *argv[])
 {

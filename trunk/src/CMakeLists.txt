@@ -6,7 +6,7 @@ include_directories(../loki)
 
 #all source files 
 add_executable(gfft gfft.cpp)
-#add_executable(metapi metapi.cpp)
+add_executable(metapi metapi.cpp)
 #add_executable(metasqrt metasqrt.cpp)
 
 # Set default values 
@@ -38,7 +38,8 @@ add_definitions(-openmp -O3 -DGFFTDOC)
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft iomp5)
-#target_link_libraries(metapi iomp5)
+target_link_libraries(metapi iomp5)
+target_link_libraries(metasqrt iomp5)
 
 elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 
@@ -54,7 +55,8 @@ add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft c m stdc++ gomp)
-#target_link_libraries(metapi c m stdc++ gomp)
+target_link_libraries(metapi c m stdc++ gomp)
+target_link_libraries(metasqrt c m stdc++ gomp)
 
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
@@ -63,8 +65,8 @@ add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTD
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft stdc++ gomp)
-# target_link_libraries(metapi c m stdc++ gomp)
-# target_link_libraries(metasqrt c m stdc++ gomp)
+target_link_libraries(metapi c m stdc++ gomp)
+target_link_libraries(metasqrt c m stdc++ gomp)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")
 
