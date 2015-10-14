@@ -468,7 +468,26 @@ template<>
 struct CutTrailingZeros<Loki::NullType> {
   typedef Loki::NullType Result;
 };
-	
+
+
+
+template<typename List, typename N>
+struct InsertOrdered;
+
+template<typename H, typename Tail, typename N>
+struct InsertOrdered<Loki::Typelist<H, Tail>, N>
+{
+  typedef typename Loki::Select<(N::value <= H::value), Loki::Typelist<N,Loki::Typelist<H, Tail> >,
+          Loki::Typelist<H,typename InsertOrdered<Tail, N>::Result> >::Result Result;
+};
+
+template<typename N>
+struct InsertOrdered<Loki::NullType, N>
+{
+  typedef Loki::NullType Result;
+};
+
+
 } // namespace NL
 
 #endif

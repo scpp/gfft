@@ -7,7 +7,7 @@ include_directories(../loki)
 #all source files 
 add_executable(gfft gfft.cpp)
 add_executable(metapi metapi.cpp)
-#add_executable(metasqrt metasqrt.cpp)
+add_executable(metasqrt metasqrt.cpp)
 
 # Set default values 
 if(NOT DEFINED ${NUM})
