@@ -1,0 +1,62 @@
+Release notes
+
+-------------------------------------------------------------------------------------------
+Version 0.32 (2015-04-16)
+
+    - Improved single- and multi-theaded performance (OpenMP)
+    - CMake files contain support for GCC, Clang, Intel C++ and MSVC
+    - Examples of compile-time computations of pi (metapi.cpp) and square root (metasqrt.cpp)
+    - Fixed accuracy bug in single precision FFTs
+
+-------------------------------------------------------------------------------------------
+Version 0.31 (2014-02-22)
+
+Accuracy and performance benchmarks added in the subfolder 'test'
+
+-------------------------------------------------------------------------------------------
+Version 0.3 (2014-02-07)
+
+The project is back after 5 years break with a couple of new powerful features:
+
+    - Out-of-place transforms
+    - Complex transforms of any length N
+    - Compile-time factorization of the input length N
+    - Better accuracy due to compile-time computation of the roots-of-unity as rationals
+
+-------------------------------------------------------------------------------------------
+Version 0.2 (2009-12-28)
+
+Completely redesigned release to make the usage even more simple and 
+to implement many new features in the future.
+
+    - New template class GenerateTransform to define a set of transforms.
+    - New notation for different transform types taken from SPIRAL project. 
+    - The following transforms in-place are now implemented: DFT, IDFT, RDFT, IRDFT
+    - Reordered template parameters for the transforms definitions, 
+      where most important parameters go first and less important parameters 
+      may be omitted using defaults.
+    - Multithreaded parallelization using OpenMP standard
+    - Bug fixes
+
+-------------------------------------------------------------------------------------------
+Version 0.11 (2008-07-04)
+
+Bug-fixig release
+
+-------------------------------------------------------------------------------------------
+Version 0.1 (2008-02-22)
+
+Initial release of GFFT with the following features:
+
+    - Transforms in-place
+    - Complex FFT of power-of-two length
+    - Real-valued FFT of power-of-two length
+    - High and cache-independent performance
+    - No additional data is stored.
+    - You can use all available RAM for your transform data
+    - One-step transform.
+      Many known FFT implementation perform to steps: initialization and transform. 
+      Initialization for a given length is usually computationally expensive, 
+      while transform is fast. GFFT needs only to create an object instance 
+      that includes FFT-algorithm, but no additional data or computation.
+
