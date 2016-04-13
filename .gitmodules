@@ -1,0 +1,3 @@
+[submodule "metafactor"]
+	path = metafactor
+	url = https://github.com/scpp/metafactor.git
