@@ -22,6 +22,7 @@
 #include <iostream>
 
 #ifdef QD
+// install libqd-dev to get these packages
 #include "qd/dd_real.h"
 #include "qd/qd_real.h"
 #endif

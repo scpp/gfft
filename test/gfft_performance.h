@@ -56,6 +56,13 @@ public:
 // 	}
 //       }
   }
+  
+  double to_nanosec(const ptime& t2, const ptime& t1, size_t niter)
+  {
+     time_duration td = t2 - t1;
+     return 1000*(td.total_seconds()*1000000+td.fractional_seconds())/(3.*niter);
+  }
+
   void print_line(const uint_t TransformTypeID, const uint_t ValueTypeID, 
 		  const uint_t PlaceTypeID, const uint_t ParallTypeID, 
 		  const uint_t len, const double t)
@@ -65,7 +72,8 @@ public:
          <<Place_Name[PlaceTypeID]<<space
          <<ParallTypeID+1<<space
          <<len<<space
-         <<t<<std::endl;
+         <<t<<" " << space
+         <<5.0 * len * log2(len) / t<<std::endl;
   }
   
 };
@@ -87,17 +95,16 @@ public:
   {
      next.cputime();
 
-     uint_t i,it;
      double t,mt;
      clock_t time1, time2;
 
-     it = size_t(2000000./(double)H::Len)+1;
+     size_t it = static_cast<size_t>(1000000./static_cast<double>(H::Len))+1;
      Tp* data    = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
      
      Tp* d=data;
      mt = 1e+100;
-     for (i=0; i<3; ++i) {
+     for (int i=0; i<3; ++i) {
         d=data;
         // CPU-time
 	time1 = clock();
@@ -110,29 +117,27 @@ public:
         if (t<mt) mt=t;
      }
      
-     mt /= (double)it;
-     Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len,mt);
+     mt /= (static_cast<double>(it)*1e-9);
+     Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len, mt);
 
      delete [] data;
   }
+  
   void realtime()
   {
      next.realtime();
 
-     uint_t i,it;
-     
-     it = size_t(5000000./(double)H::Len)+1;
+     size_t it = static_cast<size_t>(1000000./static_cast<double>(H::Len))+1;
      Tp* data    = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
  
-     time_duration td;
      ptime t1,t2;
-     // real time
-     td = seconds(0);
+
+     // real time, needed for multithreaded runs
      t1 = microsec_clock::universal_time();
 
      Tp* d=data;
-     for (i=0; i<3; ++i) {
+     for (int i=0; i<3; ++i) {
         d=data;
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d);
@@ -140,10 +145,8 @@ public:
         }
      }
      t2 = microsec_clock::universal_time();
-     td = t2 - t1;
-     double rt = (td.total_seconds()*1000000+td.fractional_seconds())/(3.*it*1e+6);
-     Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len,rt);
-
+     Base::print_line(H::TransformType::ID, H::ValueType::ID, H::PlaceType::ID, H::ParallType::ID, H::Len, Base::to_nanosec(t2,t1,it));
+ 
      delete [] data;
    }
 };
@@ -156,6 +159,7 @@ public:
 };
 
 
+///////////////////////////////////////////////////////////////
 template<class H, class T, int Counter>
 class GFFTbench<Loki::Typelist<H,T>,OUT_OF_PLACE,Counter> 
 : public GFFTbenchBase<typename H::ValueType::ValueType> 
@@ -169,18 +173,17 @@ public:
   {
      next.cputime();
 
-     uint_t i,it;
      double t,mt;
      clock_t time1, time2;
 
-     it = size_t(2000000./(double)H::Len)+1;
+     size_t it = static_cast<size_t>(1000000./static_cast<double>(H::Len))+1;
      Tp* data    = new Tp [2*H::Len*it];
      Tp* dataout = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
      
      Tp* d=data;
      mt = 1e+100;
-     for (i=0; i<3; ++i) {
+     for (int i=0; i<3; ++i) {
         d=data;
         // CPU-time
 	time1 = clock();
@@ -194,7 +197,7 @@ public:
         if (t<mt) mt=t;
      }
      
-     mt /= (double)it;
+     mt /= (static_cast<double>(it)*1e-9);
      Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len,mt);
 
      delete [] data;
@@ -204,21 +207,18 @@ public:
   {
      next.realtime();
 
-     uint_t i,it;
-     
-     it = size_t(10000000./(double)H::Len)+1;
+     size_t it = static_cast<size_t>(1000000./static_cast<double>(H::Len))+1;
      Tp* data    = new Tp [2*H::Len*it];
      Tp* dataout = new Tp [2*H::Len*it];
      Base::init(data, H::Len, it);
  
-     time_duration td;
      ptime t1,t2;
+
      // real time
-     td = seconds(0);
      t1 = microsec_clock::universal_time();
 
      Tp* d=data;
-     for (i=0; i<3; ++i) {
+     for (int i=0; i<3; ++i) {
         d=data;
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d, dataout);
@@ -227,9 +227,7 @@ public:
         }
      }
      t2 = microsec_clock::universal_time();
-     td = t2 - t1;
-     double rt = (td.total_seconds()*1000000+td.fractional_seconds())/(3.*it*1e+6);
-     Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len,rt);
+     Base::print_line(H::TransformType::ID,H::ValueType::ID,H::PlaceType::ID,H::ParallType::ID,H::Len, Base::to_nanosec(t2,t1,it));
 
      delete [] data;
      delete [] dataout;

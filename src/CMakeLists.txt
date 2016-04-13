@@ -61,7 +61,8 @@ target_link_libraries(metasqrt c m stdc++ gomp)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
+add_definitions(-time -Wall -fopenmp -O3 -ftemplate-backtrace-limit=0 )
+#add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
 
 target_link_libraries(gfft stdc++ gomp)
