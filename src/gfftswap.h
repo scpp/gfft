@@ -36,13 +36,13 @@ similar to the one presented in the book
 "Numerical recipes in C++".
 \sa GFFTswap2
 */
-template<uint_t M, uint_t P, typename T>
+template<ulong_t M, ulong_t P, typename T>
 class SwapNR {
-  static const uint_t N = IPow<M,P>::value;
+  static const ulong_t N = IPow<M,P>::value;
 public:
    void apply(T* data) {
-     int_t m, j = 0;
-     for (int_t i=0; i<2*N-1; i+=2) {
+     long_t m, j = 0;
+     for (long_t i=0; i<2*N-1; i+=2) {
         if (j>i) {
             std::swap(data[j], data[i]);
             std::swap(data[j+1], data[i+1]);
@@ -71,52 +71,52 @@ building the parameters n and r, which are the
 indexes of the exchanged data values.
 \sa SwapNR, GFFTswap2OMP
 */
-template<uint_t M, uint_t P, typename T, uint_t I=0>
+template<ulong_t M, ulong_t P, typename T, ulong_t I=0>
 class GFFTswap2 {
-   static const int_t BN = IPow<M,I>::value;
-   static const int_t BR = IPow<M,P-I-1>::value;
+   static const long_t BN = IPow<M,I>::value;
+   static const long_t BR = IPow<M,P-I-1>::value;
    GFFTswap2<M,P,T,I+1> next;
 public:
-   void apply(T* data, int_t n=0, int_t r=0) {
-     const int_t qn = n/BN;
-     const int_t rn = n%BN;
-     const int_t qr = r/BR;
-     const int_t rr = r%BR;
-     for (uint_t i = 0; i < M; ++i) { 
+   void apply(T* data, long_t n=0, long_t r=0) {
+     const long_t qn = n/BN;
+     const long_t rn = n%BN;
+     const long_t qr = r/BR;
+     const long_t rr = r%BR;
+     for (ulong_t i = 0; i < M; ++i) {
        next.apply(data,(qn+i)*BN+rn,(qr+i)*BR+rr);
      }
    }
 };
 
-template<uint_t M, uint_t P, typename T>
+template<ulong_t M, ulong_t P, typename T>
 class GFFTswap2<M,P,T,P> { 
 public:
-   void apply(T* data, int_t n=0, int_t r=0) {
+   void apply(T* data, long_t n=0, long_t r=0) {
       if (n>r) {
-	const int_t n2 = 2*n;
-	const int_t r2 = 2*r;
+    const long_t n2 = 2*n;
+    const long_t r2 = 2*r;
         std::swap(data[n2],data[r2]);
         std::swap(data[n2+1],data[r2+1]);
       }
    }
 };
 
-template<uint_t P, typename T, uint_t I>
+template<ulong_t P, typename T, ulong_t I>
 class GFFTswap2<2,P,T,I> {
-   static const int_t BN = 1<<(I+1);
-   static const int_t BR = 1<<(P-I);
+   static const long_t BN = 1<<(I+1);
+   static const long_t BR = 1<<(P-I);
    GFFTswap2<2,P,T,I+1> next;
 public:
-   void apply(T* data, int_t n=0, int_t r=0) {
+   void apply(T* data, long_t n=0, long_t r=0) {
       next.apply(data,n,r);
       next.apply(data,n|BN,r|BR);
    }
 };
 
-template<uint_t P, typename T>
+template<ulong_t P, typename T>
 class GFFTswap2<2,P,T,P> {
 public:
-   void apply(T* data, int_t n=0, int_t r=0) {
+   void apply(T* data, long_t n=0, long_t r=0) {
       if (n>r) {
         std::swap(data[n],data[r]);
         std::swap(data[n+1],data[r+1]);
@@ -127,7 +127,7 @@ public:
 template<typename T>
 class GFFTswap2<2,2,T,0> {
 public:
-   void apply(T* data, int_t n=0, int_t r=0) {
+   void apply(T* data, long_t n=0, long_t r=0) {
      std::swap(data[2],data[4]);
      std::swap(data[3],data[5]);
    }
@@ -136,7 +136,7 @@ public:
 template<typename T>
 class GFFTswap2<2,1,T,0> {
 public:
-   void apply(T* data, int_t n=0, int_t r=0) { }
+   void apply(T* data, long_t n=0, long_t r=0) { }
 };
 
 /// Binary reordering of array elements
@@ -144,15 +144,15 @@ public:
 \tparam M^P length of the data
 \tparam T value type
 */
-template<uint_t M, uint_t P, typename T,
+template<ulong_t M, ulong_t P, typename T,
 template<typename> class Complex>
 class SwapNR<M,P,Complex<T> > 
 {
-  static const uint_t N = IPow<M,P>::value;
+  static const ulong_t N = IPow<M,P>::value;
 public:
    void apply(Complex<T>* data) {
-     int_t m,j=0;
-     for (int_t i=0; i<N; ++i) {
+     long_t m,j=0;
+     for (long_t i=0; i<N; ++i) {
         if (j>i) {
             std::swap(data[j], data[i]);
         }
@@ -166,52 +166,52 @@ public:
    }
 };
 
-template<uint_t M, uint_t P, typename T, uint_t I,
+template<ulong_t M, ulong_t P, typename T, ulong_t I,
 template<typename> class Complex>
 class GFFTswap2<M,P,Complex<T>,I> {
-   static const int_t BN = IPow<M,I>::value;
-   static const int_t BR = IPow<M,P-I-1>::value;
+   static const long_t BN = IPow<M,I>::value;
+   static const long_t BR = IPow<M,P-I-1>::value;
    GFFTswap2<M,P,Complex<T>,I+1> next;
 public:
-   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
-     const int_t qn = n/BN;
-     const int_t rn = n%BN;
-     const int_t qr = r/BR;
-     const int_t rr = r%BR;
-     for (uint_t i = 0; i < M; ++i) { 
+   void apply(Complex<T>* data, long_t n=0, long_t r=0) {
+     const long_t qn = n/BN;
+     const long_t rn = n%BN;
+     const long_t qr = r/BR;
+     const long_t rr = r%BR;
+     for (ulong_t i = 0; i < M; ++i) {
        next.apply(data,(qn+i)*BN+rn,(qr+i)*BR+rr);
      }
    }
 };
 
-template<uint_t M, uint_t P, typename T,
+template<ulong_t M, ulong_t P, typename T,
 template<typename> class Complex>
 class GFFTswap2<M,P,Complex<T>,P> { 
 public:
-   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+   void apply(Complex<T>* data, long_t n=0, long_t r=0) {
       if (n>r) 
         std::swap(data[n],data[r]);
    }
 };
 
-template<uint_t P, typename T, uint_t I,
+template<ulong_t P, typename T, ulong_t I,
 template<typename> class Complex>
 class GFFTswap2<2,P,Complex<T>,I> {
-   static const int_t BN = 1<<I;
-   static const int_t BR = 1<<(P-I-1);
+   static const long_t BN = 1<<I;
+   static const long_t BR = 1<<(P-I-1);
    GFFTswap2<2,P,Complex<T>,I+1> next;
 public:
-   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+   void apply(Complex<T>* data, long_t n=0, long_t r=0) {
       next.apply(data,n,r);
       next.apply(data,n|BN,r|BR);
    }
 };
 
-template<uint_t P, typename T,
+template<ulong_t P, typename T,
 template<typename> class Complex>
 class GFFTswap2<2,P,Complex<T>,P> {
 public:
-   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+   void apply(Complex<T>* data, long_t n=0, long_t r=0) {
       if (n>r)
         swap(data[n],data[r]);
    }
@@ -221,7 +221,7 @@ template<typename T,
 template<typename> class Complex>
 class GFFTswap2<2,2,Complex<T>,0> {
 public:
-   void apply(Complex<T>* data, int_t n=0, int_t r=0) {
+   void apply(Complex<T>* data, long_t n=0, long_t r=0) {
       swap(data[1],data[2]);
    }
 };
@@ -232,11 +232,11 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<int_t N, typename VType, int S,
+template<long_t N, typename VType, int S,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class Separate;
 
-template<int_t N, typename VType, int S>
+template<long_t N, typename VType, int S>
 class Separate<N,VType,S,true>
 {
    typedef typename VType::ValueType T;
@@ -244,7 +244,7 @@ class Separate<N,VType,S,true>
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(T* data) {
-      int_t i,i1,i2,i3,i4;
+      long_t i,i1,i2,i3,i4;
       LocalVType wtemp,wr,wi,wpr,wpi;
       LocalVType h1r,h1i,h2r,h2i,h3r,h3i;
       wtemp = Sin<2*N,1,LocalVType>::value();
@@ -293,7 +293,7 @@ public:
 \tparam T value type
 \tparam S sign of the transform: 1 - forward, -1 - backward
 */
-template<int_t N, typename VType, int S>
+template<long_t N, typename VType, int S>
 class Separate<N,VType,S,false> 
 {
    typedef typename VType::ValueType CT;
@@ -303,7 +303,7 @@ class Separate<N,VType,S,false>
    static const int M = (S==1) ? 2 : 1;
 public:
    void apply(CT* data) {
-      int_t i,i1;
+      long_t i,i1;
       LocalComplex h1,h2,h3;
       LocalVType wtemp = Sin<2*N,1,LocalVType>::value();
       LocalComplex wp(-2.*wtemp*wtemp,-S*Sin<N,1,LocalVType>::value());
@@ -336,14 +336,14 @@ public:
 };
 
 // Policy for a definition of forward FFT
-template<int_t N, typename T>
+template<long_t N, typename T>
 struct Forward {
    static const int Sign = 1;
    void apply(T*) { }
    void apply(const T*, T*) { }
 };
 
-template<int_t N, typename T,
+template<long_t N, typename T,
 template<typename> class Complex>
 struct Forward<N,Complex<T> > {
    static const int Sign = 1;
@@ -352,7 +352,7 @@ struct Forward<N,Complex<T> > {
 };
 
 // Policy for a definition of backward FFT
-template<int_t N, typename T>
+template<long_t N, typename T>
 struct Backward {
    static const int Sign = -1;
    void apply(T* data) {
@@ -361,12 +361,12 @@ struct Backward {
    void apply(const T*, T* dst) { apply(dst); }
 };
 
-template<int_t N, typename T,
+template<long_t N, typename T,
 template<typename> class Complex>
 struct Backward<N,Complex<T> > {
    static const int Sign = -1;
    void apply(Complex<T>* data) {
-      for (int_t i=0; i<N; ++i) {
+      for (long_t i=0; i<N; ++i) {
         data[i]/=N;
       }
    }

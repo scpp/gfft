@@ -20,16 +20,26 @@
     \brief Typelist generation classes
 */
 
+#include "sint.h"
 
 namespace GFFT {
 
+template<typename T>
+struct getID {
+   static const id_t ID = T::ID;
+};
+
+template<ulong_t N>
+struct getID<ulong_<N> > {
+   static const id_t ID = N-1;
+};
 
 /** \class {GFFT::ListGenerator}
     \brief Generates all different combinations of given parameters.
 \tparam TList is one- or two-dimensional (an entry can be a Typelist too) TypeList.
-\tparam TLenList is Typelist of \a s_uint<N>, where N is maximum possible 
+\tparam TLenList is Typelist of \a ulong_<N>, where N is maximum possible
         lengths of every Typelist in TList. This array of numbers is used 
-        to comute unique ID for each generated unique set of parameters.
+        to compute unique ID for each generated unique set of parameters.
 \tparam DefTrans is transform definition class. 
         DefineTransform class is substituted here, but also definitions of 
         other template classes with suited parameters are potentially possible.
@@ -50,82 +60,88 @@ template<class TList, class TLenList,
 struct ListGenerator;
 
 // H is a simple type
-template<class H, class Tail, id_t N, class NTail, 
+template<class H, class Tail, ulong_t N, class NTail,
          template<class,id_t> class DefTrans, class WorkingList, id_t ID>
-struct ListGenerator<Loki::Typelist<H,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
+struct ListGenerator<Loki::Typelist<H,Tail>,Loki::Typelist<ulong_<N>,NTail>,DefTrans,WorkingList,ID>
+{
+   static const id_t nextID = (ID*N) + getID<H>::ID;
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,nextID>::Result Result;
 };
 
 // Typelist is in the head
-template<class H, class T, class Tail, id_t N, class NTail, 
+template<class H, class T, class Tail, ulong_t N, class NTail,
          template<class,id_t> class DefTrans, class WorkingList, id_t ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
+struct ListGenerator<Loki::Typelist<Loki::Typelist<H,T>,Tail>,Loki::Typelist<ulong_<N>,NTail>,DefTrans,WorkingList,ID>
+{
+   static const id_t nextID = (ID*N) + getID<H>::ID;
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Loki::Typelist<T,Tail>,Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID>::Result L1;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result L2;
+   typedef typename ListGenerator<Loki::Typelist<T,Tail>,Loki::Typelist<ulong_<N>,NTail>,DefTrans,WorkingList,ID>::Result L1;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,nextID>::Result L2;
    typedef typename Loki::TL::Append<L1,L2>::Result Result;
 };
 
-template<class H, class Tail, id_t N, class NTail, 
+template<class H, class Tail, ulong_t N, class NTail,
          template<class,id_t> class DefTrans, class WorkingList, id_t ID>
-struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,
-                     Loki::Typelist<s_uint<N>,NTail>,DefTrans,WorkingList,ID> {
+struct ListGenerator<Loki::Typelist<Loki::Typelist<H,Loki::NullType>,Tail>,Loki::Typelist<ulong_<N>,NTail>,DefTrans,WorkingList,ID>
+{
+   static const id_t nextID = (ID*N) + getID<H>::ID;
    typedef Loki::Typelist<H,WorkingList> WList;
-   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,(ID*N)+H::ID>::Result Result;
+   typedef typename ListGenerator<Tail,NTail,DefTrans,WList,nextID>::Result Result;
 };
 
 template<template<class,id_t> class DefTrans, class WorkingList, id_t ID>
-struct ListGenerator<Loki::NullType,Loki::NullType,DefTrans,WorkingList,ID> {
+struct ListGenerator<Loki::NullType,Loki::NullType,DefTrans,WorkingList,ID>
+{
    typedef Loki::Typelist<typename DefTrans<WorkingList,ID>::Result,Loki::NullType> Result;
 };
 
 
 
 /// Generates Typelist with types Holder<N>, N = Begin,...,End
-template<int_t Begin, int_t End, 
-template<int_t> class Holder = SIntID>
+template<long_t Begin, long_t End,
+template<long_t> class Holder = long_>
 struct GenNumList {
    typedef Loki::Typelist<Holder<Begin>,
       typename GenNumList<Begin+1,End,Holder>::Result> Result;
 };
 
-template<int_t End, 
-template<int_t> class Holder>
+template<long_t End,
+template<long_t> class Holder>
 struct GenNumList<End,End,Holder> {
    typedef Loki::Typelist<Holder<End>,Loki::NullType> Result;
 };
 
 
-template<int_t M, int_t P>
+template<long_t M, long_t P>
 struct PowerHolder {
-   static const int_t N = IPow<M,P>::value;
-   static const int_t ID = N-1;
-   static const int_t value = N;
+   static const long_t N = IPow<M,P>::value;
+   static const long_t ID = N-1;
+   static const long_t value = N;
 };
 
-template<int_t P>
+template<long_t P>
 struct PowerHolder<2,P> {
-   static const int_t N = 1<<P;
-   static const int_t ID = N-1;
-   static const int_t value = N;
+   static const long_t N = 1<<P;
+   static const long_t ID = N-1;
+   static const long_t value = N;
 };
 
-template<int_t P>
+template<long_t P>
 struct Power2holder : public PowerHolder<2,P> {};
 
-template<int_t P>
+template<long_t P>
 struct Power3holder : public PowerHolder<3,P> {};
 
 
 /// Generates Typelist with types Holder<N>, N = Begin,...,End
-template<int_t PowerBegin, int_t PowerEnd, int_t M>
+template<long_t PowerBegin, long_t PowerEnd, long_t M>
 struct GenPowerList {
    typedef Loki::Typelist<PowerHolder<M,PowerBegin>,
       typename GenPowerList<PowerBegin+1,PowerEnd,M>::Result> Result;
 };
 
-template<int_t PowerEnd, int_t M>
+template<long_t PowerEnd, long_t M>
 struct GenPowerList<PowerEnd,PowerEnd,M> {
    typedef Loki::Typelist<PowerHolder<M,PowerEnd>,Loki::NullType> Result;
 };

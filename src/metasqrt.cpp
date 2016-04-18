@@ -31,7 +31,7 @@ static const int Accuracy = 2; // *9 - 64-bit; *4 - 32 bit
 template<int N>
 struct MetaSqrtTest 
 {
-  typedef typename SqrtDecAcc<SInt<N>,Accuracy>::Result TSqrtDec;
+  typedef typename SqrtDecAcc<long_<N>,Accuracy>::Result TSqrtDec;
   
   static void apply() 
   {
@@ -50,15 +50,15 @@ struct MetaSqrtTest<0>
   static void apply() {}
 };
 
-int main(int argc, char *argv[])
+int main(int, char**)
 {
   cout.precision(16);
-//   typedef SqrtInitGuessDec<SInt<N>,Accuracy> TSqrtGuess;
-//   typedef SqrtDecimal<0,SInt<N>,Loki::NullType,Accuracy> Step0;
-//   typedef SqrtDecimal<0,SInt<N>,Step0::ResultAux,Accuracy> Step1;
-//   typedef SqrtDecimal<0,SInt<N>,Step1::ResultAux,Accuracy> Step2;
-//   typedef SqrtDecimal<0,SInt<N>,Step2::ResultAux,Accuracy> Step3;
-//   typedef SqrtDecimal<0,SInt<N>,Step3::ResultAux,Accuracy> Step4;
+//   typedef SqrtInitGuessDec<long_<N>,Accuracy> TSqrtGuess;
+//   typedef SqrtDecimal<0,long_<N>,Loki::NullType,Accuracy> Step0;
+//   typedef SqrtDecimal<0,long_<N>,Step0::ResultAux,Accuracy> Step1;
+//   typedef SqrtDecimal<0,long_<N>,Step1::ResultAux,Accuracy> Step2;
+//   typedef SqrtDecimal<0,long_<N>,Step2::ResultAux,Accuracy> Step3;
+//   typedef SqrtDecimal<0,long_<N>,Step3::ResultAux,Accuracy> Step4;
 
 //   Cout<TSqrtGuess::Result>::apply(cout);
 //   cout << endl;
@@ -71,8 +71,8 @@ int main(int argc, char *argv[])
 //   Cout<Step4::Result>::apply(cout);
 //   cout << endl;
 
-  static const int_t N = 125348; // example from wikipedia
-  typedef typename SqrtDecAcc<SInt<N>,Accuracy>::Result TSqrtDec;
+  static const long_t N = 125348; // example from wikipedia
+  typedef typename SqrtDecAcc<long_<N>,Accuracy>::Result TSqrtDec;
   
   cout << ">>> Sqrt(" << N << ") = " <<endl;
   cout << "Compile-time: ";

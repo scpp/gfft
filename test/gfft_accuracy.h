@@ -97,17 +97,17 @@ class FFTcompare
   typedef typename FFT2::value_type T2;
 
 public:
-  void apply(int_t pmin, int_t pmax) 
+  void apply(long_t pmin, long_t pmax)
   {
-    int_t i;
+    long_t i;
 
     double *data = new double [(1 << pmax)*2];
 
     srand(StartSeed);
     
-    for (int_t p = pmin; p <= pmax; ++p) 
+    for (long_t p = pmin; p <= pmax; ++p)
     {
-      int_t n = 1 << p;
+      long_t n = 1 << p;
       
       for (i=0; i < n; ++i) {
 	data[2*i] = rand()/(double)RAND_MAX - 0.5;  // distribute in [-0.5;0.5] as in FFTW
@@ -157,8 +157,8 @@ class GFFTcheck<Loki::Typelist<H,Tail>, DFTClass, IN_PLACE>
   GFFTcheck<Tail,DFTClass,IN_PLACE> next;
 
   static const int C = Loki::TypeTraits<T1>::isStdFundamental ? 2 : 1;
-  static const int_t N = H::Len;
-  static const int_t N2 = N*C;
+  static const long_t N = H::Len;
+  static const long_t N2 = N*C;
   
   typename H::Instance gfft;
   
@@ -167,7 +167,7 @@ public:
   {
     next.apply();
     
-    int_t i;
+    long_t i;
 
     T1 *data = new T1 [N2];
 
@@ -212,8 +212,8 @@ class GFFTcheck<Loki::Typelist<H,Tail>, DFTClass, OUT_OF_PLACE> {
   GFFTcheck<Tail,DFTClass,OUT_OF_PLACE> next;
 
   static const int C = Loki::TypeTraits<T1>::isStdFundamental ? 2 : 1;
-  static const int_t N = H::Len;
-  static const int_t N2 = N*C;
+  static const long_t N = H::Len;
+  static const long_t N2 = N*C;
   
   typename H::Instance gfft;
   
@@ -222,7 +222,7 @@ public:
   {
     next.apply();
     
-    int_t i;
+    long_t i;
 
     T1 *data = new T1 [N2];
     T1 *dataout = new T1 [N2];

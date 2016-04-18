@@ -27,10 +27,10 @@
 
 namespace MF {
   
-// template<class W, class W1, int_t N, int_t I, int S>
+// template<class W, class W1, long_t N, long_t I, int S>
 // struct GetNextRoot;
 // 
-// template<class H, class T, class H1, class T1, int_t N, int_t I, int S>
+// template<class H, class T, class H1, class T1, long_t N, long_t I, int S>
 // struct GetNextRoot<Loki::Typelist<H,T>,Loki::Typelist<H1,T1>,N,I,S>
 // {
 //    typedef typename Mult<H,H1>::Result W;
@@ -38,18 +38,18 @@ namespace MF {
 //    typedef Loki::Typelist<W,Next> Result;
 // };
 // 
-// template<int_t N, int_t I, int S>
+// template<long_t N, long_t I, int S>
 // struct GetNextRoot<Loki::NullType,Loki::NullType,N,I,S>
 // {
 //    typedef Loki::NullType Result;
 // };
 
-template<int_t I, int_t M, class W1, class W, int Accuracy>
+template<long_t I, long_t M, class W1, class W, int Accuracy>
 struct GetNextRoot {
   typedef typename Mult<W1,W>::Result Result;
 };
 /*
-template<class W1, class W, int_t I, int Accuracy>
+template<class W1, class W, long_t I, int Accuracy>
 struct GetNextRoot<I,2,W1,W,Accuracy> {
   typedef typename CosPiFrac<I,2,Accuracy>::Result Re;
   typedef typename SinPiFrac<I,2,Accuracy>::Result Im;
@@ -58,7 +58,7 @@ struct GetNextRoot<I,2,W1,W,Accuracy> {
   typedef MComplex<ReDec,ImDec> Result;
 };
 
-template<class W1, class W, int_t I, int Accuracy>
+template<class W1, class W, long_t I, int Accuracy>
 struct GetNextRoot<I,1,W1,W,Accuracy> {
   typedef typename CosPiFrac<I,1,Accuracy>::Result Re;
   typedef typename SinPiFrac<I,1,Accuracy>::Result Im;
@@ -68,18 +68,18 @@ struct GetNextRoot<I,1,W1,W,Accuracy> {
 };
 */
 
-template<class W1, int_t N, int Accuracy, class W, int_t Count, int_t I = 2>
+template<class W1, long_t N, int Accuracy, class W, long_t Count, long_t I = 2>
 struct __RootListLoop {
-  typedef typename Simplify<SRational<SInt<2*I>,SInt<N> > >::Result SF;
+  typedef typename Simplify<SRational<long_<2*I>,long_<N> > >::Result SF;
 //typedef typename NL::Print<SF>::Result TTT;
   typedef typename GetNextRoot<SF::Numer::value,SF::Denom::value,W1,W,Accuracy>::Result WW;
   typedef Compute<typename WW::Re,Accuracy> CRe;
   typedef Compute<typename WW::Im,Accuracy> CIm;
   typedef typename __RootListLoop<W1,N,Accuracy,WW,Count,I+1>::Result Next;
-  typedef Loki::Typelist<Pair<CRe,CIm>,Next> Result;
+  typedef Loki::Typelist<pair_<CRe,CIm>,Next> Result;
 };
 
-template<class W1, int_t N, int Accuracy, class W, int_t Count>
+template<class W1, long_t N, int Accuracy, class W, long_t Count>
 struct __RootListLoop<W1,N,Accuracy,W,Count,Count> {
   typedef Loki::NullType Result;
 };
@@ -92,7 +92,7 @@ struct GenerateSymmetricPart<Loki::Typelist<H,T> > {
   typedef typename H::first T1;
   typedef typename Negate<typename H::second::BigInt>::Result T2;
   typedef typename GenerateSymmetricPart<T>::Result Next;
-  typedef Loki::Typelist<Pair<T1,T2>,Next> Result;
+  typedef Loki::Typelist<pair_<T1,T2>,Next> Result;
 };
 
 template<>
@@ -101,7 +101,7 @@ struct GenerateSymmetricPart<Loki::NullType> {
 };
 
 
-template<int_t N, int S, int Accuracy>
+template<long_t N, int S, int Accuracy>
 class GetFirstRoot {
   //typedef typename SinPiDecimal<1,N,Accuracy>::Result Sin1;
   typedef typename SinPiDecimal<2,N,Accuracy>::Result Sin2;
@@ -110,7 +110,7 @@ class GetFirstRoot {
           typename Negate<Sin2>::Result>::Result WI;
   //typedef typename RationalToDecimal<WI,Accuracy>::Result WIDec;
   
-//   typedef typename Sub<SInt<1>,typename Mult<SInt<2>,
+//   typedef typename Sub<long_<1>,typename Mult<long_<2>,
 //           typename Mult<Sin1,Sin1>::Result>::Result>::Result WR;
   typedef typename CosPiDecimal<2,N,Accuracy>::Result WR;
   //typedef typename RationalToDecimal<WR,Accuracy>::Result WRDec;
@@ -121,7 +121,7 @@ public:
 
 
 
-template<int_t N, int S, int Accuracy>
+template<long_t N, int S, int Accuracy>
 class GenerateRootList 
 {
   typedef typename GetFirstRoot<N,-S,Accuracy>::Result W1;
@@ -129,7 +129,7 @@ class GenerateRootList
 public:
   typedef Compute<typename W1::Re,Accuracy> CRe;
   typedef Compute<typename W1::Im,Accuracy> CIm;
-  typedef Loki::Typelist<Pair<CRe,CIm>,typename __RootListLoop<W1,N,Accuracy,W1,(N%2==0) ? N/2 : N/2+1>::Result> FirstHalf;
+  typedef Loki::Typelist<pair_<CRe,CIm>,typename __RootListLoop<W1,N,Accuracy,W1,(N%2==0) ? N/2 : N/2+1>::Result> FirstHalf;
   typedef typename Loki::Select<(N%2==0),
           typename Loki::TL::Append<FirstHalf,typename GenerateRootList<2,S,Accuracy>::Result>::Result,FirstHalf>::Result FirstHalfMod;
 //  typedef typename Loki::TL::Reverse<typename GenerateSymmetricPart<FirstHalf>::Result>::Result SecondHalf;
@@ -141,10 +141,10 @@ public:
 
 template<int S, int Accuracy>
 class GenerateRootList<2,S,Accuracy> {
-  typedef Compute<SInt<-1>,Accuracy> CRe;
-  typedef Compute<SInt<0>, Accuracy> CIm;
+  typedef Compute<long_<-1>,Accuracy> CRe;
+  typedef Compute<long_<0>, Accuracy> CIm;
 public:
-  typedef Loki::Typelist<Pair<CRe,CIm>,Loki::NullType> Result;
+  typedef Loki::Typelist<pair_<CRe,CIm>,Loki::NullType> Result;
 };
 
 template<int S, int Accuracy>

@@ -31,26 +31,26 @@ namespace GFFT {
 
 using namespace MF;
 
-static const int_t StaticLoopLimit = (1<<10);
-static const int_t PrecomputeRoots = StaticLoopLimit;
+static const long_t StaticLoopLimit = (1<<10);
+static const long_t PrecomputeRoots = StaticLoopLimit;
 
 
 ///////////////////////////////////////////////////
 // This class works, but takes too much compile-time
-template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK = W1, 
+template<class DFTk, long_t M, long_t N, typename VType, int S, class W1, class WK = W1,
 int NIter = M-2, int C = N/M>
 struct SmartIterate
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   static const int_t M2 = 2*M;
-   static const int_t Step = PrecomputeRoots/M2;
-   static const int_t I = Step*(M-NIter) - 2;
+   static const long_t M2 = 2*M;
+   static const long_t Step = PrecomputeRoots/M2;
+   static const long_t I = Step*(M-NIter) - 2;
    
-   //static const int_t N = M2;
-//    typedef typename Simplify<SRational<SInt<I>,SInt<N> > >::Result R;
-//    static const int_t I1 = R::Numer::value;
-//    static const int_t N1 = R::Denom::value;
+   //static const long_t N = M2;
+//    typedef typename Simplify<SRational<long_<I>,long_<N> > >::Result R;
+//    static const long_t I1 = R::Numer::value;
+//    static const long_t N1 = R::Denom::value;
 
 //    typedef typename CosPiDecimal<I,N,VType::Accuracy>::Result Re;
 //    typedef typename SinPiDecimal<I,N,VType::Accuracy>::Result Sin2;
@@ -91,14 +91,14 @@ struct SmartIterate
    }
 };
 /*
-template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK, int NIter>
+template<class DFTk, long_t M, long_t N, typename VType, int S, class W1, class WK, int NIter>
 struct SmartIterate<DFTk, M, N, VType, S, W1, WK, NIter, 2>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   static const int_t M2 = 2*M;
-   //static const int_t Step = N/M2/2;
-   //static const int_t I = Step*(M-NIter) - 2;
+   static const long_t M2 = 2*M;
+   //static const long_t Step = N/M2/2;
+   //static const long_t I = Step*(M-NIter) - 2;
    
    typedef Compute<typename WK::Re,VType::Accuracy> WR;
    typedef Compute<typename WK::Im,VType::Accuracy> WI;
@@ -123,11 +123,11 @@ struct SmartIterate<DFTk, M, N, VType, S, W1, WK, NIter, 2>
    }
 };
 */
-template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK, int C>
+template<class DFTk, long_t M, long_t N, typename VType, int S, class W1, class WK, int C>
 struct SmartIterate<DFTk,M,N,VType,S,W1,WK,0,C>
 : public SmartIterate<DFTk,M,N,VType,S,W1,WK,0,2> {};
 
-template<class DFTk, int_t M, int_t N, typename VType, int S, class W1, class WK>
+template<class DFTk, long_t M, long_t N, typename VType, int S, class W1, class WK>
 struct SmartIterate<DFTk,M,N,VType,S,W1,WK,0,2>
 {
    typedef typename VType::ValueType T;
@@ -154,25 +154,25 @@ The class performs DFT(k) with the Kronecker product by the mxm identity matrix 
 and twiddle factors (T).
 \sa InTime, IterateInTime
 */
-template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W1, 
-int_t SimpleSpec = (M / Step),
+template<long_t K, long_t LastK, long_t M, long_t Step, typename VType, int S, class W1,
+long_t SimpleSpec = (M / Step),
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_x_Im_T;
 
 // Rely on the static template loop
-// template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W1>
+// template<long_t K, long_t LastK, long_t M, long_t Step, typename VType, int S, class W1>
 // class DFTk_x_Im_T<K,LastK,M,Step,VType,S,W1,true,true> 
 // : public DFTk_x_Im_T<K,LastK,M,Step,VType,S,W1,false,true> {};
 //: public SmartIterate<DFTk_inp<K,M*2,VType,S>,M,LastK*M,VType,S,W1> {};
 
 // General implementation
-template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+template<long_t K, long_t LastK, long_t M, long_t Step, typename VType, int S, class W1, long_t SimpleSpec>
 class DFTk_x_Im_T<K,LastK,M,Step,VType,S,W1,SimpleSpec,true>
 {
    typedef typename VType::ValueType T;
-   static const int_t N = K*M;
-   static const int_t M2 = M*2;
-   static const int_t S2 = 2*Step;
+   static const long_t N = K*M;
+   static const long_t M2 = M*2;
+   static const long_t S2 = 2*Step;
    DFTk_inp<K,M2,VType,S> spec_inp;
    
 public:
@@ -183,7 +183,7 @@ public:
       ComputeRoots<K,VType,W1> roots;
 
       spec_inp.apply(data+S2, roots.get_real(), roots.get_imag());
-      for (int_t j=S2+S2; j<M2; j+=S2) {
+      for (long_t j=S2+S2; j<M2; j+=S2) {
 	roots.step();
 	spec_inp.apply(data+j, roots.get_real(), roots.get_imag());
       }
@@ -192,15 +192,15 @@ public:
 };
 /*
 // Specialization for radix 2
-template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+template<long_t M, long_t LastK, long_t Step, typename VType, int S, class W1, long_t SimpleSpec>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,SimpleSpec,true> 
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
    typedef Compute<typename W1::Re,VType::Accuracy> WR;
    typedef Compute<typename W1::Im,VType::Accuracy> WI;
-   static const int_t N = 2*M;
-   static const int_t S2 = 2*Step;
+   static const long_t N = 2*M;
+   static const long_t S2 = 2*Step;
    DFTk_inp<2,N,VType,S> spec_inp;
 public:
    void apply(T* data) 
@@ -214,7 +214,7 @@ public:
       wi = wpi;
 
       spec_inp.apply(data+S2, &wr, &wi);
-      for (int_t i=S2+S2; i<N; i+=S2) {
+      for (long_t i=S2+S2; i<N; i+=S2) {
         t = wr;
         wr = wr*wpr - wi*wpi;
         wi = wi*wpr + t*wpi;
@@ -225,16 +225,16 @@ public:
 */
 
 // Specialization for radix 2
-template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+template<long_t M, long_t LastK, long_t Step, typename VType, int S, class W1, long_t SimpleSpec>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,SimpleSpec,true> 
 {
    typedef typename VType::ValueType T;
-   static const int_t N = 2*M;
-   static const int_t S2 = 2*Step;
-   //static const int_t NR = (4*PrecomputeRoots > LastK*M) ? LastK*M/4 : PrecomputeRoots;
-   static const int_t NR = (PrecomputeRoots>=N) ? 2 : PrecomputeRoots/2;
-   static const int_t K = N/PrecomputeRoots;
-   static const int_t K2 = 2*K;
+   static const long_t N = 2*M;
+   static const long_t S2 = 2*Step;
+   //static const long_t NR = (4*PrecomputeRoots > LastK*M) ? LastK*M/4 : PrecomputeRoots;
+   static const long_t NR = (PrecomputeRoots>=N) ? 2 : PrecomputeRoots/2;
+   static const long_t K = N/PrecomputeRoots;
+   static const long_t K2 = 2*K;
    //typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;
    typedef Compute<typename W1::Re,VType::Accuracy> WR;
    typedef Compute<typename W1::Im,VType::Accuracy> WI;
@@ -255,7 +255,7 @@ public:
       spec_inp.apply(data+S2, &wr, &wi);
       t = -wr;
       spec_inp.apply(data+N-S2, &t, &wi);
-      for (int_t i=S2+S2; i<M; i+=S2) {
+      for (long_t i=S2+S2; i<M; i+=S2) {
 	  t = wr;
 	  wr = wr*wpr - wi*wpi;
 	  wi = wi*wpr + t*wpi;
@@ -267,7 +267,7 @@ public:
 };
 
 /*
-template<int_t M, int_t LastK, int_t Step, typename VType, int S, class W>
+template<long_t M, long_t LastK, long_t Step, typename VType, int S, class W>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W,false,true> 
 {
    typedef typename VType::ValueType T;
@@ -275,10 +275,10 @@ class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W,false,true>
 //    typedef typename GetFirstRoot<2*M,S,VType::Accuracy>::Result W1;
 //    typedef Compute<typename W1::Re,VType::Accuracy> WR;
 //    typedef Compute<typename W1::Im,VType::Accuracy> WI;
-   static const int_t N = 2*M;
-   static const int_t S2 = 2*Step;
-   static const int_t NR = (2*PrecomputeRoots > LastK*M) ? LastK*M/2 : PrecomputeRoots;
-   static const int_t Inc = 2*NR/N;
+   static const long_t N = 2*M;
+   static const long_t S2 = 2*Step;
+   static const long_t NR = (2*PrecomputeRoots > LastK*M) ? LastK*M/2 : PrecomputeRoots;
+   static const long_t Inc = 2*NR/N;
    DFTk_inp<2,N,VType,S,W> spec_inp;
 public:
    void apply(T* data) 
@@ -292,7 +292,7 @@ public:
 //       wi = wpi;
 // 
 //       spec_inp.apply(data+S2, &wr, &wi);
-//       for (int_t i=S2+S2; i<N; i+=S2) {
+//       for (long_t i=S2+S2; i<N; i+=S2) {
 //         t = wr;
 //         wr = wr*wpr - wi*wpi;
 //         wi = wi*wpr + t*wpi;
@@ -300,27 +300,27 @@ public:
 //       }
       
       const T* roots = W::Instance().getData(); 
-      int_t lk = Inc-S2;
-      for (int_t i=S2; i<N; i+=S2) {
+      long_t lk = Inc-S2;
+      for (long_t i=S2; i<N; i+=S2) {
 	spec_inp.apply(data+i, roots+lk, roots+lk+1);
 	lk += Inc;
       }
 
 //       const T* roots = Loki::SingletonHolder<RootsHolder<N,Loki::NullType,VType,S> >::Instance().getData(); 
-//       for (int_t i=S2; i<N; i+=S2) {
+//       for (long_t i=S2; i<N; i+=S2) {
 // 	spec_inp.apply(data+i, roots+i-S2, roots+i-S2+1);
 //       }
    }
 };
 */
 /*
-template<int_t M, int_t Step, typename VType, int S, class W>
+template<long_t M, long_t Step, typename VType, int S, class W>
 class DFTk_x_Im_T<2,2,M,Step,VType,S,W,false,true> 
 {
    typedef typename VType::ValueType T;
 //    typedef typename VType::TempType LocalVType;
-   static const int_t N = 2*M;
-   static const int_t S2 = 2*Step;
+   static const long_t N = 2*M;
+   static const long_t S2 = 2*Step;
    typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;
    typedef Compute<typename W1::Re,VType::Accuracy> WR;
    typedef Compute<typename W1::Im,VType::Accuracy> WI;
@@ -339,8 +339,8 @@ public:
       spec_inp.apply(data+S2, &wr, &wi);
       
       const T* roots = W::Instance().getData(); 
-      int_t lk = 0;
-      for (int_t i=S2+S2; i<N; i+=S2) {
+      long_t lk = 0;
+      for (long_t i=S2+S2; i<N; i+=S2) {
 	spec_inp.apply(data+i, roots+lk, roots+lk+1);
 	i += S2;
         wr = roots[lk]*wpr - roots[lk+1]*wpi;
@@ -352,11 +352,11 @@ public:
 };
 */
 // Specialization for radix 2
-template<int_t LastK, int_t M, int_t Step, typename VType, int S, class W1>
+template<long_t LastK, long_t M, long_t Step, typename VType, int S, class W1>
 class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,2,true> 
 {
    typedef typename VType::ValueType T;
-   static const int_t S2 = 2*Step;
+   static const long_t S2 = 2*Step;
    DFTk_inp<2,2*M,VType,S> spec_inp;
 public:
    void apply(T* data) 
@@ -380,10 +380,10 @@ factor K is taken from the compile-time list.
 The scaled DFT is performed afterwards.
 \sa InFreq, DFTk_x_Im_T
 */
-template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
+template<long_t N, typename NFact, typename VType, int S, class W1, long_t LastK = 1>
 class InTime;
 
-template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+template<long_t N, typename Head, typename Tail, typename VType, int S, class W1, long_t LastK>
 class InTime<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
 {
    typedef typename VType::ValueType T;
@@ -394,27 +394,27 @@ class InTime<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
    }
 };
 
-template<int_t N, typename Head, typename VType, int S, class W1, int_t LastK>
+template<long_t N, typename Head, typename VType, int S, class W1, long_t LastK>
 class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   static const int_t K = Head::first::value;
-   static const int_t M = N/K;
+   static const long_t K = Head::first::value;
+   static const long_t M = N/K;
    
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-   static const int_t M2 = M*C;
-   static const int_t N2 = N*C;
+   static const long_t M2 = M*C;
+   static const long_t N2 = N*C;
    
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Loki::NullType> NFactNext;
+   typedef Loki::Typelist<pair_<typename Head::first, long_<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W1> dft_scaled;
 public:
    void apply(T* data) 
    {
      // run strided DFT recursively K times
-      for (int_t m=0; m < N2; m+=M2) 
+      for (long_t m=0; m < N2; m+=M2)
 	dft_str.apply(data + m);
 
       dft_scaled.apply(data);
@@ -422,14 +422,14 @@ public:
 };
 
 // Take the next factor from the list
-template<int_t N, int_t K, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InTime<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, W1, LastK>
+template<long_t N, long_t K, typename Tail, typename VType, int S, class W1, long_t LastK>
+class InTime<N, Loki::Typelist<pair_<long_<K>, long_<0> >,Tail>, VType, S, W1, LastK>
 : public InTime<N, Tail, VType, S, W1, LastK> {};
 
 
 // Specialization for a prime N
-template<int_t N, typename VType, int S, class W1, int_t LastK>
-class InTime<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,W1,LastK> 
+template<long_t N, typename VType, int S, class W1, long_t LastK>
+class InTime<N,Loki::Typelist<pair_<long_<N>, long_<1> >, Loki::NullType>,VType,S,W1,LastK>
 {
   typedef typename VType::ValueType T;
   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
@@ -456,24 +456,25 @@ factor K is taken from the compile-time list.
 The scaled DFT is performed afterwards.
 \sa DFTk_x_Im_T
 */
-template<int_t N, typename NFact, typename VType, int S, class W1, int_t LastK = 1>
+template<long_t N, typename NFact, typename VType, int S, class W1, long_t LastK = 1>
 class InTimeOOP;
 
-template<int_t N, typename Head, typename Tail, typename VType, int S, class W1, int_t LastK>
+template<long_t N, typename Head, typename Tail, typename VType, int S, class W1, long_t LastK>
 class InTimeOOP<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   static const int_t K = Head::first::value;
-   static const int_t M = N/K;
+   static const long_t K = Head::first::value;
+   static const long_t M = N/K;
    
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-   static const int_t M2 = M*C;
-   static const int_t N2 = N*C;
-   static const int_t LastK2 = LastK*C;
+   static const long_t M2 = M*C;
+   static const long_t N2 = N*C;
+   static const long_t LastK2 = LastK*C;
    
-   typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   //typedef typename IPowBig<W1,K>::Result WK;
+   typedef W1 WK;
+   typedef Loki::Typelist<pair_<typename Head::first, ulong_<Head::second::value-1> >, Tail> NFactNext;
    InTimeOOP<M,NFactNext,VType,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W1> dft_scaled;
 public:
@@ -481,8 +482,8 @@ public:
    void apply(const T* src, T* dst) 
    {
      // run strided DFT recursively K times
-      int_t lk = 0;
-      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+      long_t lk = 0;
+      for (long_t m = 0; m < N2; m+=M2, lk+=LastK2)
         dft_str.apply(src + lk, dst + m);
 
       dft_scaled.apply(dst);
@@ -490,14 +491,14 @@ public:
 };
 
 // Take the next factor from the list
-template<int_t N, int_t K, typename Tail, typename VType, int S, class W1, int_t LastK>
-class InTimeOOP<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, W1, LastK>
+template<long_t N, long_t K, typename Tail, typename VType, int S, class W1, long_t LastK>
+class InTimeOOP<N, Loki::Typelist<pair_<ulong_<K>, ulong_<0> >,Tail>, VType, S, W1, LastK>
 : public InTimeOOP<N, Tail, VType, S, W1, LastK> {};
 
 
 // Specialization for prime N
-template<int_t N, typename VType, int S, class W1, int_t LastK>
-class InTimeOOP<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,W1,LastK> 
+template<long_t N, typename VType, int S, class W1, long_t LastK>
+class InTimeOOP<N,Loki::Typelist<pair_<ulong_<N>, ulong_<1> >, Loki::NullType>,VType,S,W1,LastK>
 {
    typedef typename VType::ValueType T;
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
@@ -521,24 +522,24 @@ factor K is taken from the compile-time list.
 The scaled DFT is performed afterwards.
 \sa DFTk_x_Im_T
 */
-template<int_t N, typename NFact, typename VType, int S, int_t LastK = 1>
+template<long_t N, typename NFact, typename VType, int S, long_t LastK = 1>
 class DCT2_impl;
 
-template<int_t N, typename Head, typename Tail, typename VType, int S, int_t LastK>
+template<long_t N, typename Head, typename Tail, typename VType, int S, long_t LastK>
 class DCT2_impl<N, Loki::Typelist<Head,Tail>, VType, S, LastK>
 {
    typedef typename VType::ValueType T;
    typedef typename VType::TempType LocalVType;
-   static const int_t K = Head::first::value;
-   static const int_t M = N/K;
+   static const long_t K = Head::first::value;
+   static const long_t M = N/K;
    
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;
-   static const int_t M2 = M*C;
-   static const int_t N2 = N*C;
-   static const int_t LastK2 = LastK*C;
+   static const long_t M2 = M*C;
+   static const long_t N2 = N*C;
+   static const long_t LastK2 = LastK*C;
    
    //typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   typedef Loki::Typelist<pair_<typename Head::first, long_<Head::second::value-1> >, Tail> NFactNext;
    DCT2_impl<M,NFactNext,VType,S,K*LastK> dft_str;
 //   DFTk_x_Im_T<K,M,1,VType,S,W1> dft_scaled;
 //   DCTk_x_Im_T<K,M,1,VType,S,W1> dft_scaled;
@@ -547,8 +548,8 @@ public:
    void apply(const T* src, T* dst) 
    {
      // run strided DCT recursively K times
-      int_t lk = 0;
-      for (int_t m = 0; m < N2; m+=M2, lk+=LastK2)
+      long_t lk = 0;
+      for (long_t m = 0; m < N2; m+=M2, lk+=LastK2)
         dft_str.apply(src + lk, dst + m);
 
       //dft_scaled.apply(dst);
@@ -556,14 +557,14 @@ public:
 };
 
 // Take the next factor from the list
-template<int_t N, int_t K, typename Tail, typename VType, int S, int_t LastK>
-class DCT2_impl<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, S, LastK>
+template<long_t N, long_t K, typename Tail, typename VType, int S, long_t LastK>
+class DCT2_impl<N, Loki::Typelist<pair_<long_<K>, long_<0> >,Tail>, VType, S, LastK>
 : public DCT2_impl<N, Tail, VType, S, LastK> {};
 
 
 // Specialization for a prime N
-template<int_t N, typename VType, int S, int_t LastK>
-class DCT2_impl<N,Loki::Typelist<Pair<SInt<N>, SInt<1> >, Loki::NullType>,VType,S,LastK> 
+template<long_t N, typename VType, int S, long_t LastK>
+class DCT2_impl<N,Loki::Typelist<pair_<long_<N>, long_<1> >, Loki::NullType>,VType,S,LastK>
 {
    typedef typename VType::ValueType T;
    static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;

@@ -27,8 +27,9 @@
 
 #include "sint.h"
 #include "twiddles.h"
+#include "gfftfactor.h"
 
-static const int_t SwitchToOMP = (1<<8);
+static const long_t SwitchToOMP = (1<<8);
 
 namespace GFFT {
 
@@ -146,7 +147,7 @@ struct IN_PLACE {
      typedef AbstractFFT_inp<T> Result;  
    };
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Direction>
    class List {
       typedef typename VType::ValueType T;
@@ -188,7 +189,7 @@ struct OUT_OF_PLACE {
 //       typedef Caller<Loki::NullType> Result;
 //    };
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Direction>
    class List {
       typedef typename Parall::template ActualParall<N>::Result NewParall;
@@ -225,7 +226,7 @@ struct DFT {
    static const int Sign = 1;
    typedef IDFT Inverse;
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
@@ -244,7 +245,7 @@ struct IDFT {
    static const int Sign = -1;
    typedef DFT Inverse;
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
@@ -262,7 +263,7 @@ struct RDFT {
    static const int Sign = 1;
    typedef IRDFT Inverse;
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
@@ -282,7 +283,7 @@ struct IRDFT {
    static const int Sign = -1;
    typedef RDFT Inverse;
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             typename Parall, typename Place>
    class Algorithm {
       typedef typename VType::ValueType T;
@@ -304,7 +305,7 @@ struct DCT1 {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             class Parall, class Place>
    struct Algorithm {
 //      typedef TList Result;
@@ -321,7 +322,7 @@ struct IDCT1 {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             class Parall, class Place>
    struct Algorithm {
 //      typedef TList Result;
@@ -338,7 +339,7 @@ struct DCT2 {
    template<unsigned long N, typename T>
    struct Direction : public Forward<N,T> {};
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             class Parall, class Place>
    struct Algorithm {
       //typedef TList Result;
@@ -355,7 +356,7 @@ struct IDCT2 {
    template<unsigned long N, typename T>
    struct Direction : public Backward<N,T> {};
 
-   template<int_t N, typename NFact, typename VType,
+   template<long_t N, typename NFact, typename VType,
             class Parall, class Place>
    struct Algorithm {
       //typedef TList Result;
@@ -368,9 +369,9 @@ struct IDCT2 {
 */
 struct Serial {
    static const id_t ID = 0;
-   static const uint_t NParProc = 1;
+   static const ulong_t NParProc = 1;
 
-   template<int_t N>
+   template<long_t N>
    struct ActualParall {
       typedef Serial Result;
    };
@@ -378,13 +379,13 @@ struct Serial {
    // used for in-place transforms only
    template<typename NFact, typename T>
    struct Swap {
-      static const uint_t M = NFact::Head::first::value;
-      static const uint_t P = NFact::Head::second::value;
+      static const ulong_t M = NFact::Head::first::value;
+      static const ulong_t P = NFact::Head::second::value;
       typedef GFFTswap2<M,P,T> Result;
    };
 
    template<typename N>
-   struct Factor : public Factorization<N, SInt> {};
+   struct Factor : public Factorize<N> {};
 
    template<typename T>
    void apply(T*) { }
@@ -401,9 +402,9 @@ struct Serial {
 template<unsigned int NT>
 struct OpenMP {
    static const id_t ID = NT-1;
-   static const uint_t NParProc = NT;
+   static const ulong_t NParProc = NT;
 
-   template<int_t N>
+   template<long_t N>
    struct ActualParall {
       static const bool C = ((N > NT*NT) && (N >= SwitchToOMP));
       typedef typename Loki::Select<C,OpenMP<NT>,Serial>::Result Result;
@@ -412,8 +413,8 @@ struct OpenMP {
    // used for in-place transforms only
    template<typename NFact, typename T>
    struct Swap {
-      static const uint_t M = NFact::Tail::Head::first::value;
-      static const uint_t P = IsMultipleOf<NFact::Head::first::value,M>::value 
+      static const ulong_t M = NFact::Tail::Head::first::value;
+      static const ulong_t P = IsMultipleOf<NFact::Head::first::value,M>::value
                             + NFact::Tail::Head::second::value;
       typedef GFFTswap2<M,P,T> Result;
 //       typedef GFFTswap2OMP<NT,M,P,T> Result;
@@ -421,12 +422,12 @@ struct OpenMP {
 
    template<typename N>
    struct Factor {
-      static const int_t G = GCD<SInt<N::value>, SInt<NT> >::Result::value;
-      typedef typename Factorization<SIntID<N::value/G>, SInt>::Result NFact1;
+      static const long_t G = GCD<long_<N::value>, long_<NT> >::Result::value;
+      typedef typename Factorize<ulong_<N::value/G> >::Result NFact1;
       typedef ExtractFactor<NT/G, NFact1> EF;
-      typedef Pair<SInt<G*EF::value>,SInt<1> > NParall;
+      typedef pair_<ulong_<G*EF::value>,ulong_<1> > NParall;
       typedef Loki::Typelist<NParall,typename EF::Result> Multithreaded;
-      typedef typename Factorization<N, SInt>::Result Singlethreaded;
+      typedef typename Factorize<N>::Result Singlethreaded;
       static const bool C = ((N::value > NT*NT) && (N::value >= SwitchToOMP));
       typedef typename Loki::Select<C,   // Condition to turn on multithreaded mode
 	  Multithreaded, Singlethreaded>::Result Result;

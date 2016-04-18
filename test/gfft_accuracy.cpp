@@ -33,15 +33,15 @@ using namespace GFFT;
 typedef TYPE VType;
 typedef PLACE Place;
 
-static const int_t N = PNUM;
+static const long_t N = PNUM;
 
 const unsigned Min = PMIN;
 const unsigned Max = PMAX;
 
 typedef TYPELIST_3(OpenMP<2>, OpenMP<4>, OpenMP<8>) ParallList;
-//typedef GenNumList<2, 15, SIntID>::Result NList;
+//typedef GenNumList<2, 15, ulong_ID>::Result NList;
 typedef GenPowerList<Min, Max, N>::Result NList;
-typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, SIntID<1>, ParallList, Place> Trans;
+typedef GenerateTransform<NList, VType, TransformTypeGroup::Default, ulong_<1>, ParallList, Place> Trans;
 
 ostream& operator<<(ostream& os, const dd_real& v)
 {

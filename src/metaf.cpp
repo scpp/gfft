@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 //     unsigned long i, n = (TransformType::ID == RDFT::ID) ? (1<<(p-1)) : (1<<p);
 //    int_t i, n = 8;
 //    cin >> n;
-//    typedef Factorization<SIntID<11> > F;
+//    typedef Factorize<SIntID<11> > F;
 //    typedef Print<F::Result>::Result TTT;  // 2*3*18539
 
 // typedef TYPELIST_3(SInt<1>,SInt<2>,SInt<3>) LL1;

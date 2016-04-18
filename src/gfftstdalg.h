@@ -47,11 +47,11 @@ and twiddle factors (T).
 \sa InTime
 */
 
-template<int_t K, int_t LastK, int_t M, int_t Step, typename VType, int S, class W1, int_t SimpleSpec>
+template<long_t K, long_t LastK, long_t M, long_t Step, typename VType, int S, class W1, long_t SimpleSpec>
 class DFTk_x_Im_T<K,LastK,M,Step,VType,S,W1,SimpleSpec,false>
 {
    typedef typename VType::ValueType CT;
-   static const int_t N = K*M;
+   static const long_t N = K*M;
    DFTk_inp<K,M,VType,S> spec_inp;
 public:
    void apply(CT* data) 
@@ -61,7 +61,7 @@ public:
       ComputeRootsStd<K,VType,W1> roots;
       
       spec_inp.apply(data+Step, roots.get());
-      for (int_t i=Step+Step; i<M; i+=Step) {
+      for (long_t i=Step+Step; i<M; i+=Step) {
 	roots.step();
 	spec_inp.apply(data+i, roots.get());
       }

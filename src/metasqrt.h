@@ -28,21 +28,21 @@ namespace MF {
 template<class X, int Accuracy>
 class SqrtInitGuessDec;
 
-template<int_t N, int Accuracy>
-class SqrtInitGuessDec<SInt<N>,Accuracy> {
-  static const int_t ND2 = NDigits<N/100,10>::value/2;
-  static const int_t NP = IPow<10,ND2>::value;
-  static const int_t X0 = (N<10) ? 2*NP : 6*NP;
-  //static const int_t D = N - X0*X0;
+template<long_t N, int Accuracy>
+class SqrtInitGuessDec<long_<N>,Accuracy> {
+  static const long_t ND2 = NDigits<N/100,10>::value/2;
+  static const long_t NP = IPow<10,ND2>::value;
+  static const long_t X0 = (N<10) ? 2*NP : 6*NP;
+  //static const long_t D = N - X0*X0;
   static const base_t DecBase = DefaultDecimalBase;
-  typedef typename CreateBigInt<SInt<X0>,DecBase>::Result BI1;
-  typedef typename Loki::TL::ShiftRight<typename BI1::Num,Accuracy,SInt<0> >::Result NList;
+  typedef typename CreateBigInt<long_<X0>,DecBase>::Result BI1;
+  typedef typename Loki::TL::ShiftRight<typename BI1::Num,Accuracy,long_<0> >::Result NList;
   typedef SBigInt<BI1::isPositive,NList,DecBase> NewBI;
 public:
   typedef SDecimal<NewBI,Accuracy,DecBase> Result;
 };
 
-// TODO: extend for any X (now works with SInt)
+// TODO: extend for any X (now works with long_)
 template<int K, class X, class Aux, int Accuracy>
 struct SqrtDecimal {
   typedef Aux XN;
@@ -75,13 +75,13 @@ struct SqrtDecAcc : public GenericAccuracyBasedFunc<X,SqrtDecimalFunc,EmptyOpera
 template<class X>
 class SqrtInitGuess;
 
-template<int_t N>
-class SqrtInitGuess<SInt<N> > {
-  static const int_t ND2 = NDigits<N,10>::value/2;
-  static const int_t NP = IPow<10,ND2>::value;
-  static const int_t X0 = (N<10) ? 2*NP : 6*NP;
+template<long_t N>
+class SqrtInitGuess<long_<N> > {
+  static const long_t ND2 = NDigits<N,10>::value/2;
+  static const long_t NP = IPow<10,ND2>::value;
+  static const long_t X0 = (N<10) ? 2*NP : 6*NP;
 public:
-  typedef SRational<SInt<X0>,SInt<1> > Result;
+  typedef SRational<long_<X0>,long_<1> > Result;
 };
 
 template<int K, class X, class Aux>

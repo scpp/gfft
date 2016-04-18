@@ -36,7 +36,7 @@ static const unsigned int MaxP = 9;
 int main(int argc, char *argv[])
 {
 
-   //typedef GenNumList<20000, 20010, SIntID>::Result NList;
+   //typedef GenNumList<20000, 20010, ulong_>::Result NList;
    typedef GenPowerList<MinP, MaxP, 2>::Result NList;
     
    // Single-threaded out-of-place transforms
@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
 //    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default>  List_cfs;
 
    // Single- and multi-threaded out-of-place transforms
-   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, OpenMP<1>, OUT_OF_PLACE> List_dp;
-//   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
-//    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
-//    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;
-//    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default, SIntID<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_cfp;
+   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, ulong_<1>, OpenMP<1>, OUT_OF_PLACE> List_dp;
+//   typedef GenerateTransform<NList, GFFT::DOUBLE, TransformTypeGroup::Default, ulong_<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_dp;
+//    typedef GenerateTransform<NList, GFFT::FLOAT, TransformTypeGroup::Default, ulong_<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_fp;
+//    typedef GenerateTransform<NList, GFFT::COMPLEX_DOUBLE, TransformTypeGroup::Default, ulong_<1>, ParallelizationGroup::FullList, OUT_OF_PLACE> List_cdp;
+//    typedef GenerateTransform<NList, GFFT::COMPLEX_FLOAT, TransformTypeGroup::Default, ulong_<1>, ParallelizationGroup::FullList, OUT_OF_PLACE>  List_cfp;
 
    cout.precision(4);
    

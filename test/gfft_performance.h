@@ -43,14 +43,14 @@ template<class T>
 class GFFTbenchBase
 {
 public:
-  void init(T* src, const uint_t len, const int_t it)
+  void init(T* src, const ulong_t len, const long_t it)
   {
       // initial data
-      for (uint_t i=0; i<2*len*it; ++i)
+      for (ulong_t i=0; i<2*len*it; ++i)
 	src[i] = 0;
 
 //       for (unsigned int j=0; j<it; ++j) {
-// 	for (uint_t i=0; i < n; ++i) {
+// 	for (ulong_t i=0; i < n; ++i) {
 // 	  src[2*(n*j+i)] = (2*i+j)/(double)n;
 // 	  src[2*(n*j+i)+1] = (2*i+j+1)/(double)n;
 // 	}
@@ -63,9 +63,9 @@ public:
      return 1000*(td.total_seconds()*1000000+td.fractional_seconds())/(3.*niter);
   }
 
-  void print_line(const uint_t TransformTypeID, const uint_t ValueTypeID, 
-		  const uint_t PlaceTypeID, const uint_t ParallTypeID, 
-		  const uint_t len, const double t)
+  void print_line(const ulong_t TransformTypeID, const ulong_t ValueTypeID,
+          const ulong_t PlaceTypeID, const ulong_t ParallTypeID,
+          const ulong_t len, const double t)
   {
      std::cout<<TransformType_Name[TransformTypeID]<<space
          <<ValueType_Name[ValueTypeID]<<space

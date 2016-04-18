@@ -1,10 +1,14 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.9)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_CXX_COMPILER gcc)
+
+FILE(GLOB_RECURSE LibFiles "*.h")
+add_custom_target(headers_src SOURCES ${LibFiles})
 
 include_directories(../loki)
+include_directories(../metafactor)
 
-#all source files 
 add_executable(gfft gfft.cpp)
 add_executable(metapi metapi.cpp)
 add_executable(metasqrt metasqrt.cpp)
@@ -35,7 +39,7 @@ if(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### Intel compiler
 add_definitions(-openmp -O3 -DGFFTDOC)
-add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS} -DMODE=3)
 
 target_link_libraries(gfft iomp5)
 target_link_libraries(metapi iomp5)
@@ -46,13 +50,13 @@ elseif(CMAKE_CXX_COMPILER MATCHES "cl.exe")
 ### MSVC compiler
 #add_definitions(/O2 /Ob2 /Oi /Ot /Oy /EHsc /FD /MD /openmp /DGFFTDOC)
 add_definitions(/D _USE_MATH_DEFINES)
-add_definitions(/D NUM=${NUM} /D FULLOUTPUT=${FULLOUTPUT} /D TYPE=${TYPE} /D PLACE=${PLACE} /D NUMTHREADS=${NUMTHREADS})
+add_definitions(/D NUM=${NUM} /D FULLOUTPUT=${FULLOUTPUT} /D TYPE=${TYPE} /D PLACE=${PLACE} /D NUMTHREADS=${NUMTHREADS} /D MODE=3)
 
 elseif(CMAKE_CXX_COMPILER MATCHES "clang")
 
 ### Clang compiler
 add_definitions(-Wall -O3 -ftemplate-depth=100000 -DFFTW -DQD)
-add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS} -DMODE=3)
 
 target_link_libraries(gfft c m stdc++ gomp)
 target_link_libraries(metapi c m stdc++ gomp)
@@ -62,10 +66,10 @@ else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
 add_definitions(-time -Wall -fopenmp -O3 -ftemplate-backtrace-limit=0 )
-#add_definitions(-time -Wall -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
-add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS})
+#add_definitions(-time -Wall -Wextra -Wconversion -fopenmp -O0 -g -ftemplate-backtrace-limit=0 -DGFFTDOC)
+add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS} -DMODE=3)
 
-target_link_libraries(gfft stdc++ gomp)
+target_link_libraries(gfft stdc++ m gomp)
 target_link_libraries(metapi c m stdc++ gomp)
 target_link_libraries(metasqrt c m stdc++ gomp)
 

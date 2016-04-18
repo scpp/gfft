@@ -26,22 +26,22 @@ namespace MF {
 template<class X, class Step, class Aux = Loki::NullType>
 struct SinCosAux 
 {
-  typedef Pair<typename Aux::first, Step> Result;
+  typedef pair_<typename Aux::first, Step> Result;
 };
 
 template<class X, class Step>
 struct SinCosAux<X,Step,Loki::NullType> 
 {
   typedef typename Mult<X,X>::Result XX;
-  typedef Pair<XX,Step> Result;
+  typedef pair_<XX,Step> Result;
 };
 
-// Aux is Pair, where the first type is X^2 and the second is the previous series member
-template<int K, class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
+// Aux is pair_, where the first type is X^2 and the second is the previous series member
+template<int K, class X, class Aux, long_t D>   // D=1 (for cos);   D=2 (for sin)
 struct SinCosRational 
 {
-  static const int_t M = 2*(K-1)+D;
-  typedef SRational<SInt<1>,SInt<M*(M+1)> > Divider;
+  static const long_t M = 2*(K-1)+D;
+  typedef SRational<long_<1>,long_<M*(M+1)> > Divider;
   typedef typename Mult<typename Aux::first,Divider>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
   typedef typename Negate<XP>::Result Result;
@@ -49,7 +49,7 @@ struct SinCosRational
 //  typedef typename NL::Print<Result>::Result TT2;
 };
 
-template<class X, class Aux, int_t D>   // D=1 (for cos);   D=2 (for sin)
+template<class X, class Aux, long_t D>   // D=1 (for cos);   D=2 (for sin)
 struct SinCosRational<0,X,Aux,D>
 {
   typedef typename Aux::second Result;
@@ -57,12 +57,12 @@ struct SinCosRational<0,X,Aux,D>
 };
 
 
-template<int K, class X, class Aux, int_t D, // D=1 (for cos);   D=2 (for sin)
+template<int K, class X, class Aux, long_t D, // D=1 (for cos);   D=2 (for sin)
 int Accuracy>   
 struct SinCosDecimal 
 {
-  static const int_t M = 2*(K-1)+D;
-  typedef SRational<SInt<1>,SInt<M*(M+1)> > Divider;
+  static const long_t M = 2*(K-1)+D;
+  typedef SRational<long_<1>,long_<M*(M+1)> > Divider;
   typedef typename RationalToDecimal<Divider,Accuracy>::Result DividerDec;
   typedef typename Mult<typename Aux::first,DividerDec>::Result XX;
   typedef typename Mult<XX,typename Aux::second>::Result XP;
@@ -71,7 +71,7 @@ struct SinCosDecimal
   typedef typename SinCosAux<X,Result,Aux>::Result ResultAux;
 };
 
-template<class X, class Aux, int_t D,   // D=1 (for cos);   D=2 (for sin)
+template<class X, class Aux, long_t D,   // D=1 (for cos);   D=2 (for sin)
 int Accuracy>  
 struct SinCosDecimal<0,X,Aux,D,Accuracy>
 {
@@ -85,7 +85,7 @@ struct CosRational : public SinCosRational<K,X,Aux,1> {};
 
 template<int K, class X>
 struct CosRational<K,X,Loki::NullType>
-: public SinCosRational<K,X,typename SinCosAux<X,SInt<1> >::Result,1> {};
+: public SinCosRational<K,X,typename SinCosAux<X,long_<1> >::Result,1> {};
 
 struct CosRationalFunc {
   template<int K, class X, class Aux, int Accuracy>
@@ -98,7 +98,7 @@ struct CosDecimal : public SinCosDecimal<K,X,Aux,1,Accuracy> {};
 
 template<int K, class X, int Accuracy>
 struct CosDecimal<K,X,Loki::NullType,Accuracy>
-: public SinCosDecimal<K,X,typename SinCosAux<X,SInt<1> >::Result,1,Accuracy> {};
+: public SinCosDecimal<K,X,typename SinCosAux<X,long_<1> >::Result,1,Accuracy> {};
 
 struct CosDecimalFunc {
   template<int K, class X, class Aux, int Accuracy>
@@ -165,72 +165,72 @@ int NStartingSteps = 3>
 struct SinLen : public GenericLengthBasedFunc<X,SinRationalFunc,Add,Len,NStartingSteps> {};
 
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __SinPiFrac {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,F>::Result X;
    typedef typename SinAcc<X,Accuracy>::Result Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,1,Accuracy,NStartingSteps> {
-  typedef SInt<0> Result;
+  typedef long_<0> Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,2,Accuracy,NStartingSteps> {
-  typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
+  typedef typename Loki::Select<(A%4 == 1),long_<1>,long_<-1> >::Result Result;
 };
 
-template<int_t A, int NStartingSteps>  
+template<long_t A, int NStartingSteps>
 struct __SinPiFrac<A,3,2,NStartingSteps> {
-  static const int_t R = A%6;
-  typedef TYPELIST_2(SInt<784438645>,SInt<866025403>) NList;
-  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
+  static const long_t R = A%6;
+  typedef TYPELIST_2(long_<784438645>,long_<866025403>) NList;
+  typedef TYPELIST_3(long_<0>,long_<0>,long_<1>) DList;
   typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
   typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
   typedef SRational<Numer,Denom> Result;
 };
 
-template<int_t A, int NStartingSteps>  
+template<long_t A, int NStartingSteps>
 struct __SinPiFrac<A,4,2,NStartingSteps> {
-  static const int_t R = A%8;
-  typedef TYPELIST_2(SInt<186547523>,SInt<707106781>) NList;
-  typedef TYPELIST_3(SInt<0>,SInt<0>,SInt<1>) DList;
+  static const long_t R = A%8;
+  typedef TYPELIST_2(long_<186547523>,long_<707106781>) NList;
+  typedef TYPELIST_3(long_<0>,long_<0>,long_<1>) DList;
   typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
   typedef SBigInt<true,DList,DefaultDecimalBase> Denom;
   typedef SRational<Numer,Denom> Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiFrac<A,6,Accuracy,NStartingSteps> {
-  static const int_t R = A%12;
-  typedef SRational<SInt<1>,SInt<2> >  V1;
-  typedef SRational<SInt<-1>,SInt<2> > V2;
+  static const long_t R = A%12;
+  typedef SRational<long_<1>,long_<2> >  V1;
+  typedef SRational<long_<-1>,long_<2> > V2;
   typedef typename Loki::Select<(R==1 || R==5),V1,V2>::Result Result;
 };
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct SinPiFrac {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __SinPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
 
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __SinPiDecimal {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename RationalToDecimal<F,Accuracy>::Result FDec;
    typedef typename PiDecAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,FDec>::Result X;
@@ -238,92 +238,92 @@ struct __SinPiDecimal {
    typedef typename SinDecAcc<XR,Accuracy>::Result Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiDecimal<A,1,Accuracy,NStartingSteps> {
-  typedef SInt<0> Result;
+  typedef long_<0> Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiDecimal<A,2,Accuracy,NStartingSteps> {
-  typedef typename Loki::Select<(A%4 == 1),SInt<1>,SInt<-1> >::Result Result;
+  typedef typename Loki::Select<(A%4 == 1),long_<1>,long_<-1> >::Result Result;
 };
 
-template<int_t A, int NStartingSteps>  
+template<long_t A, int NStartingSteps>
 struct __SinPiDecimal<A,3,2,NStartingSteps> {
-  static const int_t R = A%6;
-  typedef TYPELIST_2(SInt<784438645>,SInt<866025403>) NList;
+  static const long_t R = A%6;
+  typedef TYPELIST_2(long_<784438645>,long_<866025403>) NList;
   typedef SBigInt<(R==1 || R==2),NList,DefaultDecimalBase> Numer;
   typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
-template<int_t A, int NStartingSteps>  
+template<long_t A, int NStartingSteps>
 struct __SinPiDecimal<A,4,2,NStartingSteps> {
-  static const int_t R = A%8;
-  typedef TYPELIST_2(SInt<186547523>,SInt<707106781>) NList;
+  static const long_t R = A%8;
+  typedef TYPELIST_2(long_<186547523>,long_<707106781>) NList;
   typedef SBigInt<(R==1 || R==3),NList,DefaultDecimalBase> Numer;
   typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __SinPiDecimal<A,6,Accuracy,NStartingSteps> {
-  static const int_t R = A%12;
-  typedef Loki::Typelist<SInt<500000000>,Loki::NullType> NList1;
-  typedef typename Loki::TL::ShiftRight<NList1,Accuracy-1,SInt<0> >::Result NList;
+  static const long_t R = A%12;
+  typedef Loki::Typelist<long_<500000000>,Loki::NullType> NList1;
+  typedef typename Loki::TL::ShiftRight<NList1,Accuracy-1,long_<0> >::Result NList;
   typedef SBigInt<(R==1 || R==5),NList,DefaultDecimalBase> Numer;
   typedef SDecimal<Numer,2,DefaultDecimalBase> Result;
 };
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct SinPiDecimal {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __SinPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
 
 
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __CosPiFrac {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename PiAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,F>::Result X;
    typedef typename CosAcc<X,Accuracy>::Result Result;
 };
   
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __CosPiFrac<A,1,Accuracy,NStartingSteps> {
-  typedef typename Loki::Select<(A%2==0),SInt<1>,SInt<-1> >::Result Result;
+  typedef typename Loki::Select<(A%2==0),long_<1>,long_<-1> >::Result Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __CosPiFrac<A,2,Accuracy,NStartingSteps> {
-  typedef SInt<0> Result;
+  typedef long_<0> Result;
 };
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct CosPiFrac {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __CosPiFrac<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };
 
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct __CosPiDecimal {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename RationalToDecimal<F,Accuracy>::Result FDec;
    typedef typename PiDecAcc<Accuracy,NStartingSteps>::Result TPi;
    typedef typename Mult<TPi,FDec>::Result X;
@@ -331,23 +331,23 @@ struct __CosPiDecimal {
    typedef typename CosDecAcc<XR,Accuracy>::Result Result;
 };
   
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __CosPiDecimal<A,1,Accuracy,NStartingSteps> {
-  typedef typename Loki::Select<(A%2==0),SInt<1>,SInt<-1> >::Result Result;
+  typedef typename Loki::Select<(A%2==0),long_<1>,long_<-1> >::Result Result;
 };
 
-template<int_t A, 
+template<long_t A,
 int Accuracy, int NStartingSteps>  
 struct __CosPiDecimal<A,2,Accuracy,NStartingSteps> {
-  typedef SInt<0> Result;
+  typedef long_<0> Result;
 };
 
-template<int_t A, int_t B, 
+template<long_t A, long_t B,
 int Accuracy = 2,    // in powers of DefaultBase
 int NStartingSteps = 5>  
 struct CosPiDecimal {
-   typedef SRational<SInt<A>,SInt<B> > F;
+   typedef SRational<long_<A>,long_<B> > F;
    typedef typename Simplify<F>::Result SF;
    typedef typename __CosPiDecimal<SF::Numer::value,SF::Denom::value,Accuracy,NStartingSteps>::Result Result;
 };

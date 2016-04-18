@@ -43,12 +43,12 @@ class FFTW_wrapper
     T* in;
     T* out;
     fftw_plan plan;
-    int_t size;
+    long_t size;
 public:
 
   typedef T value_type;
 
-  FFTW_wrapper(const double* data, int_t n) : size(n)
+  FFTW_wrapper(const double* data, long_t n) : size(n)
   {
     init(data, n);
   }
@@ -60,12 +60,12 @@ public:
   
   T* getdata() const { return out; }
 
-  void init(const double* data, int_t n)
+  void init(const double* data, long_t n)
   {
     in = (T*)fftw_malloc(sizeof(T)*n);
     out = (T*)fftw_malloc(sizeof(T)*n);
    
-    for (int_t i=0; i < n; ++i) {
+    for (long_t i=0; i < n; ++i) {
        in[i][0] = data[2*i];
        in[i][1] = data[2*i+1];
     }
@@ -80,7 +80,7 @@ public:
   template<typename AnotherType>
   void diff(AnotherType* data)
   {
-    for (int_t i=0; i<size; ++i) {
+    for (long_t i=0; i<size; ++i) {
       data[2*i]   -= out[i][0];
       data[2*i+1] -= out[i][1];
     }
@@ -89,7 +89,7 @@ public:
   double norm2() 
   {
     double s = 0.;
-    for (int_t i=0; i<size; ++i) {
+    for (long_t i=0; i<size; ++i) {
       s += out[i][0]*out[i][0];
       s += out[i][1]*out[i][1];
     }
@@ -101,7 +101,7 @@ public:
     if (size<1) return 0.;
     double d=fabs(out[0][0]);
     if (fabs(out[0][1])>d) d=fabs(out[0][1]);
-    for (int_t i=1; i<size; ++i) {
+    for (long_t i=1; i<size; ++i) {
       if (fabs(out[i][0])>d) d=fabs(out[i][0]);
       if (fabs(out[i][1])>d) d=fabs(out[i][1]);
     }

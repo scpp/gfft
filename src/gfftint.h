@@ -16,11 +16,13 @@
     \brief Definition of holders for static integer types
 */
 
-#ifndef __sint_h
-#define __sint_h
+#ifndef gfftint_h
+#define gfftint_h
+
+#include "sint.h"
 
 typedef long int_t;
-typedef unsigned long uint_t;
+//typedef unsigned long uint_t; // defined in sint.h
 typedef unsigned short short_t;
 
 /// Integer number metacontainer.
@@ -30,16 +32,11 @@ typedef unsigned short short_t;
  \param N an integer number
 */
 template<int_t N>
-struct SInt {
+struct long_ {
   typedef int_t value_type;
   static const int_t value = N;
 };
 
-/// Static unsigned integer class holder with additional definition of ID
-template<int_t N>
-struct SIntID : public SInt<N> {
-   static const int_t ID = N-1;
-};
 
 #define STATIC_INTEGER_CLASS(Type, Name) \
 template<Type N>                         \
@@ -55,10 +52,10 @@ STATIC_INTEGER_CLASS(unsigned long, ulong)
 #undef STATIC_INTEGER_CLASS
 
 
-template<typename T1, typename T2>
-struct Pair {
-  typedef T1 first;
-  typedef T2 second;
-};
+//template<typename T1, typename T2>
+//struct Pair {
+//  typedef T1 first;
+//  typedef T2 second;
+//};
 
 #endif

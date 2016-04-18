@@ -192,10 +192,10 @@ template<int K = 10>
 struct Pi
 {
   static const unsigned long P16 = IPow<16,K>::value;
-  static const int_t K1 = 8*K+1;
-  static const int_t K2 = 4*K+2;
-  static const int_t K3 = 8*K+5;
-  static const int_t K4 = 8*K+6;
+  static const long_t K1 = 8*K+1;
+  static const long_t K2 = 4*K+2;
+  static const long_t K3 = 8*K+5;
+  static const long_t K4 = 8*K+6;
   
   typedef double T;
   static T value() 

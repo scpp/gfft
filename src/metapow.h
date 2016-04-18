@@ -23,19 +23,19 @@
 namespace MF {
 
 
-template<int_t A, int_t P, class RetType = long double>
+template<long_t A, long_t P, class RetType = long double>
 struct DPow {
   static RetType value() {
     return static_cast<RetType>(A) * DPow<A,P-1,RetType>::value();
   }
 };
 
-template<int_t A, class RetType>
+template<long_t A, class RetType>
 struct DPow<A,1,RetType> {
   static RetType value() { return A; }
 };
 
-template<int_t A, class RetType>
+template<long_t A, class RetType>
 struct DPow<A,0,RetType> {
   static RetType value() { return 1; }
 };
@@ -57,7 +57,7 @@ struct IPow<N,0> {
 };
 
 
-template<class N, int_t P>
+template<class N, ulong_t P>
 struct IPowBig {
   typedef typename Mult<N, typename IPowBig<N,P-1>::Result>::Result Result;
 };
@@ -69,7 +69,7 @@ struct IPowBig<N,1> {
 
 template<class N>
 struct IPowBig<N,0> {
-  typedef SInt<1> Result;
+  typedef long_<1> Result;
 };
 
 

@@ -35,20 +35,20 @@ namespace GFFT {
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S,
+template<long_t N, long_t SI, long_t DI, typename VType, int S,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk;
 
-template<int_t N, int_t SI, int_t DI, typename VType, int S>
+template<long_t N, long_t SI, long_t DI, typename VType, int S>
 class DFTk<N,SI,DI,VType,S,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
   typedef typename VType::ValueType T;
   typedef typename VType::TempType LocalVType;
-  static const int_t K = (N-1)/2; 
-  static const int_t NSI = N*SI; 
-  static const int_t NDI = N*DI; 
+  static const long_t K = (N-1)/2;
+  static const long_t NSI = N*SI;
+  static const long_t NDI = N*DI;
    
 //   typedef Loki::SingletonHolder<ComputeTwiddlesHolder<LocalVType, N, S, K> > Twiddles;
 //   LocalVType *m_c, *m_s;
@@ -65,20 +65,20 @@ public:
   void apply(const T* src, T* dst) 
   { 
     T sr[K], si[K], dr[K], di[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*SI;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*SI;
       sr[i] = src[k]   + src[NSI-k];
       si[i] = src[k+1] + src[NSI-k+1];
       dr[i] = src[k]   - src[NSI-k];
       di[i] = src[k+1] - src[NSI-k+1];
     }
     
-    for (int_t i=1; i<K+1; ++i) {
+    for (long_t i=1; i<K+1; ++i) {
       T re1(0), re2(0), im1(0), im2(0);
-      for (int_t j=0; j<K; ++j) {
+      for (long_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+    const long_t kk = (i+j*i)%N;
+    const long_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -86,7 +86,7 @@ public:
 	re2 += sign_change ? -s1 : s1;
 	im2 -= sign_change ? -s2 : s2;
       }
-      const int_t k = i*DI;
+      const long_t k = i*DI;
       dst[k] = src[0] + re1 + re2;
       dst[k+1] = src[1] + im1 + im2;
       dst[NDI-k] = src[0] + re1 - re2;
@@ -95,21 +95,21 @@ public:
 
     dst[0] = src[0];
     dst[1] = src[1];
-    for (int_t i=0; i<K; ++i) {
+    for (long_t i=0; i<K; ++i) {
       dst[0] += sr[i];
       dst[1] += si[i];
     }
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DFTk<3,SI,DI,VType,S,true> 
 {
   typedef typename VType::ValueType T;
-  static const int_t SI2 = SI+SI;
-  static const int_t DI2 = DI+DI;
+  static const long_t SI2 = SI+SI;
+  static const long_t DI2 = DI+DI;
   static const int Acc = VType::Accuracy;
-  typedef Compute<typename MF::SqrtDecAcc<SInt<3>,Acc>::Result,Acc,T> CSqrt3;
+  typedef Compute<typename MF::SqrtDecAcc<long_<3>,Acc>::Result,Acc,T> CSqrt3;
   
   const T m_coef;
   
@@ -158,7 +158,7 @@ public:
   */
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DFTk<2,SI,DI,VType,S,true> 
 {
   typedef typename VType::ValueType T;
@@ -213,20 +213,20 @@ inline void _spec2(const T* src, T* dst)
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S,
+template<long_t N, long_t SI, long_t DI, typename VType, int S,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DCT2k;
 /*
-template<int_t N, int_t SI, int_t DI, typename VType, int S>
+template<long_t N, long_t SI, long_t DI, typename VType, int S>
 class DCT2k<N,SI,DI,VType,S,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
   typedef typename VType::ValueType T;
   typedef typename VType::TempType LocalVType;
-  static const int_t K = (N-1)/2; 
-  static const int_t NSI = N*SI; 
-  static const int_t NDI = N*DI; 
+  static const long_t K = (N-1)/2;
+  static const long_t NSI = N*SI;
+  static const long_t NDI = N*DI;
    
   LocalVType m_c[K], m_s[K];
   
@@ -239,20 +239,20 @@ public:
   void apply(const T* src, T* dst) 
   { 
     T sr[K], si[K], dr[K], di[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*SI;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*SI;
       sr[i] = src[k]   + src[NSI-k];
       si[i] = src[k+1] + src[NSI-k+1];
       dr[i] = src[k]   - src[NSI-k];
       di[i] = src[k+1] - src[NSI-k+1];
     }
     
-    for (int_t i=1; i<K+1; ++i) {
+    for (long_t i=1; i<K+1; ++i) {
       T re1(0), re2(0), im1(0), im2(0);
-      for (int_t j=0; j<K; ++j) {
+      for (long_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+    const long_t kk = (i+j*i)%N;
+    const long_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -260,7 +260,7 @@ public:
 	re2 += sign_change ? -s1 : s1;
 	im2 -= sign_change ? -s2 : s2;
       }
-      const int_t k = i*DI;
+      const long_t k = i*DI;
       dst[k] = src[0] + re1 + re2;
       dst[k+1] = src[1] + im1 + im2;
       dst[NDI-k] = src[0] + re1 - re2;
@@ -269,19 +269,19 @@ public:
 
     dst[0] = src[0];
     dst[1] = src[1];
-    for (int_t i=0; i<K; ++i) {
+    for (long_t i=0; i<K; ++i) {
       dst[0] += sr[i];
       dst[1] += si[i];
     }
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DCT2k<3,SI,DI,VType,S,true> 
 {
   typedef typename VType::ValueType T;
-  static const int_t SI2 = SI+SI;
-  static const int_t DI2 = DI+DI;
+  static const long_t SI2 = SI+SI;
+  static const long_t DI2 = DI+DI;
   T m_coef;
   
 public:
@@ -305,12 +305,12 @@ public:
   }
 };
 */
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DCT2k<2,SI,DI,VType,S,true> 
 {
   typedef typename VType::ValueType T;
   static const int Acc = VType::Accuracy;
-  typedef Compute<typename MF::SqrtDecAcc<SInt<2>,Acc>::Result,Acc,T> CSqrt2;
+  typedef Compute<typename MF::SqrtDecAcc<long_<2>,Acc>::Result,Acc,T> CSqrt2;
 
   T m_coef;
 public:

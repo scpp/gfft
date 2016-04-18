@@ -28,7 +28,7 @@ using namespace std;
 
 static const int Accuracy = 5; // *9 - 64-bit; *4 - 32 bit
 
-int main(int argc, char *argv[])
+int main(int, char**)
 {
   cout.precision(16);
   typedef PiDecAcc<Accuracy>::Result TPiDec;

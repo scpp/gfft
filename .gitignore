@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+#KDevelop project
+.kdev4
+
+#Generated html
+doc/html

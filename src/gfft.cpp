@@ -19,7 +19,7 @@
     in the same folder. They can also be supplied to cmake command
     Example: cmake -DNUM=8 -DTYPE=FLOAT -DPLACE=IN_PLACE -DNUMTHREADS=4 .
     
-    This sample program is generalized to handle both simple arrays containing consequent pairs 
+    This sample program is generalized to handle both simple arrays containing consequent pair_s
     of real and imaginary parts and std::complex. It would also handle any user-defined complex 
     types, if they define functions real() and imag() and the output operator to std::ostream
     
@@ -37,18 +37,25 @@ using namespace GFFT;
 typedef TYPE ValueType;
 typedef PLACE Place;
 
-static const int_t N = NUM;
-static const int_t NThreads = NUMTHREADS;
-//typedef TYPELIST_4(SIntID<2>, SIntID<3>, SIntID<4>, SIntID<5>) NList;
-typedef TYPELIST_1(SIntID<N>) NList;
-//typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, ParallelizationGroup::Default, Place> TransformSet;
-typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, SIntID<1>, OpenMP<NThreads>, Place> TransformSet;
+static const long_t N = NUM;
+static const long_t NThreads = NUMTHREADS;
+//typedef TYPELIST_4(ulong_<2>, ulong_<3>, ulong_<4>, ulong_<5>) NList;
+typedef TYPELIST_1(ulong_<N>) NList;
+//typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, ulong_<1>, ParallelizationGroup::Default, Place> TransformSet;
+typedef GenerateTransform<NList, ValueType, TransformTypeGroup::FullList, ulong_<1>, OpenMP<NThreads>, Place> TransformSet;
 
 
-int main(int argc, char *argv[])
+
+//typedef GFFT::InTimeOOP<8l, Loki::Typelist<pair_<ulong_<2l>, long_<3l> >, Loki::NullType>, GFFT::DOUBLE, -1, MComplex<SDecimal<SBigInt<true, Loki::Typelist<long_<511286756l>, Loki::Typelist<long_<923879532l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l>, SDecimal<SBigInt<true, Loki::Typelist<long_<365089771l>, Loki::Typelist<long_<382683432l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l> >, 2l> IT;
+//typedef GFFT::InTimeOOP<4l, Loki::Typelist<pair_<ulong_<2l>, long_<2l> >, Loki::NullType>, GFFT::DOUBLE, -1, MComplex<SDecimal<SBigInt<true, Loki::Typelist<long_<511286756l>, Loki::Typelist<long_<923879532l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l>, SDecimal<SBigInt<true, Loki::Typelist<long_<365089771l>, Loki::Typelist<long_<382683432l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l> >, 4l> IT;
+//typedef GFFT::InTimeOOP<2l, Loki::Typelist<pair_<ulong_<2l>, long_<1l> >, Loki::NullType>, GFFT::DOUBLE, -1, MComplex<SDecimal<SBigInt<true, Loki::Typelist<long_<511286756l>, Loki::Typelist<long_<923879532l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l>, SDecimal<SBigInt<true, Loki::Typelist<long_<365089771l>, Loki::Typelist<long_<382683432l>, Loki::NullType> >, 1000000000l>, 2l, 1000000000l> >, 8l> IT;
+//IT aaa;
+
+
+int main(int /*argc*/, char** /*argv[]*/)
 {
     cout.precision(16);
-    int_t i;
+    long_t i;
    
     typedef DFT TransformType;
     typedef ValueType::ValueType T;

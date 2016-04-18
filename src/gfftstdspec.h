@@ -36,7 +36,7 @@ using namespace MF;
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename VType, int S>
+template<long_t N, long_t M, typename VType, int S>
 class DFTk_inp<N,M,VType,S,false>
 {
   // N is assumed odd, otherwise compiler would not come here
@@ -44,31 +44,31 @@ class DFTk_inp<N,M,VType,S,false>
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
   typedef typename CT::value_type T;
-  static const int_t K = (N-1)/2; 
-  static const int_t NM = N*M; 
+  static const long_t K = (N-1)/2;
+  static const long_t NM = N*M;
    
   T m_c[K], m_s[K];
   
   void _transform(CT* data, const CT* s, const CT* d) 
   {
-    for (int_t i=1; i<K+1; ++i) {
+    for (long_t i=1; i<K+1; ++i) {
       CT t1(0,0), t2(0,0);
-      for (int_t j=0; j<K; ++j) {
+      for (long_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+    const long_t kk = (i+j*i)%N;
+    const long_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
 	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
 	t2 += tt;
       }
-      const int_t k = i*M;
+      const long_t k = i*M;
       data[k] = data[0] + t1 + t2;
       data[NM-k] = data[0] + t1 - t2;
     }
     
-    for (int_t i=0; i<K; ++i) 
+    for (long_t i=0; i<K; ++i)
       data[0] += s[i];
   }
   
@@ -81,8 +81,8 @@ public:
   void apply(CT* data) 
   { 
     CT s[K], d[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*M;
       s[i] = data[k] + data[NM-k];
       d[i] = data[k] - data[NM-k];
     }
@@ -92,8 +92,8 @@ public:
   void apply(CT* data, const CT* w) 
   { 
     CT s[K], d[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*M;
       CT t1(data[k]*w[i]);
       CT t2(data[NM-k]*w[N-i-2]);
       s[i] = t1 + t2;
@@ -109,15 +109,15 @@ public:
   }
 };
 
-template<int_t M, typename VType, int S>
+template<long_t M, typename VType, int S>
 class DFTk_inp<3,M,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
   typedef typename CT::value_type T;
 
-  static const int_t I10 = M;
-  static const int_t I20 = M+M;
+  static const long_t I10 = M;
+  static const long_t I20 = M+M;
   
   T m_coef;
   
@@ -152,7 +152,7 @@ public:
   }
 };
 
-template<int_t M, typename VType, int S>
+template<long_t M, typename VType, int S>
 class DFTk_inp<2,M,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
@@ -198,7 +198,7 @@ public:
 Non-recursive out-of-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t SI, int_t DI, typename VType, int S>
+template<long_t N, long_t SI, long_t DI, typename VType, int S>
 class DFTk<N,SI,DI,VType,S,false>
 {
   // N is assumed odd, otherwise compiler would not come here
@@ -207,9 +207,9 @@ class DFTk<N,SI,DI,VType,S,false>
   typedef typename VType::TempType LocalVType;
   typedef typename CT::value_type T;
 
-  static const int_t K = (N-1)/2; 
-  static const int_t NSI = N*SI; 
-  static const int_t NDI = N*DI; 
+  static const long_t K = (N-1)/2;
+  static const long_t NSI = N*SI;
+  static const long_t NDI = N*DI;
    
   T m_c[K], m_s[K];
   
@@ -222,44 +222,44 @@ public:
   void apply(const CT* src, CT* dst) 
   { 
     CT s[K], d[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*SI;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*SI;
       s[i] = src[k] + src[NSI-k];
       d[i] = src[k] - src[NSI-k];
     }
     
-    for (int_t i=1; i<K+1; ++i) {
+    for (long_t i=1; i<K+1; ++i) {
       CT t1(0,0), t2(0,0);
-      for (int_t j=0; j<K; ++j) {
+      for (long_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+    const long_t kk = (i+j*i)%N;
+    const long_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*d[j].imag();
 	const T s2 = m_s[k]*d[j].real();
 	t1 += m_c[k]*s[j];
 	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
 	t2 += tt;
       }
-      const int_t k = i*DI;
+      const long_t k = i*DI;
       dst[k] = src[0] + t1 + t2;
       dst[NDI-k] = src[0] + t1 - t2;
     }
 
     dst[0] = src[0];
-    for (int_t i=0; i<K; ++i) 
+    for (long_t i=0; i<K; ++i)
       dst[0] += s[i];
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DFTk<3,SI,DI,VType,S,false> 
 {
   typedef typename VType::ValueType CT;
   typedef typename VType::TempType LocalVType;
   typedef typename CT::value_type T;
 
-  static const int_t SI2 = SI+SI;
-  static const int_t DI2 = DI+DI;
+  static const long_t SI2 = SI+SI;
+  static const long_t DI2 = DI+DI;
   T m_coef;
   
 public:
@@ -276,7 +276,7 @@ public:
   }
 };
 
-template<int_t SI, int_t DI, typename VType, int S>
+template<long_t SI, long_t DI, typename VType, int S>
 class DFTk<2,SI,DI,VType,S,false> 
 {
   typedef typename VType::ValueType CT;

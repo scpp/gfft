@@ -34,19 +34,19 @@ namespace GFFT {
 Non-recursive in-place DFT for a general (odd) length with 
 short-radix specializations for N=2,3
 */
-template<int_t N, int_t M, typename VType, int S,
+template<long_t N, long_t M, typename VType, int S,
 bool isStd = Loki::TypeTraits<typename VType::ValueType>::isStdFundamental>
 class DFTk_inp;
 
-template<int_t N, int_t M, typename VType, int S>
+template<long_t N, long_t M, typename VType, int S>
 class DFTk_inp<N,M,VType,S,true>
 {
   // N is assumed odd, otherwise compiler would not come here
   
   typedef typename VType::ValueType T;
   typedef typename VType::TempType LocalVType;
-  static const int_t K = (N-1)/2; 
-  static const int_t NM = N*M; 
+  static const long_t K = (N-1)/2;
+  static const long_t NM = N*M;
    
 //   typedef Loki::SingletonHolder<ComputeTwiddlesHolder<LocalVType, N, S, K> > Twiddles;
 //   LocalVType *m_c, *m_s;
@@ -54,12 +54,12 @@ class DFTk_inp<N,M,VType,S,true>
   
   void _transform(T* data, T* sr, T* si, T* dr, T* di)
   {
-    for (int_t i=1; i<K+1; ++i) {
+    for (long_t i=1; i<K+1; ++i) {
       T re1(0), re2(0), im1(0), im2(0);
-      for (int_t j=0; j<K; ++j) {
+      for (long_t j=0; j<K; ++j) {
 	const bool sign_change = (i*(j+1) % N) > K;
-	const int_t kk = (i+j*i)%N;
-	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+    const long_t kk = (i+j*i)%N;
+    const long_t k = (kk>K) ? N-kk-1 : kk-1;
 	const T s1 = m_s[k]*di[j];
 	const T s2 = m_s[k]*dr[j];
 	re1 += m_c[k]*sr[j];
@@ -67,14 +67,14 @@ class DFTk_inp<N,M,VType,S,true>
 	re2 += sign_change ? -s1 : s1;
 	im2 -= sign_change ? -s2 : s2;
       }
-      const int_t k = i*M;
+      const long_t k = i*M;
       data[k] = data[0] + re1 + re2;
       data[k+1] = data[1] + im1 + im2;
       data[NM-k] = data[0] + re1 - re2;
       data[NM-k+1] = data[1] + im1 - im2;
     }
     
-    for (int_t i=0; i<K; ++i) {
+    for (long_t i=0; i<K; ++i) {
       data[0] += sr[i];
       data[1] += si[i];
     }
@@ -93,8 +93,8 @@ public:
   { 
     // These data must be local for multithreaded usage!!! (can not be defined as class members)
     T sr[K], si[K], dr[K], di[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*M;
       sr[i] = data[k]   + data[NM-k];
       si[i] = data[k+1] + data[NM-k+1];
       dr[i] = data[k]   - data[NM-k];
@@ -107,8 +107,8 @@ public:
   void apply(T* data, const LT* wr, const LT* wi) 
   { 
     T sr[K], si[K], dr[K], di[K];
-    for (int_t i=0; i<K; ++i) {
-      const int_t k = (i+1)*M;
+    for (long_t i=0; i<K; ++i) {
+      const long_t k = (i+1)*M;
       const T tr1 = data[k]*wr[i] - data[k+1]*wi[i];
       const T ti1 = data[k]*wi[i] + data[k+1]*wr[i];
       const T tr2 = data[NM-k]*wr[N-i-2] - data[NM-k+1]*wi[N-i-2];
@@ -136,20 +136,20 @@ public:
 //   void apply(const LT* wr, const LT* wi, T* data) 
 //   { 
 //     T sr[K], si[K], dr[K], di[K];
-//     for (int_t i=0; i<K; ++i) {
-//       const int_t k = (i+1)*M;
+//     for (long_t i=0; i<K; ++i) {
+//       const long_t k = (i+1)*M;
 //       sr[i] = data[k]   + data[NM-k];
 //       si[i] = data[k+1] + data[NM-k+1];
 //       dr[i] = data[k]   - data[NM-k];
 //       di[i] = data[k+1] - data[NM-k+1];
 //     }
 //     
-//     for (int_t i=1; i<K+1; ++i) {
+//     for (long_t i=1; i<K+1; ++i) {
 //       T re1(0), re2(0), im1(0), im2(0);
-//       for (int_t j=0; j<K; ++j) {
+//       for (long_t j=0; j<K; ++j) {
 // 	const bool sign_change = (i*(j+1) % N) > K;
-// 	const int_t kk = (i+j*i)%N;
-// 	const int_t k = (kk>K) ? N-kk-1 : kk-1;
+// 	const long_t kk = (i+j*i)%N;
+// 	const long_t k = (kk>K) ? N-kk-1 : kk-1;
 // 	const T s1 = m_s[k]*di[j];
 // 	const T s2 = m_s[k]*dr[j];
 // 	re1 += m_c[k]*sr[j];
@@ -157,7 +157,7 @@ public:
 // 	re2 += sign_change ? -s1 : s1;
 // 	im2 -= sign_change ? -s2 : s2;
 //       }
-//       const int_t k = i*M;
+//       const long_t k = i*M;
 //       const T tr1 = data[0] + re1 + re2;
 //       const T ti1 = data[1] + im1 + im2;
 //       const T tr2 = data[0] + re1 - re2;
@@ -168,7 +168,7 @@ public:
 //       data[NM-k+1] = tr2*wi[K-i+1] + ti2*wr[K-i+1];
 //     }
 //     
-//     for (int_t i=0; i<K; ++i) {
+//     for (long_t i=0; i<K; ++i) {
 //       data[0] += sr[i];
 //       data[1] += si[i];
 //     }
@@ -176,17 +176,17 @@ public:
 };
 
 // Specialization for N=3
-template<int_t M, typename VType, int S>
+template<long_t M, typename VType, int S>
 class DFTk_inp<3,M,VType,S,true> 
 {
-  static const int_t I10 = M;
-  static const int_t I11 = M+1;
-  static const int_t I20 = M+M;
-  static const int_t I21 = I20+1;
+  static const long_t I10 = M;
+  static const long_t I11 = M+1;
+  static const long_t I20 = M+M;
+  static const long_t I21 = I20+1;
   
   typedef typename VType::ValueType T;
   static const int Acc = VType::Accuracy;
-  typedef Compute<typename MF::SqrtDecAcc<SInt<3>,Acc>::Result,Acc,T> CSqrt3;
+  typedef Compute<typename MF::SqrtDecAcc<long_<3>,Acc>::Result,Acc,T> CSqrt3;
 
   T m_coef;
   
@@ -263,7 +263,7 @@ public:
 };
 
 // Specialization for N=2
-template<int_t M, typename VType, int S>
+template<long_t M, typename VType, int S>
 class DFTk_inp<2,M,VType,S,true> 
 {
   typedef typename VType::ValueType T;
@@ -338,7 +338,7 @@ public:
 //   }  
 };
 
-template<int_t M, typename VType, int S>
+template<long_t M, typename VType, int S>
 class DFTk_inp<1,M,VType,S,true> 
 {
 };

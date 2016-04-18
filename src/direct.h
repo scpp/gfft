@@ -27,6 +27,7 @@
 #include "qd/qd_real.h"
 #endif
 
+
 double to_double(const double d) { return d; }
 
 static const int StartSeed = 17;
@@ -39,12 +40,12 @@ struct GenInput<T,true>
 {
   GenInput() { srand(17); }
   
-  static void rand(T* data, const int i) 
+  static void rand(T* data, const long_t i)
   { // distribute in [-0.5;0.5] as in FFTW
     data[2*i]   = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
     data[2*i+1] = ::rand()/static_cast<T>(RAND_MAX) - 0.5; 
   }
-  static void seq(T* data, const int i) 
+  static void seq(T* data, const long_t i)
   { 
     data[2*i]   = static_cast<T>(2*i); 
     data[2*i+1] = static_cast<T>(2*i+1); 
@@ -56,13 +57,13 @@ struct GenInput<T,false>
 {
   GenInput() { srand(17); }
   
-  static void rand(T* data, const int i) 
+  static void rand(T* data, const long_t i)
   { // distribute in [-0.5;0.5] as in FFTW
     T tmp(::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5, 
 	  ::rand()/static_cast<typename T::value_type>(RAND_MAX) - 0.5);
     data[i] = tmp;
   }
-  static void seq(T* data, const int i) 
+  static void seq(T* data, const long_t i)
   { 
     T tmp(static_cast<typename T::value_type>(2*i), static_cast<typename T::value_type>(2*i+1)); 
     data[i] = tmp;
@@ -78,14 +79,14 @@ template<typename T>
 struct GenOutput<T,true>
 {
   const T re,im;
-  GenOutput(const T* data, const int i) : re(data[2*i]), im(data[2*i+1]) {}
+  GenOutput(const T* data, const long_t i) : re(data[2*i]), im(data[2*i+1]) {}
 };
 
 template<typename T>
 struct GenOutput<T,false>
 {
   const T c;
-  GenOutput(const T* data, const int i) : c(data[i]) {}
+  GenOutput(const T* data, const long_t i) : c(data[i]) {}
 };
 
 template<typename T>
@@ -111,7 +112,7 @@ template<typename T>
 struct ComplexWrapper<T,true>
 {
   T& re,im;
-  ComplexWrapper(T* data, const int i) : re(data[2*i]), im(data[2*i+1]) {}
+  ComplexWrapper(T* data, const long_t i) : re(data[2*i]), im(data[2*i+1]) {}
 
   T& real() { return re; }
   T& imag() { return im; }
@@ -124,7 +125,7 @@ struct ComplexWrapper<T,false>
 {
   typedef typename T::value_type VT;
   T& c;
-  ComplexWrapper(T* data, const int i) : c(data[i]) {}
+  ComplexWrapper(T* data, const long_t i) : c(data[i]) {}
 
   VT& real() { return c.real(); }
   VT& imag() { return c.imag(); }
@@ -145,16 +146,16 @@ It is used for a check of correctness and accuracy of GFFT.
 template<class T>
 class DFT_wrapper 
 {
-  void dft1(T* output_data, const T* input_data, const int_t size, bool inverse)
+  void dft1(T* output_data, const T* input_data, const long_t size, bool inverse)
   {
     T pi2 = (inverse) ? 2.0 * M_PI : -2.0 * M_PI;
     T a, ca, sa;
-    T invs = 1.0 / size;
-    for(int_t y = 0; y < size; y++) {
+    T invs = 1.0 / static_cast<T>(static_cast<double>(size));
+    for(long_t y = 0; y < size; y++) {
       output_data[2*y] = 0.;
       output_data[2*y+1] = 0.;
-      for(int_t x = 0; x < size; x++) {
-	a = pi2 * y * x * invs;
+      for(long_t x = 0; x < size; x++) {
+    a = pi2 * static_cast<T>(static_cast<double>(y * x)) * invs;
 	ca = cos(a);
 	sa = sin(a);
 	output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
@@ -169,25 +170,25 @@ class DFT_wrapper
   
   T* input_data;
   T* output_data;
-  int_t size;
+  long_t size;
   
 public:
   
   typedef T value_type;
   
-  DFT_wrapper(const double* data, int_t n) : size(n)
+  DFT_wrapper(const double* data, long_t n) : size(n)
   {
     init(data, n);
   }
-  DFT_wrapper(const float* data, int_t n) : size(n)
+  DFT_wrapper(const float* data, long_t n) : size(n)
   {
     init(data, n);
   }
-  DFT_wrapper(const std::complex<double>* data, int_t n) : size(n)
+  DFT_wrapper(const std::complex<double>* data, long_t n) : size(n)
   {
     init(data, n);
   }
-  DFT_wrapper(const std::complex<float>* data, int_t n) : size(n)
+  DFT_wrapper(const std::complex<float>* data, long_t n) : size(n)
   {
     init(data, n);
   }
@@ -200,22 +201,22 @@ public:
   T* getdata() const { return output_data; }
   
   template<typename Tp>
-  void init(const Tp* data, int_t n)
+  void init(const Tp* data, long_t n)
   {
     input_data = new T [n*2];
     output_data = new T [n*2];
    
-    for (int_t i=0; i < n*2; ++i) {
+    for (long_t i=0; i < n*2; ++i) {
        input_data[i] = data[i];
     }
   }
   template<typename Tp>
-  void init(const std::complex<Tp>* data, int_t n)
+  void init(const std::complex<Tp>* data, long_t n)
   {
     input_data = new T [n*2];
     output_data = new T [n*2];
 
-    for (int_t i=0; i < n; ++i) {
+    for (long_t i=0; i < n; ++i) {
        input_data[2*i] = data[i].real();
        input_data[2*i+1] = data[i].imag();
     }
@@ -229,14 +230,14 @@ public:
   template<class Tp>
   void diff(Tp* data)
   {
-    for (int_t i=0; i<size*2; ++i) 
+    for (long_t i=0; i<size*2; ++i)
       data[i] -= to_double(output_data[i]);
   }
   
   template<typename Tp, template<typename> class Complex>
   void diff(Complex<Tp>* data)
   {
-    for (int_t i=0; i<size; ++i) {
+    for (long_t i=0; i<size; ++i) {
       data[i] -= Complex<Tp>(to_double(output_data[2*i]), to_double(output_data[2*i+1]));
     }
   }
@@ -244,7 +245,7 @@ public:
   T norm2() 
   { 
     T s = 0.;
-    for (int_t i=0; i<size*2; ++i) {
+    for (long_t i=0; i<size*2; ++i) {
       s += output_data[i]*output_data[i];
     }
     return sqrt(s);
@@ -254,7 +255,7 @@ public:
   {
     if (size<1) return 0.;
     T d=fabs(output_data[0]);
-    for (int_t i=1; i<size*2; ++i) {
+    for (long_t i=1; i<size*2; ++i) {
       if (fabs(output_data[i])>d) d=fabs(output_data[i]);
     }
     return d;
@@ -265,14 +266,14 @@ public:
 struct DCT1 
 {
   template<typename T>
-  void operator()(T* output_data, const T* input_data, const int_t size, bool inverse)
+  void operator()(T* output_data, const T* input_data, const long_t size, bool inverse)
   {
     T pi = (inverse) ? M_PI : -M_PI;
     T a, ca, sa;
     T invs = pi / (size - 1);
-    for(int_t k = 0; k < size; k++) {
+    for(long_t k = 0; k < size; k++) {
       output_data[k] = 0.;
-      for(int_t l = 0; l < size; l++) {
+      for(long_t l = 0; l < size; l++) {
 	a = k * l * invs;
 	ca = cos(a);
 	output_data[k] += input_data[l] * ca;
@@ -287,14 +288,14 @@ struct DCT1
 struct DCT2 
 {
   template<typename T>
-  void operator()(T* output_data, const T* input_data, const int_t size, bool inverse)
+  void operator()(T* output_data, const T* input_data, const long_t size, bool inverse)
   {
     T pi = (inverse) ? M_PI : -M_PI;
     T a, ca, sa;
     T invs = pi / (T)size;
-    for(int_t k = 0; k < size; k++) {
+    for(long_t k = 0; k < size; k++) {
       output_data[k] = 0.;
-      for(int_t l = 0; l < size; l++) {
+      for(long_t l = 0; l < size; l++) {
 	a = k * l * invs;
 	ca = cos(a);
 	output_data[k] += input_data[l] * ca;
@@ -312,13 +313,13 @@ class DCT_wrapper
  
   T* input_data;
   T* output_data;
-  int_t size;
+  long_t size;
   
 public:
   
   typedef T value_type;
   
-  DCT_wrapper(const double* data, int_t n) : size(n)
+  DCT_wrapper(const double* data, long_t n) : size(n)
   {
     init(data, n);
   }
@@ -331,12 +332,12 @@ public:
   T* getdata() const { return output_data; }
   
   template<typename Tp>
-  void init(const Tp* data, int_t n)
+  void init(const Tp* data, long_t n)
   {
     input_data = new T [n];
     output_data = new T [n];
    
-    for (int_t i=0; i < n; ++i) {
+    for (long_t i=0; i < n; ++i) {
        input_data[i] = data[i];
     }
   }
@@ -349,14 +350,14 @@ public:
   template<class Tp>
   void diff(Tp* data)
   {
-    for (int_t i=0; i<size; ++i) 
+    for (long_t i=0; i<size; ++i)
       data[i] -= to_double(output_data[i]);
   }
   
   T norm2() 
   { 
     T s = 0.;
-    for (int_t i=0; i<size; ++i) {
+    for (long_t i=0; i<size; ++i) {
       s += output_data[i]*output_data[i];
     }
     return sqrt(s);
@@ -366,7 +367,7 @@ public:
   {
     if (size<1) return 0.;
     T d=fabs(output_data[0]);
-    for (int_t i=1; i<size; ++i) {
+    for (long_t i=1; i<size; ++i) {
       if (fabs(output_data[i])>d) d=fabs(output_data[i]);
     }
     return d;

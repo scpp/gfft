@@ -35,32 +35,32 @@ struct EmptyOperation {
 
 // Works with SRational of decimal bases (10^n) only
 // TODO: change that
-template<class Rational, int_t NDigits, base_t DecBase=DefaultDecimalBase>
+template<class Rational, long_t NDigits, base_t DecBase=DefaultDecimalBase>
 struct RationalToDecimal;
 
-template<class Numer, class Denom, int_t NDigits, base_t DecBase>
+template<class Numer, class Denom, long_t NDigits, base_t DecBase>
 struct RationalToDecimal<SRational<Numer,Denom>,NDigits,DecBase> {
-  typedef typename MF::IPowBig<SInt<DecBase>,NDigits>::Result D;
+  typedef typename MF::IPowBig<long_<DecBase>,NDigits>::Result D;
   typedef typename Mult<Numer,D>::Result NewNumer;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
   typedef SDecimal<AllDecimals,NDigits,DecBase> Result;
 };
 
-template<bool S1, class N1, class Denom, int_t NDigits, base_t Base>
+template<bool S1, class N1, class Denom, long_t NDigits, base_t Base>
 struct RationalToDecimal<SRational<SBigInt<S1,N1,Base>,Denom>,NDigits,Base> {
-  typedef typename Loki::TL::ShiftRight<N1,NDigits,SInt<0> >::Result NList;
+  typedef typename Loki::TL::ShiftRight<N1,NDigits,long_<0> >::Result NList;
   typedef SBigInt<S1,NList,Base> NewNumer;
 //typedef typename NL::Print<NewNumer>::Result TT2;
   typedef typename Div<NewNumer,Denom>::DivResult AllDecimals;
   typedef SDecimal<AllDecimals,NDigits,Base> Result;
 };
 
-template<int_t N, int_t NDigits, base_t DecBase>
-struct RationalToDecimal<SInt<N>,NDigits,DecBase> {
-  typedef SDecimal<SInt<N>,0,DecBase> Result;
+template<long_t N, long_t NDigits, base_t DecBase>
+struct RationalToDecimal<long_<N>,NDigits,DecBase> {
+  typedef SDecimal<long_<N>,0,DecBase> Result;
 };
 
-template<class BI, int_t ND, base_t Base, int_t NDigits, base_t DecBase>
+template<class BI, long_t ND, base_t Base, long_t NDigits, base_t DecBase>
 struct RationalToDecimal<SDecimal<BI,ND,Base>,NDigits,DecBase> {
   typedef BI AllDecimals;
   typedef SDecimal<BI,ND,Base> Result;
@@ -70,7 +70,7 @@ struct RationalToDecimal<SDecimal<BI,ND,Base>,NDigits,DecBase> {
 
 template<class N, class D, int Accuracy, base_t Base>
 struct Reduce<SRational<N,D>,Accuracy,Base> {
-  typedef typename MF::IPowBig<SInt<Base>,Accuracy>::Result Denom;
+  typedef typename MF::IPowBig<long_<Base>,Accuracy>::Result Denom;
   typedef typename RationalToDecimal<SRational<N,D>,Accuracy,Base>::AllDecimals Decimals;
   typedef typename Simplify<SRational<Decimals,Denom> >::Result Result;
 };
@@ -88,7 +88,7 @@ namespace MF {
 template<class X, class FuncStep,
 template<class,class> class Accum,
 int Accuracy,
-int_t Count> 
+long_t Count>
 struct FuncSeries
 {
   typedef FuncSeries<X,FuncStep,Accum,Accuracy,Count-1> NextIter;
@@ -185,7 +185,7 @@ struct GenericAccuracyBasedFuncAdapter<SRational<N,D>,Accuracy,Base>
   typedef typename RationalToDecimal<SRational<N,D>,Accuracy,DefaultBase>::AllDecimals Result;
 };
 
-template<class BI, int_t ND, int Accuracy, base_t Base>
+template<class BI, long_t ND, int Accuracy, base_t Base>
 struct GenericAccuracyBasedFuncAdapter<SDecimal<BI,ND,Base>,Accuracy,Base>
 {
   typedef typename SDecimal<BI,ND,Base>::Num Result;
@@ -236,7 +236,7 @@ struct GenericLengthBasedFunc
 /////////////////////////////////////////////////////
 
 
-template<class SFrac, int Accuracy, class RetType = long double>
+template<class SFrac, int Accuracy, class RetType = double> // TODO: use long double here and in the calling functions
 struct Compute;
 
 template<class Numer, class Denom, int Accuracy, class RetType>
@@ -251,13 +251,13 @@ struct Compute<SRational<Numer,Denom>,Accuracy,RetType> {
   }
 };
 
-template<int_t N, int Accuracy, class RetType>
-struct Compute<SInt<N>,Accuracy,RetType> {
-  typedef SInt<N> BigInt;
+template<long_t N, int Accuracy, class RetType>
+struct Compute<long_<N>,Accuracy,RetType> {
+  typedef long_<N> BigInt;
   static RetType value() { return static_cast<RetType>(N); }
 };
 
-template<class BI, int_t ND, base_t Base, int Accuracy, class RetType>
+template<class BI, long_t ND, base_t Base, int Accuracy, class RetType>
 struct Compute<SDecimal<BI,ND,Base>,Accuracy,RetType> {
   typedef SDecimal<BI,ND,Base> Value;
   typedef typename Reduce<Value,Accuracy,Base>::Result TDec;
@@ -269,9 +269,9 @@ struct Compute<SDecimal<BI,ND,Base>,Accuracy,RetType> {
   }
 };
 
-template<int_t N, int_t ND, base_t Base, int Accuracy, class RetType>
-struct Compute<SDecimal<SInt<N>,ND,Base>,Accuracy,RetType> {
-  typedef SDecimal<SInt<N>,ND,Base> Value;
+template<long_t N, long_t ND, base_t Base, int Accuracy, class RetType>
+struct Compute<SDecimal<long_<N>,ND,Base>,Accuracy,RetType> {
+  typedef SDecimal<long_<N>,ND,Base> Value;
   
   static RetType value() {
     return static_cast<RetType>(N) 
@@ -285,8 +285,8 @@ struct Compute<SDecimal<SInt<N>,ND,Base>,Accuracy,RetType> {
 template<class T>
 struct Cout;
 
-template<int_t N>
-struct Cout<SInt<N> > 
+template<long_t N>
+struct Cout<long_<N> > 
 {
   static void apply(std::ostream& os) { 
     os << N;
@@ -296,7 +296,7 @@ struct Cout<SInt<N> >
 template<bool S, class H, class T, base_t Base>
 struct Cout<SBigInt<S,Loki::Typelist<H,T>,Base> > 
 {
-  static const int_t W = NDigits<Base-1,10>::value;
+  static const long_t W = NDigits<Base-1,10>::value;
   typedef Cout<SBigInt<S,T,Base> > Next;
   
   static void apply(std::ostream& os) { 
@@ -332,21 +332,21 @@ struct Cout<SRational<N,D> >
 
 //////////////////////////////////////////
 
-template<bool S, class H, class T, base_t Base, int_t NDecPlaces, base_t DecBase>
+template<bool S, class H, class T, base_t Base, long_t NDecPlaces, base_t DecBase>
 struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecBase> >
 {
-  static const int_t W = NDigits<Base-1,10>::value;
-  static const int_t DW = NDigits<DecBase-1,10>::value;
-  static const int_t Len = NL::Length<SBigInt<S,Loki::Typelist<H,T>,Base> >::value;
-  static const int_t DP = DW * NDecPlaces;
+  static const long_t W = NDigits<Base-1,10>::value;
+  static const long_t DW = NDigits<DecBase-1,10>::value;
+  static const long_t Len = NL::Length<SBigInt<S,Loki::Typelist<H,T>,Base> >::value;
+  static const long_t DP = DW * NDecPlaces;
   typedef Cout<SDecimal<SBigInt<S,T,Base>,NDecPlaces,DecBase> > Next;
   
-  static void apply(std::ostream& os, const int_t len = 0) { 
+  static void apply(std::ostream& os, const long_t len = 0) {
     Next::apply(os,len+W);
     os.fill('0');
     if (DP < len+W && DP > len) {
-      int_t d = 1;
-      for (int i = 0; i < DP-len; ++i) d *= 10;
+      long_t d = 1;
+      for (long_t i = 0; i < DP-len; ++i) d *= 10;
       os.width(W-DP+len);
       os << std::right << H::value/d << "." << H::value%d;
     }
@@ -359,13 +359,13 @@ struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,T>,Base>,NDecPlaces,DecBase> >
   }
 };
 
-template<bool S, class H, base_t Base, int_t NDecPlaces, base_t DecBase>
+template<bool S, class H, base_t Base, long_t NDecPlaces, base_t DecBase>
 struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces,DecBase> > 
 {
-  static const int_t HW = NDigits<H::value,10>::value;
-  static const int_t DP = NDigits<DecBase-1,10>::value * NDecPlaces;
+  static const long_t HW = NDigits<H::value,10>::value;
+  static const long_t DP = NDigits<DecBase-1,10>::value * NDecPlaces;
   
-  static void apply(std::ostream& os, const int_t len = 0) 
+  static void apply(std::ostream& os, const long_t len = 0)
   { 
     if (!S)
       os << "-";
@@ -376,8 +376,8 @@ struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces
       os << std::right << H::value;
     }
     else if (DP < len+HW && DP > len) {
-      int_t d = 1;
-      for (int i = 0; i < DP-len; ++i) d *= 10;
+      long_t d = 1;
+      for (long_t i = 0; i < DP-len; ++i) d *= 10;
       os << H::value/d << "." << H::value%d;
     }
     else
@@ -387,14 +387,14 @@ struct Cout<SDecimal<SBigInt<S,Loki::Typelist<H,Loki::NullType>,Base>,NDecPlaces
   }
 };
 
-template<int_t N, int_t NDecPlaces, base_t DecBase>
-struct Cout<SDecimal<SInt<N>,NDecPlaces,DecBase> > 
+template<long_t N, long_t NDecPlaces, base_t DecBase>
+struct Cout<SDecimal<long_<N>,NDecPlaces,DecBase> > 
 {
   static const bool S = (N>=0);
-  static const int_t AN = S ? N : -N;
-  static const int_t HW = NDigits<AN,10>::value;
+  static const long_t AN = S ? N : -N;
+  static const long_t HW = NDigits<AN,10>::value;
   
-  static void apply(std::ostream& os, const int_t len = 0) 
+  static void apply(std::ostream& os, const long_t len = 0)
   { 
     if (!S)
       os << "-";
@@ -405,7 +405,7 @@ struct Cout<SDecimal<SInt<N>,NDecPlaces,DecBase> >
       os << std::right << AN;
     }
     else if (NDecPlaces < len+HW && NDecPlaces > len) {
-      int_t d = 1;
+      long_t d = 1;
       for (int i = 0; i < NDecPlaces-len; ++i) d *= 10;
       os << AN/d << "." << AN%d;
     }

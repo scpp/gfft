@@ -27,23 +27,23 @@ using namespace MF;
 
 static const int uninitialized_flag = 1000; 
 
-template<int_t N, typename NList, typename VType, typename W1, int S, int_t LastK=1, bool C = (N>=4)>
+template<long_t N, typename NList, typename VType, typename W1, int S, long_t LastK=1, bool C = (N>=4)>
 class _RootsCompute;
 
-template<int_t N, typename Head, typename Tail, typename VType, typename W1, int S, int_t LastK>
+template<long_t N, typename Head, typename Tail, typename VType, typename W1, int S, long_t LastK>
 class _RootsCompute<N,Loki::Typelist<Head,Tail>,VType,W1,S,LastK, true>
 {
    typedef typename VType::ValueType T;
-   static const int_t K = Head::first::value;
-   static const int_t M = N/K;
-   static const int_t NN = N*LastK-2;
-   static const int_t Step = 2*LastK;
+   static const long_t K = Head::first::value;
+   static const long_t M = N/K;
+   static const long_t NN = N*LastK-2;
+   static const long_t Step = 2*LastK;
    
    typedef Compute<typename W1::Re,VType::Accuracy> WR;
    typedef Compute<typename W1::Im,VType::Accuracy> WI;
 
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<Pair<typename Head::first, SInt<Head::second::value-1> >, Tail> NFactNext;
+   typedef Loki::Typelist<pair_<typename Head::first, long_<Head::second::value-1> >, Tail> NFactNext;
    
    _RootsCompute<M,NFactNext,VType,WK,S,K*LastK> next;
 public:
@@ -56,7 +56,7 @@ public:
     w[Step-2] = wpr;
     w[Step-1] = wpi;
 
-    for (int_t i=Step+Step-2; i<NN; i+=Step) {
+    for (long_t i=Step+Step-2; i<NN; i+=Step) {
       if (w[i] == uninitialized_flag) {
 	w[i]   = w[i-Step]*wpr - w[i-Step+1]*wpi;
 	w[i+1] = w[i-Step+1]*wpr + w[i-Step]*wpi;
@@ -65,23 +65,23 @@ public:
   }
 };
 
-template<int_t N, int_t K, typename Tail, typename VType, class W, int S, int_t LastK>
-class _RootsCompute<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, W, S, LastK, true>
+template<long_t N, long_t K, typename Tail, typename VType, class W, int S, long_t LastK>
+class _RootsCompute<N, Loki::Typelist<pair_<long_<K>, long_<0> >,Tail>, VType, W, S, LastK, true>
 : public _RootsCompute<N, Tail, VType, W, S, LastK, true> {};
 
-template<int_t N, int_t K, typename Tail, typename VType, class W, int S, int_t LastK>
-class _RootsCompute<N, Loki::Typelist<Pair<SInt<K>, SInt<0> >,Tail>, VType, W, S, LastK, false>
+template<long_t N, long_t K, typename Tail, typename VType, class W, int S, long_t LastK>
+class _RootsCompute<N, Loki::Typelist<pair_<long_<K>, long_<0> >,Tail>, VType, W, S, LastK, false>
 : public _RootsCompute<N, Tail, VType, W, S, LastK, false> {};
 
 // Specialization for a prime N
-template<int_t N, typename Head, typename VType, class W, int S, int_t LastK>
+template<long_t N, typename Head, typename VType, class W, int S, long_t LastK>
 class _RootsCompute<N,Loki::Typelist<Head, Loki::NullType>, VType, W, S, LastK, false> 
 {
    typedef typename VType::ValueType T;
    typedef Compute<typename W::Re,VType::Accuracy> WR;
    typedef Compute<typename W::Im,VType::Accuracy> WI;
-   static const int_t NN = N*LastK-2;
-   static const int_t Step = 2*LastK;
+   static const long_t NN = N*LastK-2;
+   static const long_t Step = 2*LastK;
 public:
   void init(std::vector<T>& w)
   {
@@ -89,7 +89,7 @@ public:
     const T wpi = WI::value();
     w[Step-2] = wpr;
     w[Step-1] = wpi;
-    for (int_t i=Step+Step-2; i<NN; i+=Step) {
+    for (long_t i=Step+Step-2; i<NN; i+=Step) {
       w[i]   = w[i-Step]*wpr - w[i-Step+1]*wpi;
       w[i+1] = w[i-Step+1]*wpr + w[i-Step]*wpi;
     }
@@ -97,11 +97,11 @@ public:
 };
   
 // Specialization for N=4
-template<typename Head, typename VType, class W, int S, int_t LastK>
+template<typename Head, typename VType, class W, int S, long_t LastK>
 class _RootsCompute<4,Loki::Typelist<Head, Loki::NullType>, VType, W, S, LastK, false> 
 {
    typedef typename VType::ValueType T;
-   static const int_t Step = 2*LastK;
+   static const long_t Step = 2*LastK;
 public:
   void init(std::vector<T>& w)
   {
@@ -110,10 +110,10 @@ public:
   }  
 };
 
-template<int_t N, typename NList, typename VType, int Sign, bool C = (N>=4)>
+template<long_t N, typename NList, typename VType, int Sign, bool C = (N>=4)>
 class RootsHolder;
 
-template<int_t N, typename NList, typename VType, int Sign>
+template<long_t N, typename NList, typename VType, int Sign>
 class RootsHolder<N,NList,VType,Sign,true>
 {
   typedef typename VType::ValueType T;
@@ -127,7 +127,7 @@ class RootsHolder<N,NList,VType,Sign,true>
   
 //  _RootsCompute<N,NList,VType,W1,Sign> comp;
 public:
-  static const int_t Length = (N-1)/2;
+  static const long_t Length = (N-1)/2;
   
   RootsHolder() { init(); }
   
@@ -144,14 +144,14 @@ public:
       m_data[0] = wpr;
       m_data[1] = wpi;
 
-      for (int_t i=2; i<2*Length; i+=2) {
+      for (long_t i=2; i<2*Length; i+=2) {
         m_data[i]   = m_data[i-2]*wpr - m_data[i-1]*wpi;
         m_data[i+1] = m_data[i-1]*wpr + m_data[i-2]*wpi;
       }
   }
 };
   
-template<int_t N, typename NList, typename VType, int Sign>
+template<long_t N, typename NList, typename VType, int Sign>
 class RootsHolder<N,NList,VType,Sign,false>
 {
   typedef typename VType::ValueType T;
@@ -172,10 +172,10 @@ Computes twiddle factors,
 e.g. cos(2*pi/N),...,cos(2*K*pi/N) and sin(2*pi/N),...,sin(2*K*pi/N).
 It is used for prime factors greater than 3.
 */
-template<typename T, int_t N, int S, int_t K>
+template<typename T, long_t N, int S, long_t K>
 struct ComputeTwiddles
 {
-  static const int_t K2 = K*2;
+  static const long_t K2 = K*2;
   
   static void apply(T* c, T* s)
   {
@@ -185,7 +185,7 @@ struct ComputeTwiddles
   }
 };
 
-template<typename T, int_t N, int S>
+template<typename T, long_t N, int S>
 struct ComputeTwiddles<T,N,S,1>
 {
   static void apply(T* c, T* s)
@@ -195,7 +195,7 @@ struct ComputeTwiddles<T,N,S,1>
   }
 };
 
-template<typename T, int_t N, int S, int_t K>
+template<typename T, long_t N, int S, long_t K>
 struct ComputeTwiddlesHolder
 {
   T m_c[K], m_s[K];
@@ -207,7 +207,7 @@ struct ComputeTwiddlesHolder
 
 ///////////////////////////////////////////////////////////////////
 
-template<int_t K, typename VType>
+template<long_t K, typename VType>
 class RootsContainer
 {
 protected:
@@ -220,7 +220,7 @@ public:
   void step()
   {
     T t;
-    for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
       t = wr[i];
       wr[i] = t*wpr[i] - wi[i]*wpi[i];
       wi[i] = wi[i]*wpr[i] + t*wpi[i];
@@ -229,7 +229,7 @@ public:
 };
 
 
-template<int_t K, typename VType, typename W1, typename Permut = Loki::NullType>
+template<long_t K, typename VType, typename W1, typename Permut = Loki::NullType>
 class ComputeRoots : public RootsContainer<K,VType> 
 {
   typedef typename VType::TempType T;
@@ -249,19 +249,19 @@ public:
   { 
     init(); 
     T tr, ti, t;
-    for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
       tr = wr[i];
       ti = wi[i];
-      for (int_t j=1; j<(n==0 ? nthreads : n); ++j) {
+      for (long_t j=1; j<(n==0 ? nthreads : n); ++j) {
 	t = wr[i];
 	wr[i] = t*tr - wi[i]*ti;
 	wi[i] = t*ti + tr*wi[i];
       }
     }
-    for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
       tr = wpr[i];
       ti = wpi[i];
-      for (int_t j=1; j<nthreads; ++j) {
+      for (long_t j=1; j<nthreads; ++j) {
 	t = wpr[i];
 	wpr[i] = t*tr - wpi[i]*ti;
 	wpi[i] = t*ti + tr*wpi[i];
@@ -276,18 +276,18 @@ public:
 	wpi[0] = WI::value();
 	
 	// W^i = (wpr[i], wpi[i])
-	for (int_t i=0; i<K-2; ++i) {
+    for (long_t i=0; i<K-2; ++i) {
 	  wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
 	  wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
 	}
 	
-	for (int_t i=0; i<K-1; ++i) {
-	  int_t ii = Permut::value(i+1) - 1;
+    for (long_t i=0; i<K-1; ++i) {
+      long_t ii = Permut::value(i+1) - 1;
 	  wr[ii] = wpr[i];
 	  wi[ii] = wpi[i];
 	}
 	
-	for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
 	  wpr[i] = wr[i];
 	  wpi[i] = wi[i];
 	}
@@ -295,7 +295,7 @@ public:
 };
 
 // Specialization without permutation
-template<int_t K, typename VType, typename W1>
+template<long_t K, typename VType, typename W1>
 class ComputeRoots<K,VType,W1,Loki::NullType> : public RootsContainer<K,VType> 
 {
   typedef typename VType::TempType T;
@@ -324,12 +324,12 @@ public:
 //       wpi[0] = -S*Sin<N,2,LocalVType>::value();
       
       // W^i = (wpr[i], wpi[i])
-      for (int_t i=0; i<K-2; ++i) {
+      for (long_t i=0; i<K-2; ++i) {
 	wpr[i+1] = wpr[i]*wpr[0] - wpi[i]*wpi[0];
 	wpi[i+1] = wpr[i]*wpi[0] + wpr[0]*wpi[i];
       }
       
-      for (int_t i=0; i<K-1; ++i) {
+      for (long_t i=0; i<K-1; ++i) {
 	wr[i] = wpr[i];
 	wi[i] = wpi[i];
       }
@@ -338,7 +338,7 @@ public:
 
 
 
-template<int_t K, typename VType, typename W1, typename Permut = Loki::NullType>
+template<long_t K, typename VType, typename W1, typename Permut = Loki::NullType>
 class ComputeRootsStd
 {
   typedef typename VType::ValueType CT;
@@ -356,14 +356,14 @@ public:
   { 
     init(); 
     CT t;
-    for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
       t = w[i];
-      for (int_t j=1; j<(n==0 ? nthreads : n); ++j) 
+      for (long_t j=1; j<(n==0 ? nthreads : n); ++j)
 	w[i] *= t;
     }
-    for (int_t i=0; i<K-1; ++i) {
+    for (long_t i=0; i<K-1; ++i) {
       t = wp[i];
-      for (int_t j=1; j<nthreads; ++j) 
+      for (long_t j=1; j<nthreads; ++j)
 	wp[i] *= t;
     }
   }
@@ -375,27 +375,27 @@ public:
 //       wp[0] = Complex<LocalVType>(1 - 2.0*t*t, -S*Sin<N,2,LocalVType>::value());
       
     // W^i = (wpr[i], wpi[i])
-    for (int_t i=0; i<K-2; ++i) 
+    for (long_t i=0; i<K-2; ++i)
       wp[i+1] = wp[i]*wp[0];
       
-    for (int_t i=0; i<K-1; ++i) {
-      int_t ii = Permut::value(i+1) - 1;
+    for (long_t i=0; i<K-1; ++i) {
+      long_t ii = Permut::value(i+1) - 1;
       w[ii] = wp[i];
     }
 
-    for (int_t i=0; i<K-1; ++i) 
+    for (long_t i=0; i<K-1; ++i)
       wp[i] = w[i];
   }
   
   void step()
   {
-    for (int_t i=0; i<K-1; ++i) 
+    for (long_t i=0; i<K-1; ++i)
       w[i] = w[i]*wp[i];
   }
 };
 
 // Specialization without permutation
-template<int_t K, typename VType, typename W1>
+template<long_t K, typename VType, typename W1>
 class ComputeRootsStd<K,VType,W1,Loki::NullType> 
 {
   typedef typename VType::ValueType CT;
@@ -417,16 +417,16 @@ public:
 //       wp[0] = Complex<LocalVType>(1 - 2.0*t*t, -S*Sin<N,2,LocalVType>::value());
       
     // W^i = (wpr2, wpi2)
-    for (int_t i=0; i<K-2; ++i) 
+    for (long_t i=0; i<K-2; ++i)
       wp[i+1] = wp[i]*wp[0];
       
-    for (int_t i=0; i<K-1; ++i) 
+    for (long_t i=0; i<K-1; ++i)
       w[i] = wp[i];
   }
   
   void step()
   {
-    for (int_t i=0; i<K-1; ++i) 
+    for (long_t i=0; i<K-1; ++i)
       w[i] = w[i]*wp[i];
   }
 };

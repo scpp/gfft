@@ -23,7 +23,7 @@ struct SRational {
    typedef Den Denom;
 };
 
-typedef SRational<SInt<1>,SInt<1> > UnitRational;
+typedef SRational<long_<1>,long_<1> > UnitRational;
 
 
 ///Greatest common divisor of A and B
@@ -49,39 +49,39 @@ template<bool S1, class N1, base_t B1, bool S2, class N2, base_t B2>
 struct __GCD<SBigInt<S1,N1,B1>, SBigInt<S2,N2,B2>, -1>
 : public __GCD<SBigInt<S2,N2,B2>, SBigInt<S1,N1,B1>, 1> {};
 
-template<bool S, class N1, base_t Base, int_t N2>
-struct __GCD<SBigInt<S,N1,Base>, SInt<N2>, 1> {
-  typedef typename Div<SBigInt<S,N1,Base>,SInt<N2> >::ModResult Mod;
-  static const int C = NL::Compare<SInt<N2>,Mod>::value;
-  typedef typename __GCD<SInt<N2>,Mod,C>::Result Result;
+template<bool S, class N1, base_t Base, long_t N2>
+struct __GCD<SBigInt<S,N1,Base>, long_<N2>, 1> {
+  typedef typename Div<SBigInt<S,N1,Base>,long_<N2> >::ModResult Mod;
+  static const int C = NL::Compare<long_<N2>,Mod>::value;
+  typedef typename __GCD<long_<N2>,Mod,C>::Result Result;
 };
 
-template<bool S, class N1, base_t Base, int_t N2>
-struct __GCD<SBigInt<S,N1,Base>, SInt<N2>, -1> 
-: public __GCD<SInt<N2>, SBigInt<S,N1,Base>, 1> {};
+template<bool S, class N1, base_t Base, long_t N2>
+struct __GCD<SBigInt<S,N1,Base>, long_<N2>, -1> 
+: public __GCD<long_<N2>, SBigInt<S,N1,Base>, 1> {};
 
-template<bool S, class N1, base_t Base, int_t N2>
-struct __GCD<SInt<N2>, SBigInt<S,N1,Base>, 1> 
+template<bool S, class N1, base_t Base, long_t N2>
+struct __GCD<long_<N2>, SBigInt<S,N1,Base>, 1> 
 {
-   static const int_t N = Evaluate2Int<SBigInt<S,N1,Base>, int_t>::Value;
+   static const long_t N = Evaluate2Int<SBigInt<S,N1,Base>, long_t>::Value;
    static const int C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
-   typedef typename __GCD<SInt<N2>,SInt<N>,C>::Result Result;
+   typedef typename __GCD<long_<N2>,long_<N>,C>::Result Result;
 };
 
-template<bool S, class N1, base_t Base, int_t N2>
-struct __GCD<SInt<N2>, SBigInt<S,N1,Base>, -1> 
-: public __GCD<SBigInt<S,N1,Base>, SInt<N2>, 1> {};
+template<bool S, class N1, base_t Base, long_t N2>
+struct __GCD<long_<N2>, SBigInt<S,N1,Base>, -1> 
+: public __GCD<SBigInt<S,N1,Base>, long_<N2>, 1> {};
 
-template<int_t N1, int_t N2>
-struct __GCD<SInt<N1>, SInt<N2>, 1> {
-   static const int_t N = N1%N2;
+template<long_t N1, long_t N2>
+struct __GCD<long_<N1>, long_<N2>, 1> {
+   static const long_t N = N1%N2;
    static const int C = (N2<N) ? -1 : (N2>N) ? 1 : 0;
-   typedef typename __GCD<SInt<N2>,SInt<N>,C>::Result Result;
+   typedef typename __GCD<long_<N2>,long_<N>,C>::Result Result;
 };
 
-template<int_t N1, int_t N2>
-struct __GCD<SInt<N1>, SInt<N2>, -1> 
-: public __GCD<SInt<N2>, SInt<N1>, 1> {};
+template<long_t N1, long_t N2>
+struct __GCD<long_<N1>, long_<N2>, -1> 
+: public __GCD<long_<N2>, long_<N1>, 1> {};
 
 template<bool S1, bool S2, class N, base_t Base>
 struct __GCD<SBigInt<S1,N,Base>, SBigInt<S2,Loki::NullType,Base>, 1> {
@@ -89,22 +89,22 @@ struct __GCD<SBigInt<S1,N,Base>, SBigInt<S2,Loki::NullType,Base>, 1> {
 };
 
 template<bool S, class N, base_t Base>
-struct __GCD<SBigInt<S,N,Base>, SInt<1>, 1> {
-   typedef SInt<1> Result;
+struct __GCD<SBigInt<S,N,Base>, long_<1>, 1> {
+   typedef long_<1> Result;
 };
 
-template<int_t N>
-struct __GCD<SInt<N>, SInt<1>, 1> {
-   typedef SInt<1> Result;
+template<long_t N>
+struct __GCD<long_<N>, long_<1>, 1> {
+   typedef long_<1> Result;
 };
 
 template<bool S, class N, base_t Base>
-struct __GCD<SBigInt<S,N,Base>, SInt<0>, 1> {
+struct __GCD<SBigInt<S,N,Base>, long_<0>, 1> {
    typedef SBigInt<S,N,Base> Result;
 };
 
-template<int_t N>
-struct __GCD<SInt<N>, SInt<0>, 1> {
+template<long_t N>
+struct __GCD<long_<N>, long_<0>, 1> {
    typedef typename __SwitchToBigInt<N>::Result Result;
 };
 
@@ -119,11 +119,11 @@ public:
 };
 
 template<bool S1, class T1, bool S2, class T2, base_t B>
-class GCD<SBigInt<S1,Loki::Typelist<SInt<0>,T1>,B>,
-          SBigInt<S2,Loki::Typelist<SInt<0>,T2>,B> > {
+class GCD<SBigInt<S1,Loki::Typelist<long_<0>,T1>,B>,
+          SBigInt<S2,Loki::Typelist<long_<0>,T2>,B> > {
   typedef typename GCD<SBigInt<S1,T1,B>,SBigInt<S2,T2,B> >::Result Next;
   typedef typename CreateBigInt<Next,B>::Result NextBig;
-  typedef Loki::Typelist<SInt<0>,typename NextBig::Num> NList;
+  typedef Loki::Typelist<long_<0>,typename NextBig::Num> NList;
 public:
   typedef SBigInt<true,NList,B> Result;
 };
@@ -163,39 +163,39 @@ public:
    typedef SRational<Num,Den> Result;
 };
 
-template<int_t N1, int_t D1, int_t N2, int_t D2>
-class Mult<SRational<SInt<N1>,SInt<D1> >, SRational<SInt<N2>,SInt<D2> > > {
-   static const int_t Num = N1*N2;
-   static const int_t Den = D1*D2;
-   typedef typename GCD<SInt<Num>, SInt<Den> >::Result T;  // T must remain SInt
+template<long_t N1, long_t D1, long_t N2, long_t D2>
+class Mult<SRational<long_<N1>,long_<D1> >, SRational<long_<N2>,long_<D2> > > {
+   static const long_t Num = N1*N2;
+   static const long_t Den = D1*D2;
+   typedef typename GCD<long_<Num>, long_<Den> >::Result T;  // T must remain long_
    typedef typename __SwitchToBigInt<Num/T::value>::Result NumT;
    typedef typename __SwitchToBigInt<Den/T::value>::Result DenT;
 public:
    typedef SRational<NumT,DenT> Result;
 };
 
-template<int_t N, int_t D>
-class Mult<SRational<SInt<N>,SInt<D> >, SRational<SInt<N>,SInt<D> > > {
-   static const int_t Num = N*N;
-   static const int_t Den = D*D;
+template<long_t N, long_t D>
+class Mult<SRational<long_<N>,long_<D> >, SRational<long_<N>,long_<D> > > {
+   static const long_t Num = N*N;
+   static const long_t Den = D*D;
    typedef typename __SwitchToBigInt<Num>::Result NumT;
    typedef typename __SwitchToBigInt<Den>::Result DenT;
 public:
    typedef SRational<NumT,DenT> Result;
 };
 
-template<class N, class D, int_t Num>
-class Mult<SRational<N,D>,SInt<Num> > {
-   typedef typename GCD<SInt<Num>,D>::Result G;
-   typedef typename Div<SInt<Num>,G>::DivResult Num1;
+template<class N, class D, long_t Num>
+class Mult<SRational<N,D>,long_<Num> > {
+   typedef typename GCD<long_<Num>,D>::Result G;
+   typedef typename Div<long_<Num>,G>::DivResult Num1;
    typedef typename Div<D,G>::DivResult D1;
    typedef typename Mult<N,Num1>::Result Numer;
 public:
    typedef SRational<Numer,D1> Result;
 };
 
-template<class N, class D, int_t Num>
-class Mult<SInt<Num>, SRational<N,D> > : public Mult<SRational<N,D>,SInt<Num> > {};
+template<class N, class D, long_t Num>
+class Mult<long_<Num>, SRational<N,D> > : public Mult<SRational<N,D>,long_<Num> > {};
 
 template<class N, class D, bool S, class NList, unsigned int Base>
 class Mult<SRational<N,D>,SBigInt<S,NList,Base> > {
@@ -235,17 +235,17 @@ public:
    typedef SRational<Num,Den> Result;
 };
 
-template<class N, class D, int_t Num>
-class Add<SRational<N,D>,SInt<Num> > {
-   typedef SInt<Num> T;
+template<class N, class D, long_t Num>
+class Add<SRational<N,D>,long_<Num> > {
+   typedef long_<Num> T;
    typedef typename Add<
            typename Mult<D,T>::Result,N>::Result Numer;
 public:
    typedef SRational<Numer,D> Result;
 };
 
-template<class N, class D, int_t Num>
-class Add<SInt<Num>, SRational<N,D> > : public Add<SRational<N,D>,SInt<Num> > {};
+template<class N, class D, long_t Num>
+class Add<long_<Num>, SRational<N,D> > : public Add<SRational<N,D>,long_<Num> > {};
 
 
 template<class N, class D, bool S, class NList, base_t Base>
@@ -266,11 +266,11 @@ template<class N1, class D1, class N2, class D2>
 class Sub<SRational<N1,D1>, SRational<N2,D2> > 
 : public Add<SRational<N1,D1>, typename Negate<SRational<N2,D2> >::Result> { };
 
-template<class N, class D, int_t Num>
-class Sub<SRational<N,D>,SInt<Num> > : public Add<SRational<N,D>,SInt<-Num> > { };
+template<class N, class D, long_t Num>
+class Sub<SRational<N,D>,long_<Num> > : public Add<SRational<N,D>,long_<-Num> > { };
 
-template<class N, class D, int_t Num>
-class Sub<SInt<Num>, SRational<N,D> > : public Add<SInt<Num>, typename Negate<SRational<N,D> >::Result> { };
+template<class N, class D, long_t Num>
+class Sub<long_<Num>, SRational<N,D> > : public Add<long_<Num>, typename Negate<SRational<N,D> >::Result> { };
 
 ///////////////////////////////////////////////
 

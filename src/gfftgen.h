@@ -55,10 +55,10 @@ class Transform
    typedef typename VType::ValueType T;
    
    typedef typename Parall::template Factor<N>::Result NFactor;
-   //static const int_t NR = PrecomputeRoots;
+   //static const long_t NR = PrecomputeRoots;
    //typedef ExtractFactor<NR, NFactor> EF;
-   //static const int_t NN = N::value/NFactor::Head::first::value;
-   //typedef Loki::Typelist<Pair<typename NFactor::Head::first, SInt<NFactor::Head::second::value-1> >, typename NFactor::Tail> NFactNext;
+   //static const long_t NN = N::value/NFactor::Head::first::value;
+   //typedef Loki::Typelist<Pair<typename NFactor::Head::first, long_<NFactor::Head::second::value-1> >, typename NFactor::Tail> NFactNext;
    
    //typedef Loki::SingletonHolder<RootsHolder<NR,typename EF::Result,VType,Type::Sign> > Twiddles;
 
@@ -76,7 +76,7 @@ public:
    typedef ExecType Instance;
 
    enum { ID = IDN };
-   static const int_t Len = N::value;
+   static const long_t Len = N::value;
 
    static ReturnType* Create() {
      return new ExecType();
@@ -114,16 +114,16 @@ struct DefineTransform {
 template<class NList>
 struct TranslateID;
 
-template<id_t N, class T>
-struct TranslateID<Loki::Typelist<s_uint<N>,T> > {
-   static unsigned int apply(const int_t* n) {
+template<ulong_t N, class T>
+struct TranslateID<Loki::Typelist<ulong_<N>,T> > {
+   static ulong_t apply(const ulong_t* n) {
       return TranslateID<T>::apply(n+1)*N + *n;
    }
 };
 
-template<id_t N>
-struct TranslateID<Loki::Typelist<s_uint<N>,Loki::NullType> > {
-   static unsigned int apply(const int_t* n) {
+template<ulong_t N>
+struct TranslateID<Loki::Typelist<ulong_<N>,Loki::NullType> > {
+   static ulong_t apply(const ulong_t* n) {
       return *n;
    }
 };
@@ -189,18 +189,18 @@ typedef GenerateTransform<10, 15, GFFT::DOUBLE, GFFT::TransformTypeGroup::FullLi
 template<class NList,
 class T         /* = ValueTypeList*/,        // has to be set explicitely because of AbstractFFT<T>
 class TransType  = TransformTypeGroup::Default,     // DFT, IDFT, RDFT, IRDFT
-class Dim        = SIntID<1>,
+class Dim        = ulong_<1>,
 class Parall     = ParallelizationGroup::Default,
 class Place      = PlaceGroup::Default>             // IN_PLACE, OUT_OF_PLACE
 class GenerateTransform {
    //typedef typename GenNumList<Begin,End>::Result NList;
-   enum { L1 = Loki::TL::Length<NList>::value };
-   enum { L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value };
-   enum { L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value };
-   enum { L4 = 1 };
-   enum { L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value };
-   enum { L6 = Loki::TL::Length<PlaceGroup::FullList>::value };
-   typedef TYPELIST_6(s_uint<L1>,s_uint<L2>,s_uint<L3>,s_uint<L4>,s_uint<L5>,s_uint<L6>) LenList;
+   static const ulong_t L1 = Loki::TL::Length<NList>::value;
+   static const ulong_t L2 = Loki::TL::Length<ValueTypeGroup::FullList>::value;
+   static const ulong_t L3 = Loki::TL::Length<TransformTypeGroup::FullList>::value;
+   static const ulong_t L4 = 1;
+   static const ulong_t L5 = Loki::TL::Length<ParallelizationGroup::FullList>::value;
+   static const ulong_t L6 = Loki::TL::Length<PlaceGroup::FullList>::value;
+   typedef TYPELIST_6(ulong_<L1>,ulong_<L2>,ulong_<L3>,ulong_<L4>,ulong_<L5>,ulong_<L6>) LenList;
 
    typedef typename Loki::TL::Reverse<LenList>::Result RevLenList;
 
@@ -213,20 +213,20 @@ public:
    typedef typename Place::template Interface<typename T::ValueType>::Result ObjectType;
    typedef Place PlaceType;
 
-   Loki::Factory<ObjectType,int_t,ObjectType*(*)(),TransformFactoryError> factory;
+   Loki::Factory<ObjectType,ulong_t,ObjectType*(*)(),TransformFactoryError> factory;
 
    GenerateTransform() {
       FactoryInit<Result>::apply(factory);
    }
 
-   ObjectType* CreateTransformObject(int_t n, int_t vtype_id, 
-                                   int_t trans_id = TransformTypeGroup::Default::ID, 
-                                   int_t dim = 1, 
-                                   int_t parall_id = ParallelizationGroup::Default::ID, 
-                                   int_t place_id = PlaceGroup::Default::ID) 
+   ObjectType* CreateTransformObject(ulong_t n, ulong_t vtype_id,
+                                     ulong_t trans_id = TransformTypeGroup::Default::ID,
+                                     ulong_t dim = 1,
+                                     ulong_t parall_id = ParallelizationGroup::Default::ID,
+                                     ulong_t place_id = PlaceGroup::Default::ID)
    {
-      int_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, place_id};
-      int_t obj_id = Translate::apply(narr);
+      ulong_t narr[] = {n-1, vtype_id, trans_id, dim-1, parall_id, place_id};
+      ulong_t obj_id = Translate::apply(narr);
       return factory.CreateObject(obj_id);
    }
 
