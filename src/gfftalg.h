@@ -472,8 +472,7 @@ class InTimeOOP<N, Loki::Typelist<Head,Tail>, VType, S, W1, LastK>
    static const long_t N2 = N*C;
    static const long_t LastK2 = LastK*C;
    
-   //typedef typename IPowBig<W1,K>::Result WK;
-   typedef W1 WK;
+   typedef typename IPowBig<W1,K>::Result WK;
    typedef Loki::Typelist<pair_<typename Head::first, ulong_<Head::second::value-1> >, Tail> NFactNext;
    InTimeOOP<M,NFactNext,VType,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W1> dft_scaled;
