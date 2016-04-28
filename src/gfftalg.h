@@ -407,7 +407,7 @@ class InTime<N, Loki::Typelist<Head,Loki::NullType>, VType, S, W1, LastK>
    static const long_t N2 = N*C;
    
    typedef typename IPowBig<W1,K>::Result WK;
-   typedef Loki::Typelist<pair_<typename Head::first, long_<Head::second::value-1> >, Loki::NullType> NFactNext;
+   typedef Loki::Typelist<pair_<typename Head::first, ulong_<Head::second::value-1> >, Loki::NullType> NFactNext;
    InTime<M,NFactNext,VType,S,WK,K*LastK> dft_str;
    DFTk_x_Im_T<K,K*LastK,M,1,VType,S,W1> dft_scaled;
 public:
@@ -423,13 +423,13 @@ public:
 
 // Take the next factor from the list
 template<long_t N, long_t K, typename Tail, typename VType, int S, class W1, long_t LastK>
-class InTime<N, Loki::Typelist<pair_<long_<K>, long_<0> >,Tail>, VType, S, W1, LastK>
+class InTime<N, Loki::Typelist<pair_<ulong_<K>, ulong_<0> >,Tail>, VType, S, W1, LastK>
 : public InTime<N, Tail, VType, S, W1, LastK> {};
 
 
 // Specialization for a prime N
 template<long_t N, typename VType, int S, class W1, long_t LastK>
-class InTime<N,Loki::Typelist<pair_<long_<N>, long_<1> >, Loki::NullType>,VType,S,W1,LastK>
+class InTime<N,Loki::Typelist<pair_<ulong_<N>, ulong_<1> >, Loki::NullType>,VType,S,W1,LastK>
 {
   typedef typename VType::ValueType T;
   static const int C = Loki::TypeTraits<T>::isStdFundamental ? 2 : 1;

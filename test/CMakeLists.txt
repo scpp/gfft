@@ -68,7 +68,7 @@ target_link_libraries(gfft_accuracy c m stdc++ gomp qd fftw3 fftw3l)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -DFFTW -DQD)
+add_definitions(-time -Wall -O3 -fopenmp -ftemplate-depth=10000 -march=native -mtune=native -mfpmath=sse -mavx -funroll-loops -funroll-all-loops -flto -DFFTW -DQD)
 add_definitions(-DPNUM=${PNUM} -DFULLOUTPUT=${FULLOUTPUT} -DPMIN=${PMIN} -DPMAX=${PMAX} -DTYPE=${TYPE} -DPLACE=${PLACE} -DMODE=3)
 
 target_link_libraries(gfft_performance stdc++ qd gomp)
