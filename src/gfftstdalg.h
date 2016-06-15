@@ -62,14 +62,66 @@ public:
       
       spec_inp.apply(data+Step, roots.get());
       for (long_t i=Step+Step; i<M; i+=Step) {
-	roots.step();
-	spec_inp.apply(data+i, roots.get());
+        roots.step();
+        spec_inp.apply(data+i, roots.get());
       }
    }
   
 };
 
-  
+
+// Specialization for radix 2
+template<long_t M, long_t LastK, long_t Step, typename VType, int S, class W1, long_t SimpleSpec>
+class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,SimpleSpec,false>
+{
+   typedef typename VType::ValueType CT;
+//   typedef typename VType::ValueType T;
+   //static const long_t N = 2*M;
+   //static const long_t S2 = 2*Step;
+   //static const long_t NR = (4*PrecomputeRoots > LastK*M) ? LastK*M/4 : PrecomputeRoots;
+//   static const long_t NR = (PrecomputeRoots>=N) ? 2 : PrecomputeRoots/2;
+   //static const long_t K = N/PrecomputeRoots;
+//   static const long_t K2 = 2*K;
+   //typedef typename GetFirstRoot<N,S,VType::Accuracy>::Result W1;
+   typedef Compute<typename W1::Re,VType::Accuracy> WR;
+   typedef Compute<typename W1::Im,VType::Accuracy> WI;
+   DFTk_inp<2,M,VType,S> spec_inp;
+public:
+   void apply(CT* data)
+   {
+      spec_inp.apply(data);
+      if (M%2 == 0)
+        spec_inp.apply_1(data + M/2);
+
+      const CT wp(WR::value(), WI::value());
+      CT t, w(wp);
+
+      spec_inp.apply(data+Step, &w);
+      t = CT(-w.real(), w.imag());
+      spec_inp.apply(data+M-Step, &t);
+      for (long_t i=Step+Step; i<M/2; i+=Step) {
+          w *= wp;
+          spec_inp.apply(data+i, &w);
+          t = CT(-w.real(), w.imag());
+          spec_inp.apply(data+M-i, &t);
+      }
+   }
+};
+
+// Specialization for radix 2
+template<long_t LastK, long_t M, long_t Step, typename VType, int S, class W1>
+class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,2,false>
+{
+   typedef typename VType::ValueType CT;
+   DFTk_inp<2,M,VType,S> spec_inp;
+public:
+   void apply(CT* data)
+   {
+      spec_inp.apply(data);
+      spec_inp.apply_1(data+Step);
+   }
+};
+
 }  //namespace DFT
 
 #endif /*__gfftstdalg_h*/

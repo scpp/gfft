@@ -54,14 +54,14 @@ class DFTk_inp<N,M,VType,S,false>
     for (long_t i=1; i<K+1; ++i) {
       CT t1(0,0), t2(0,0);
       for (long_t j=0; j<K; ++j) {
-	const bool sign_change = (i*(j+1) % N) > K;
-    const long_t kk = (i+j*i)%N;
-    const long_t k = (kk>K) ? N-kk-1 : kk-1;
-	const T s1 = m_s[k]*d[j].imag();
-	const T s2 = m_s[k]*d[j].real();
-	t1 += m_c[k]*s[j];
-	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
-	t2 += tt;
+        const bool sign_change = (i*(j+1) % N) > K;
+        const long_t kk = (i+j*i)%N;
+        const long_t k = (kk>K) ? N-kk-1 : kk-1;
+        const T s1 = m_s[k]*d[j].imag();
+        const T s2 = m_s[k]*d[j].real();
+        t1 += m_c[k]*s[j];
+        CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+        t2 += tt;
       }
       const long_t k = i*M;
       data[k] = data[0] + t1 + t2;
@@ -171,7 +171,14 @@ public:
      data[M] = data[0] - t;
      data[0] += t;
   }
-  void apply_m(CT* data, const CT* w) 
+  // as one above with wr = 0, wi = -1
+  void apply_1(CT* data)
+  {
+        const CT t(data[M].imag(), -data[M].real());
+        data[M] = data[0]-t;
+        data[0] += t;
+  }
+  void apply_m(CT* data, const CT* w)
   { 
      const CT t0(data[0] * w[0]);
      const CT t1(data[M] * w[1]);
@@ -231,14 +238,14 @@ public:
     for (long_t i=1; i<K+1; ++i) {
       CT t1(0,0), t2(0,0);
       for (long_t j=0; j<K; ++j) {
-	const bool sign_change = (i*(j+1) % N) > K;
-    const long_t kk = (i+j*i)%N;
-    const long_t k = (kk>K) ? N-kk-1 : kk-1;
-	const T s1 = m_s[k]*d[j].imag();
-	const T s2 = m_s[k]*d[j].real();
-	t1 += m_c[k]*s[j];
-	CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
-	t2 += tt;
+        const bool sign_change = (i*(j+1) % N) > K;
+        const long_t kk = (i+j*i)%N;
+        const long_t k = (kk>K) ? N-kk-1 : kk-1;
+        const T s1 = m_s[k]*d[j].imag();
+        const T s2 = m_s[k]*d[j].real();
+        t1 += m_c[k]*s[j];
+        CT tt(sign_change ? -s1 : s1, sign_change ? s2 : -s2);
+        t2 += tt;
       }
       const long_t k = i*DI;
       dst[k] = src[0] + t1 + t2;

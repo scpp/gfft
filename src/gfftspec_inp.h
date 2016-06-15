@@ -57,15 +57,15 @@ class DFTk_inp<N,M,VType,S,true>
     for (long_t i=1; i<K+1; ++i) {
       T re1(0), re2(0), im1(0), im2(0);
       for (long_t j=0; j<K; ++j) {
-	const bool sign_change = (i*(j+1) % N) > K;
-    const long_t kk = (i+j*i)%N;
-    const long_t k = (kk>K) ? N-kk-1 : kk-1;
-	const T s1 = m_s[k]*di[j];
-	const T s2 = m_s[k]*dr[j];
-	re1 += m_c[k]*sr[j];
-	im1 += m_c[k]*si[j];
-	re2 += sign_change ? -s1 : s1;
-	im2 -= sign_change ? -s2 : s2;
+        const bool sign_change = (i*(j+1) % N) > K;
+        const long_t kk = (i+j*i)%N;
+        const long_t k = (kk>K) ? N-kk-1 : kk-1;
+        const T s1 = m_s[k]*di[j];
+        const T s2 = m_s[k]*dr[j];
+        re1 += m_c[k]*sr[j];
+        im1 += m_c[k]*si[j];
+        re2 += sign_change ? -s1 : s1;
+        im2 -= sign_change ? -s2 : s2;
       }
       const long_t k = i*M;
       data[k] = data[0] + re1 + re2;

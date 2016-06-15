@@ -359,12 +359,12 @@ public:
     for (long_t i=0; i<K-1; ++i) {
       t = w[i];
       for (long_t j=1; j<(n==0 ? nthreads : n); ++j)
-	w[i] *= t;
+        w[i] *= t;
     }
     for (long_t i=0; i<K-1; ++i) {
       t = wp[i];
       for (long_t j=1; j<nthreads; ++j)
-	wp[i] *= t;
+        wp[i] *= t;
     }
   }
   

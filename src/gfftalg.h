@@ -184,8 +184,8 @@ public:
 
       spec_inp.apply(data+S2, roots.get_real(), roots.get_imag());
       for (long_t j=S2+S2; j<M2; j+=S2) {
-	roots.step();
-	spec_inp.apply(data+j, roots.get_real(), roots.get_imag());
+        roots.step();
+        spec_inp.apply(data+j, roots.get_real(), roots.get_imag());
       }
    }
   
@@ -244,7 +244,7 @@ public:
    {
       spec_inp.apply(data);
       if (M%2 == 0) 
-	spec_inp.apply_1(data+M);
+        spec_inp.apply_1(data+M);
       
       T wr,wi,t;
       const T wpr = WR::value();
@@ -256,12 +256,12 @@ public:
       t = -wr;
       spec_inp.apply(data+N-S2, &t, &wi);
       for (long_t i=S2+S2; i<M; i+=S2) {
-	  t = wr;
-	  wr = wr*wpr - wi*wpi;
-	  wi = wi*wpr + t*wpi;
-	  spec_inp.apply(data+i, &wr, &wi);
-	  t = -wr;
-	  spec_inp.apply(data+N-i, &t, &wi);
+          t = wr;
+          wr = wr*wpr - wi*wpi;
+          wi = wi*wpr + t*wpi;
+          spec_inp.apply(data+i, &wr, &wi);
+          t = -wr;
+          spec_inp.apply(data+N-i, &t, &wi);
       }
    }  
 };

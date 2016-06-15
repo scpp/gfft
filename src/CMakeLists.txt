@@ -3,15 +3,15 @@ cmake_minimum_required(VERSION 2.8.9)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_COMPILER gcc)
 
-FILE(GLOB_RECURSE LibFiles "*.h")
-add_custom_target(headers_src SOURCES ${LibFiles})
+file(GLOB_RECURSE gfft_header_files "*.h")
+add_custom_target(gfft_headers SOURCES ${gfft_header_files})
 
 include_directories(../loki)
 include_directories(../metafactor)
 
 add_executable(gfft gfft.cpp)
-add_executable(metapi metapi.cpp)
-add_executable(metasqrt metasqrt.cpp)
+#add_executable(metapi metapi.cpp)
+#add_executable(metasqrt metasqrt.cpp)
 
 # Set default values 
 if(NOT DEFINED ${NUM})
@@ -65,12 +65,12 @@ target_link_libraries(metasqrt c m stdc++ gomp)
 else(CMAKE_CXX_COMPILER MATCHES "icpc")
 
 ### GCC compiler
-add_definitions(-time -Wall -fopenmp -O3 -ftemplate-backtrace-limit=0 )
+#add_definitions(-time -Wall -fopenmp -O3 -ftemplate-backtrace-limit=0 )
 add_definitions(-DNUM=${NUM} -DFULLOUTPUT=${FULLOUTPUT} -DTYPE=${TYPE} -DPLACE=${PLACE} -DNUMTHREADS=${NUMTHREADS} -DMODE=3)
 
 target_link_libraries(gfft stdc++ m gomp)
-target_link_libraries(metapi c m stdc++ gomp)
-target_link_libraries(metasqrt c m stdc++ gomp)
+#target_link_libraries(metapi c m stdc++ gomp)
+#target_link_libraries(metasqrt c m stdc++ gomp)
 
 endif(CMAKE_CXX_COMPILER MATCHES "icpc")
 
