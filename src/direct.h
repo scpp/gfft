@@ -20,12 +20,16 @@
 */
 
 #include <iostream>
+#include <cstdlib>
+#include <complex>
 
 #ifdef QD
 // install libqd-dev to get these packages
 #include "qd/dd_real.h"
 #include "qd/qd_real.h"
 #endif
+
+#include "../loki/TypeTraits.h"
 
 
 double to_double(const double d) { return d; }
@@ -127,10 +131,10 @@ struct ComplexWrapper<T,false>
   T& c;
   ComplexWrapper(T* data, const long_t i) : c(data[i]) {}
 
-  VT& real() { return c.real(); }
-  VT& imag() { return c.imag(); }
-  const VT& real() const { return c.real(); }
-  const VT& imag() const { return c.imag(); }
+//  VT& real() { return c.real(); }
+//  VT& imag() { return c.imag(); }
+  const VT real() const { return c.real(); }
+  const VT imag() const { return c.imag(); }
 };
 
 /////////////////////////////////////////////////////
@@ -155,15 +159,15 @@ class DFT_wrapper
       output_data[2*y] = 0.;
       output_data[2*y+1] = 0.;
       for(long_t x = 0; x < size; x++) {
-    a = pi2 * static_cast<T>(static_cast<double>(y * x)) * invs;
-	ca = cos(a);
-	sa = sin(a);
-	output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
-	output_data[2*y+1] += input_data[2*x] * sa + input_data[2*x+1] * ca;
+        a = pi2 * static_cast<T>(static_cast<double>(y * x)) * invs;
+        ca = cos(a);
+        sa = sin(a);
+        output_data[2*y]   += input_data[2*x] * ca - input_data[2*x+1] * sa;
+        output_data[2*y+1] += input_data[2*x] * sa + input_data[2*x+1] * ca;
       }
       if(inverse) {
-	output_data[2*y]   *= invs;
-	output_data[2*y+1] *= invs;
+        output_data[2*y]   *= invs;
+        output_data[2*y+1] *= invs;
       }
     }
   }
@@ -274,9 +278,9 @@ struct DCT1
     for(long_t k = 0; k < size; k++) {
       output_data[k] = 0.;
       for(long_t l = 0; l < size; l++) {
-	a = k * l * invs;
-	ca = cos(a);
-	output_data[k] += input_data[l] * ca;
+        a = k * l * invs;
+        ca = cos(a);
+        output_data[k] += input_data[l] * ca;
       }
 //       if(inverse) {
 // 	output_data[k]   *= invs;
@@ -296,9 +300,9 @@ struct DCT2
     for(long_t k = 0; k < size; k++) {
       output_data[k] = 0.;
       for(long_t l = 0; l < size; l++) {
-	a = k * l * invs;
-	ca = cos(a);
-	output_data[k] += input_data[l] * ca;
+        a = k * l * invs;
+        ca = cos(a);
+        output_data[k] += input_data[l] * ca;
       }
 //       if(inverse) {
 // 	output_data[k]   *= invs;

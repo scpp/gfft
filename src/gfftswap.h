@@ -93,8 +93,8 @@ class GFFTswap2<M,P,T,P> {
 public:
    void apply(T* data, long_t n=0, long_t r=0) {
       if (n>r) {
-    const long_t n2 = 2*n;
-    const long_t r2 = 2*r;
+        const long_t n2 = 2*n;
+        const long_t r2 = 2*r;
         std::swap(data[n2],data[r2]);
         std::swap(data[n2+1],data[r2+1]);
       }

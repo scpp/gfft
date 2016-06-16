@@ -25,19 +25,19 @@ namespace MF {
 
 template<long_t A, long_t P, class RetType = long double>
 struct DPow {
-  static RetType value() {
+  static constexpr RetType value() {
     return static_cast<RetType>(A) * DPow<A,P-1,RetType>::value();
   }
 };
 
 template<long_t A, class RetType>
 struct DPow<A,1,RetType> {
-  static RetType value() { return A; }
+  static constexpr RetType value() { return A; }
 };
 
 template<long_t A, class RetType>
 struct DPow<A,0,RetType> {
-  static RetType value() { return 1; }
+  static constexpr RetType value() { return 1; }
 };
 
 

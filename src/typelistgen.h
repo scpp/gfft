@@ -20,7 +20,7 @@
     \brief Typelist generation classes
 */
 
-#include "sint.h"
+#include "gfftpolicy.h"
 
 namespace GFFT {
 

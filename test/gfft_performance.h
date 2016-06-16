@@ -27,6 +27,7 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+
 namespace GFFT {
 
 using namespace boost::posix_time;
@@ -47,7 +48,7 @@ public:
   {
       // initial data
       for (ulong_t i=0; i<2*len*it; ++i)
-	src[i] = 0;
+        src[i] = 0;
 
 //       for (unsigned int j=0; j<it; ++j) {
 // 	for (ulong_t i=0; i < n; ++i) {
@@ -78,6 +79,8 @@ public:
   
 };
 
+
+/////////////////////////////////////////////////////////////////
 template<class NList, class Place,
 int Counter = Loki::TL::Length<NList>::value>
 class GFFTbench;
@@ -107,13 +110,13 @@ public:
      for (int i=0; i<3; ++i) {
         d=data;
         // CPU-time
-	time1 = clock();
+        time1 = clock();
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d);
           d+=2*H::Len;
         }
         time2=clock();
-	t=static_cast<double>(time2-time1)/static_cast<double>(CLOCKS_PER_SEC);
+        t=static_cast<double>(time2-time1)/static_cast<double>(CLOCKS_PER_SEC);
         if (t<mt) mt=t;
      }
      
@@ -186,14 +189,13 @@ public:
      for (int i=0; i<3; ++i) {
         d=data;
         // CPU-time
-	time1 = clock();
+        time1 = clock();
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d, dataout);
-//          gfft.fft(d);
           d+=2*H::Len;
         }
         time2=clock();
-	t=static_cast<double>(time2-time1)/CLOCKS_PER_SEC;
+        t=static_cast<double>(time2-time1)/CLOCKS_PER_SEC;
         if (t<mt) mt=t;
      }
      
@@ -222,7 +224,6 @@ public:
         d=data;
         for (size_t j=0; j<it; ++j) {
           gfft.fft(d, dataout);
-//          gfft.fft(d);
           d+=2*H::Len;
         }
      }

@@ -28,6 +28,7 @@
 #include "sint.h"
 #include "twiddles.h"
 #include "gfftfactor.h"
+#include "gfftomp.h"
 
 static const long_t SwitchToOMP = (1<<8);
 
@@ -166,7 +167,7 @@ struct IN_PLACE {
     //   in-place transform
       void fft(T* data) 
       { 
-	m_run.apply(data); 
+        m_run.apply(data);
       }
    };
    

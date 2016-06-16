@@ -174,7 +174,8 @@ public:
   // as one above with wr = 0, wi = -1
   void apply_1(CT* data)
   {
-        const CT t(data[M].imag(), -data[M].real());
+        const CT t((S<0) ? -data[M].imag() : data[M].imag(),
+                   (S<0) ? data[M].real() : -data[M].real());
         data[M] = data[0]-t;
         data[0] += t;
   }

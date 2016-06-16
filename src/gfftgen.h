@@ -31,7 +31,7 @@ namespace GFFT {
 
   
 /** \class {GFFT::Transform}
-\brief Generic Fast Fourier transform in-place class
+\brief Generic Fast Fourier transform class
 \tparam Power2 defines transform length, which is 2^Power2
 \tparam VType type of data element
 \tparam Type type of transform: DFT, IDFT, RDFT, IRDFT

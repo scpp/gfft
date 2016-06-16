@@ -218,7 +218,7 @@ public:
         t = wr;
         wr = wr*wpr - wi*wpi;
         wi = wi*wpr + t*wpi;
-	spec_inp.apply(data+i, &wr, &wi);
+        spec_inp.apply(data+i, &wr, &wi);
       }
    }
 };
@@ -353,13 +353,13 @@ public:
 */
 // Specialization for radix 2
 template<long_t LastK, long_t M, long_t Step, typename VType, int S, class W1>
-class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,2,true> 
+class DFTk_x_Im_T<2,LastK,M,Step,VType,S,W1,2,true>
 {
    typedef typename VType::ValueType T;
    static const long_t S2 = 2*Step;
    DFTk_inp<2,2*M,VType,S> spec_inp;
 public:
-   void apply(T* data) 
+   void apply(T* data)
    {
       spec_inp.apply(data);
       spec_inp.apply_1(data+S2);
@@ -415,7 +415,7 @@ public:
    {
      // run strided DFT recursively K times
       for (long_t m=0; m < N2; m+=M2)
-	dft_str.apply(data + m);
+        dft_str.apply(data + m);
 
       dft_scaled.apply(data);
    }

@@ -21,6 +21,8 @@
 
 #include "metaroot.h"
 
+#include <vector>
+
 namespace GFFT {
 
 using namespace MF;
@@ -58,8 +60,8 @@ public:
 
     for (long_t i=Step+Step-2; i<NN; i+=Step) {
       if (w[i] == uninitialized_flag) {
-	w[i]   = w[i-Step]*wpr - w[i-Step+1]*wpi;
-	w[i+1] = w[i-Step+1]*wpr + w[i-Step]*wpi;
+        w[i]   = w[i-Step]*wpr - w[i-Step+1]*wpi;
+        w[i+1] = w[i-Step+1]*wpr + w[i-Step]*wpi;
       }
     }
   }

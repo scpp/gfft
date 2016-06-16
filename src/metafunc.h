@@ -245,7 +245,7 @@ struct Compute<SRational<Numer,Denom>,Accuracy,RetType> {
   typedef typename RationalToDecimal<Value,Accuracy,DefaultDecimalBase>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
-  static RetType value() {
+  static constexpr RetType value() {
     return EvaluateToFloat<BigInt,RetType>::value()
          / DPow<DefaultDecimalBase,Accuracy,RetType>::value();
   }
@@ -254,7 +254,7 @@ struct Compute<SRational<Numer,Denom>,Accuracy,RetType> {
 template<long_t N, int Accuracy, class RetType>
 struct Compute<long_<N>,Accuracy,RetType> {
   typedef long_<N> BigInt;
-  static RetType value() { return static_cast<RetType>(N); }
+  static constexpr RetType value() { return static_cast<RetType>(N); }
 };
 
 template<class BI, long_t ND, base_t Base, int Accuracy, class RetType>
@@ -263,7 +263,7 @@ struct Compute<SDecimal<BI,ND,Base>,Accuracy,RetType> {
   typedef typename Reduce<Value,Accuracy,Base>::Result TDec;
   typedef typename DoubleBase<typename TDec::Num>::Result BigInt;
   
-  static RetType value() {
+  static constexpr RetType value() {
     return EvaluateToFloat<BigInt,RetType>::value() 
            / DPow<Base,Accuracy,RetType>::value();
   }
@@ -273,7 +273,7 @@ template<long_t N, long_t ND, base_t Base, int Accuracy, class RetType>
 struct Compute<SDecimal<long_<N>,ND,Base>,Accuracy,RetType> {
   typedef SDecimal<long_<N>,ND,Base> Value;
   
-  static RetType value() {
+  static constexpr RetType value() {
     return static_cast<RetType>(N) 
            / DPow<Base,ND,RetType>::value();
   }

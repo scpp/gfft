@@ -296,11 +296,11 @@ public:
         data[0] += tr;
         data[1] += ti;
   }
-  // as one above with wr = 0, wi = -1
+  // as one above with wr = 0, wi = -S (-1 for forward; 1 for backward)
   void apply_1(T* data) 
   { 
-        const T tr = data[M+1];
-        const T ti = -data[M];
+        const T tr = (S<0) ? -data[M+1] : data[M+1];
+        const T ti = (S<0) ? data[M] : -data[M];
         data[M] = data[0]-tr;
         data[M+1] = data[1]-ti;
         data[0] += tr;
